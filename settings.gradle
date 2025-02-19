@@ -1,0 +1,6 @@
+rootProject.name = 'ttt-root-project'
+include 'module-alarm'
+include 'module-exchange'
+include 'module-member'
+include 'module-stock'
+include 'module-trip'
