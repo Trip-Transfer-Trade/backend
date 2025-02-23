@@ -1,29 +1,36 @@
 package com.example.module_trip.tripGoal;
 
+import com.example.module_trip.account.Account;
+import com.example.module_utility.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
 @Getter
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
-public class TripGoal {
+public class TripGoal extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
     private String name;
     private String country;
     private BigDecimal goalAmount;
     private BigDecimal profit;
-    private LocalDate closingDate;
 
-    private int accountId;
+    @OneToOne
+    @JoinColumn(name="account_id",nullable = false)
+    private Account account;
+
+    @Builder
+    public TripGoal(String name, String country, BigDecimal goalAmount, BigDecimal profit, Account account){
+        this.name = name;
+        this.country = country;
+        this.goalAmount = goalAmount;
+        this.profit = profit;
+        this.account = account;
+    }
 
 }
