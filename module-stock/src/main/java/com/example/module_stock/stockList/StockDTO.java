@@ -23,5 +23,5 @@ public class StockDTO {
     private int priceChangeSign;
 
     @JsonProperty("prdy_ctrt")
-    private double priceChangeRate;
+    private String priceChangeRate;
 }
