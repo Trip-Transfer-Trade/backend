@@ -64,3 +64,10 @@ project(':module-exchange') {
 		implementation project(':module-utility')
 	}
 }
+
+project(':module-stock') {
+	dependencies {
+		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+		implementation 'com.h2database:h2'
+	}
+}
