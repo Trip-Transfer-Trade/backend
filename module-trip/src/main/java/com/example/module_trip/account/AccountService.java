@@ -3,6 +3,7 @@ package com.example.module_trip.account;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,5 +38,13 @@ public class AccountService {
                 .stream()
                 .map(AccountResponseDTO::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    public AccountResponseDTO getAccountByAccountId(Integer accountId) {
+         return accountRepository.findById(accountId)
+                 .map(AccountResponseDTO::toDTO)
+                 .orElseThrow(() -> new IllegalArgumentException("Account not found with id: " + accountId));
+
+
     }
 }
