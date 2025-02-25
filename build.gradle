@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.2'
+	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -18,6 +18,9 @@ allprojects {
 			languageVersion = JavaLanguageVersion.of(17)
 		}
 	}
+	ext {
+		set('springCloudVersion', "2023.0.0")
+	}
 
 	configurations {
 		compileOnly {
@@ -30,6 +33,7 @@ allprojects {
 	}
 
 	dependencies {
+
 		implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 //		implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -52,15 +56,16 @@ allprojects {
 
 }
 
-// ⚠️ a-module 프로젝트 개별 추가 설정
-
-project(':module-trip') {
+project(':module-exchange') {
 	dependencies {
 		implementation project(':module-utility')
+		implementation project(':module-trip')
+		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	}
+	
 }
 
-project(':module-exchange') {
+project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
 	}

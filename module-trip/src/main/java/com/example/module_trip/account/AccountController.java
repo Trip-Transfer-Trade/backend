@@ -23,4 +23,9 @@ public class AccountController {
     public List<AccountResponseDTO> getAccount(@RequestParam("user_id") Integer userId){
         return accountService.getAccountById(userId);
     }
+
+    @GetMapping("/{accountId}")
+    public AccountResponseDTO getAccountById(@PathVariable("accountId") Integer accountId){
+        return  accountService.getAccountByAccountId(accountId);
+    }
 }
