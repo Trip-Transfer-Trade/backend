@@ -4,9 +4,9 @@ import lombok.Getter;
 
 @Getter
 public class Response<T> {
-    private int status;
-    private String message;
-    private T data;
+    private final int status;
+    private final String message;
+    private final T data;
 
     public Response(int status, String message, T data) {
         this.status = status;
