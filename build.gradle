@@ -37,6 +37,7 @@ allprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-validation'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+		implementation 'com.google.firebase:firebase-admin:9.2.0'
 		compileOnly 'org.projectlombok:lombok'
 		runtimeOnly 'com.mysql:mysql-connector-j'
 		annotationProcessor 'org.projectlombok:lombok'
@@ -69,5 +70,11 @@ project(':module-stock') {
 	dependencies {
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 		implementation 'com.h2database:h2'
+	}
+}
+
+project(':module-alarm'){
+	dependencies {
+		implementation project(':module-utility')
 	}
 }
