@@ -28,5 +28,9 @@ public class AlarmHistory {
         this.isRead = false;
     }
 
+    public void updateReadStatus() {
+        this.isRead = true;
+    }
+
 }
 

@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/alarm")
+@RequestMapping("/api/alarms")
 public class AlarmController {
 
     private final AlarmService alarmService;
@@ -20,9 +20,21 @@ public class AlarmController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<AlarmResponseDTO>> findAlarmByUserId(@PathVariable Integer userId) {
+    @GetMapping("")
+    public ResponseEntity<List<AlarmResponseDTO>> findAlarmByUserId(@RequestParam final Integer userId) {
         Response<List<AlarmResponseDTO>> response = alarmService.findAlarmByUserId(userId);
         return ResponseEntity.ok(response.getData());
+    }
+
+    @PatchMapping("/{alarmId}")
+    public ResponseEntity updateAlarm(@PathVariable Integer alarmId) {
+        Response response = alarmService.updateAlarmReadStatus(alarmId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PatchMapping("")
+    public ResponseEntity updateAllAlarm(@RequestParam final Integer userId) {
+        Response response = alarmService.updateAllAlarmReadStatus(userId);
+        return ResponseEntity.status(response.getStatus()).body(response);
     }
 }

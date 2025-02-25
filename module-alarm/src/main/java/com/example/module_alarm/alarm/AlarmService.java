@@ -8,6 +8,7 @@ import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.firebase.messaging.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,29 @@ public class AlarmService {
                 .map(AlarmResponseDTO::toDTO)
                 .collect(Collectors.toList());
         return Response.success(alarms);
+    }
+
+    @Transactional
+    public Response updateAlarmReadStatus(Integer alarmId){
+        try {
+            AlarmHistory alarm = alarmRepository.findById(alarmId)
+                    .orElseThrow(() -> new EntityNotFoundException("알림을 찾을 수 없습니다."));
+            if(alarm.isRead()){
+                return Response.error(409,"이미 읽은 알림입니다.");
+            }
+
+            alarm.updateReadStatus();
+            alarmRepository.save(alarm);
+            return Response.successWithoutData();
+        } catch (EntityNotFoundException e) {
+            return Response.error(404, e.getMessage()); // 예외 메시지를 직접 Response에 포함
+        }
+    }
+
+    @Transactional
+    public Response updateAllAlarmReadStatus(Integer userId){
+        alarmRepository.updateAllAsReadByUserId(userId);
+        return Response.success("모든 알림 읽음 처리");
     }
 
     @Transactional
