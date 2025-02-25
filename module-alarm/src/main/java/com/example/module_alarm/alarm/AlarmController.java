@@ -37,4 +37,16 @@ public class AlarmController {
         Response response = alarmService.updateAllAlarmReadStatus(userId);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
+    @DeleteMapping("")
+    public ResponseEntity deleteAllAlarm(@RequestParam final Integer userId) {
+        Response response = alarmService.deleteAllAlarm(userId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @DeleteMapping("/{alarmId}")
+    public ResponseEntity deleteAlarmById(@PathVariable final Integer alarmId) {
+        Response response = alarmService.deleteAlarmById(alarmId);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
 }

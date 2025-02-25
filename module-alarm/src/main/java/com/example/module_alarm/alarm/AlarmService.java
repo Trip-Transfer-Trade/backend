@@ -31,7 +31,6 @@ public class AlarmService {
         return Response.success(alarms);
     }
 
-    @Transactional
     public Response updateAlarmReadStatus(Integer alarmId){
         try {
             AlarmHistory alarm = alarmRepository.findById(alarmId)
@@ -119,4 +118,14 @@ public class AlarmService {
         }
     }
 
+    @Transactional
+    public Response deleteAllAlarm(Integer userId) {
+        alarmRepository.deleteAllByUserId(userId);
+        return Response.success("모든 알림 삭제 완료");
+    }
+
+    public Response deleteAlarmById(Integer alarmId) {
+        alarmRepository.deleteById(alarmId);
+        return Response.success("알림 삭제 완료");
+    }
 }
