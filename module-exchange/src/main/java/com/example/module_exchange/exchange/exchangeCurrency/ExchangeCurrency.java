@@ -1,7 +1,9 @@
-package com.example.module_exchange.exchange;
+package com.example.module_exchange.exchange.exchangeCurrency;
 
 import com.example.module_utility.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +12,8 @@ import java.math.BigDecimal;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ExchangeCurrency extends BaseEntity {
 
     @Id
@@ -17,10 +21,11 @@ public class ExchangeCurrency extends BaseEntity {
     private Integer id;
 
     private String currencyCode;
-    private BigDecimal ammount;
+    private BigDecimal amount;
+    private Integer accountId;
 
-    @ManyToOne
-    @JoinColumn(name = "wallet_id", nullable = false)
-    ExchangeWallet exchangeWallet;
-
+    public void changeAmount(BigDecimal amount) {
+        this.amount = this.amount.add(amount);
+    }
 }
+

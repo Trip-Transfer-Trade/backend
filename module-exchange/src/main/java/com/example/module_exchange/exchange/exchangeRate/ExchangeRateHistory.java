@@ -1,5 +1,4 @@
-package com.example.module_exchange.exchange;
-
+package com.example.module_exchange.exchange.exchangeRate;
 
 import com.example.module_utility.entity.BaseEntity;
 import jakarta.persistence.Entity;
@@ -13,15 +12,12 @@ import java.math.BigDecimal;
 @Entity
 @Getter
 @NoArgsConstructor
-public class ExchangeWallet extends BaseEntity {
+public class ExchangeRateHistory extends BaseEntity {
 
     @Id
     @GeneratedValue
     private Integer id;
 
     private String currencyCode;
-    private BigDecimal amount;
-
-    private Integer accountId;
+    private BigDecimal exchangeRate;
 }
-
