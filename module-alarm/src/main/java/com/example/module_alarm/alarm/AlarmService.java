@@ -2,6 +2,7 @@ package com.example.module_alarm.alarm;
 
 import com.example.module_alarm.fcm.Fcm;
 import com.example.module_alarm.fcm.FcmRepository;
+import com.example.module_utility.response.Response;
 import com.google.api.core.ApiFuture;
 import com.google.api.core.ApiFutureCallback;
 import com.google.api.core.ApiFutures;
@@ -13,12 +14,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @AllArgsConstructor
 public class AlarmService {
     private final AlarmRepository alarmRepository;
     private final FcmRepository fcmRepository;
+
+    public Response<List<AlarmResponseDTO>> findAlarmByUserId(Integer userId){
+        List<AlarmResponseDTO> alarms = alarmRepository.findByUserIdOrderByIdDesc(userId).stream()
+                .map(AlarmResponseDTO::toDTO)
+                .collect(Collectors.toList());
+        return Response.success(alarms);
+    }
 
     @Transactional
     public void sendAlarm(AlarmRequestDTO requestDTO) {
