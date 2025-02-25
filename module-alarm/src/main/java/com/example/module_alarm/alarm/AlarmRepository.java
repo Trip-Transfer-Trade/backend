@@ -15,5 +15,9 @@ public interface AlarmRepository extends JpaRepository<AlarmHistory,Integer> {
     @Query("UPDATE AlarmHistory a SET a.isRead = true WHERE a.userId = :userId AND a.isRead = false")
     void updateAllAsReadByUserId(@Param("userId") Integer userId);
 
+    @Modifying
+    @Query("DELETE FROM AlarmHistory a WHERE a.userId = :userId")
+    void deleteAllByUserId(@Param("userId") Integer userId);
+
     List<AlarmHistory> findByUserIdOrderByIdDesc(Integer userId);
 }
