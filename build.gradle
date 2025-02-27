@@ -61,7 +61,6 @@ project(':module-exchange') {
 		implementation project(':module-utility')
 		implementation project(':module-trip')
 		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-		implementation 'io.github.openfeign:feign-httpclient'
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	}
 
