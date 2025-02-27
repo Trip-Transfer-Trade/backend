@@ -24,11 +24,11 @@ public class AlarmService {
     private final AlarmRepository alarmRepository;
     private final FcmRepository fcmRepository;
 
-    public Response<List<AlarmResponseDTO>> findAlarmByUserId(Integer userId){
+    public List<AlarmResponseDTO> findAlarmByUserId(Integer userId){
         List<AlarmResponseDTO> alarms = alarmRepository.findByUserIdOrderByIdDesc(userId).stream()
                 .map(AlarmResponseDTO::toDTO)
                 .collect(Collectors.toList());
-        return Response.success(alarms);
+        return alarms;
     }
 
     public Response updateAlarmReadStatus(Integer alarmId){
@@ -48,9 +48,8 @@ public class AlarmService {
     }
 
     @Transactional
-    public Response updateAllAlarmReadStatus(Integer userId){
+    public void updateAllAlarmReadStatus(Integer userId){
         alarmRepository.updateAllAsReadByUserId(userId);
-        return Response.success("모든 알림 읽음 처리");
     }
 
     @Transactional
@@ -59,7 +58,7 @@ public class AlarmService {
         alarmRepository.save(requestDTO.toEntity());
         //fcm 푸시 알림
         List<Fcm> fcmList = fcmRepository.findByUserId(requestDTO.getUserId());
-        String msg = getNotificationMessage(requestDTO.getType(), requestDTO.getTripId());
+        String msg = getNotificationMessage(requestDTO.getType(), requestDTO.getTripName());
 
         Notification notification = Notification.builder()
                 .setTitle("TTT")
@@ -98,34 +97,32 @@ public class AlarmService {
         }, MoreExecutors.directExecutor());
     }
 
-    private String getNotificationMessage(AlarmType type, Integer tripId){
+    private String getNotificationMessage(AlarmType type, String tripName) {
         switch (type) {
             case GOAL_ACHIEVED:
-                return tripId + " 목표를 달성했어요";
+                return tripName + " 목표를 달성했어요";
             case GOAL_FAILED:
-                return tripId + " 목표 기간이 만료됐어요";
+                return tripName + " 목표 기간이 만료됐어요";
             case EXCHANGE_AFTER_GOAL:
-                return tripId + " 목표 기간이 만료됐어요, 환전 할까요?";
+                return tripName + " 목표 기간이 만료됐어요, 환전 할까요?";
             case EXCHANGE_AFTER_WEEK:
-                return tripId + " 목표 기간이 만료된 지 일주일이 지났어요, 환전 할까요?";
+                return tripName + " 목표 기간이 만료된 지 일주일이 지났어요, 환전 할까요?";
             case LOWEST_EXCHANGE_RATE:
                 return "최근 일주일 중 환율이 가장 낮아요";
 //                return (rate != null) ? "오늘 환율은 " + rate + " 이에요. 최근 일주일 중 가장 낮아요." : "최근 일주일 중 환율이 가장 낮아요";
             case SELL_THREE_DAYS_LATER:
-                return tripId + "를 매도한 지 3일이 지났어요, 환전 할까요?";
+                return tripName + "을/를 매도한 지 3일이 지났어요, 환전 할까요?";
             default:
                 return "새로운 알림이 도착했습니다.";
         }
     }
 
     @Transactional
-    public Response deleteAllAlarm(Integer userId) {
+    public void deleteAllAlarm(Integer userId) {
         alarmRepository.deleteAllByUserId(userId);
-        return Response.success("모든 알림 삭제 완료");
     }
 
-    public Response deleteAlarmById(Integer alarmId) {
+    public void deleteAlarmById(Integer alarmId) {
         alarmRepository.deleteById(alarmId);
-        return Response.success("알림 삭제 완료");
     }
 }

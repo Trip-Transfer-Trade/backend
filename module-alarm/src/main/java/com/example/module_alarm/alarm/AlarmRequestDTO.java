@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AlarmRequestDTO {
     private Integer userId;
-    private Integer tripId;
+    private String tripName="";
     private AlarmType type;
 
     public AlarmHistory toEntity(){
         return AlarmHistory.builder()
-                .tripId(tripId)
+                .tripName(tripName)
                 .userId(userId)
                 .type(type)
                 .build();

@@ -1,7 +1,7 @@
 package com.example.module_alarm.alarm;
 
+import com.example.module_utility.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,21 +9,21 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class AlarmHistory {
+public class AlarmHistory extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private boolean isRead;
     private Integer userId;
-    private Integer tripId;
+    private String tripName;
 
     @Enumerated(EnumType.STRING)
     private AlarmType alarmType;
 
     @Builder
-    public AlarmHistory(Integer userId, Integer tripId, AlarmType type) {
+    public AlarmHistory(Integer userId,String tripName, AlarmType type) {
         this.userId = userId;
-        this.tripId = tripId;
+        this.tripName = tripName;
         this.alarmType = type;
         this.isRead = false;
     }
