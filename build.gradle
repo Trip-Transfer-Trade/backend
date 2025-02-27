@@ -61,20 +61,21 @@ project(':module-exchange') {
 		implementation project(':module-utility')
 		implementation project(':module-trip')
 		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+		implementation 'io.github.openfeign:feign-httpclient'
+		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	}
-	
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		}
+	}
+
 }
 
 project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
-	}
-}
-
-project(':module-stock') {
-	dependencies {
-		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-		implementation 'com.h2database:h2'
 	}
 }
 
