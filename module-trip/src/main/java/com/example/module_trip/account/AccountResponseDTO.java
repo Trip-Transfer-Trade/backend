@@ -22,7 +22,8 @@ public class AccountResponseDTO {
 
 
     @Builder
-    public AccountResponseDTO(String accountNumber, BigDecimal availableBalance, BigDecimal totalValue) {
+    public AccountResponseDTO(Integer accountId, String accountNumber, BigDecimal availableBalance, BigDecimal totalValue) {
+        this.accountId = accountId;
         this.accountNumber = accountNumber;
         this.availableBalance = availableBalance;
         this.totalValue = totalValue;
@@ -30,11 +31,13 @@ public class AccountResponseDTO {
 
     public static AccountResponseDTO toDTO(Account account) {
         return AccountResponseDTO.builder()
+                .accountId(account.getId())
                 .accountNumber(account.getAccountNumber())
-                .availableBalance(account.getAvailableBalance())
                 .totalValue(account.getTotalValue())
                 .build();
     }
+
+
 
 
 }

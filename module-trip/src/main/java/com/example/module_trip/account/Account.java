@@ -20,7 +20,6 @@ public class Account extends BaseEntity {
     private String accountNumber;
     @Enumerated(EnumType.STRING)
     private AccountType accountType;
-    private BigDecimal availableBalance = BigDecimal.ZERO;
     private BigDecimal totalValue = BigDecimal.ZERO;
 
     private Integer userId;
@@ -30,6 +29,10 @@ public class Account extends BaseEntity {
         this.userId = userId;
         this.accountNumber = accountNumber;
         this.accountType = accountType;
+    }
+
+    public void changeTotalValue(BigDecimal amount){
+        this.totalValue = this.totalValue.add(amount);
     }
 
 }
