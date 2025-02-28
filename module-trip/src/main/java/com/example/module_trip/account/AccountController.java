@@ -36,6 +36,7 @@ public class AccountController {
     public ResponseEntity<Response<AccountResponseDTO>> getAccountByAccountNumber(@PathVariable("accountNumber") String accountNumber){
         Response<AccountResponseDTO> response = Response.success(accountService.getAccountByAccountNumber(accountNumber));
         return ResponseEntity.ok(response);
+
     }
 
     @PutMapping("/{accountId}")
