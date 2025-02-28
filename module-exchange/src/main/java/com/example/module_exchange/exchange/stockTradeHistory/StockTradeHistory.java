@@ -3,10 +3,16 @@ package com.example.module_exchange.exchange.stockTradeHistory;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_utility.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class StockTradeHistory extends BaseEntity {
 
     @Id
