@@ -2,7 +2,9 @@ package com.example.module_exchange.clients;
 
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
+import com.example.module_utility.response.Response;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -14,8 +16,8 @@ public interface AccountClient {
     AccountResponseDTO getAccountById(@PathVariable int accountId);
 
     @GetMapping("/number/{accountNumber}")
-    AccountResponseDTO getAccountByAccountNumber(@PathVariable String accountNumber);
+    ResponseEntity<Response<AccountResponseDTO>> getAccountByAccountNumber(@PathVariable String accountNumber);
 
     @PutMapping("/{accountId}")
-    AccountUpdateResponseDTO updateAccountAmount(@PathVariable int accountId, @RequestBody BigDecimal amount);
+    ResponseEntity<Response<AccountUpdateResponseDTO>> updateAccountAmount(@PathVariable int accountId, @RequestBody BigDecimal amount);
 }

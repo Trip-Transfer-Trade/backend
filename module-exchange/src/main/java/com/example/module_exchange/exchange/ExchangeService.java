@@ -12,6 +12,7 @@ import com.example.module_exchange.exchange.transactionHistory.TransactionType;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
 import com.example.module_utility.response.Response;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -84,9 +85,8 @@ public class ExchangeService {
         toTransactionCurrency.changeAmount(amount);
 
         accountClient.updateAccountAmount(accountId, amount.negate());
-        AccountUpdateResponseDTO targetAccountResponse = accountClient.updateAccountAmount(targetAccountId, amount);
-
-        return targetAccountResponse;
+        ResponseEntity<Response<AccountUpdateResponseDTO>> response = accountClient.updateAccountAmount(targetAccountId, amount);
+        return response.getBody().getData();
     }
 
 
@@ -96,8 +96,8 @@ public class ExchangeService {
     }
 
     private Integer getAccountIdFromAccountNumber(String accountNumber) {
-        AccountResponseDTO accountResponse = accountClient.getAccountByAccountNumber(accountNumber);
-        return accountResponse.getAccountId();
+        ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(accountNumber);
+        return accountResponse.getBody().getData().getAccountId();
     }
 
     private void validateSufficientBalance(ExchangeCurrency fromCurrency, BigDecimal fromAmount) {
