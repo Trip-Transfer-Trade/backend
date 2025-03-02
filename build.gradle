@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.2'
+	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -18,6 +18,9 @@ allprojects {
 			languageVersion = JavaLanguageVersion.of(17)
 		}
 	}
+	ext {
+		set('springCloudVersion', "2023.0.0")
+	}
 
 	configurations {
 		compileOnly {
@@ -32,6 +35,7 @@ allprojects {
 		enabled = true
 	}
 	dependencies {
+
 		implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 		implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -39,6 +43,7 @@ allprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-validation'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+		implementation 'com.google.firebase:firebase-admin:9.2.0'
 		compileOnly 'org.projectlombok:lombok'
 		runtimeOnly 'com.mysql:mysql-connector-j'
 		annotationProcessor 'org.projectlombok:lombok'
@@ -59,7 +64,21 @@ allprojects {
 
 }
 
-// ⚠️ a-module 프로젝트 개별 추가 설정
+project(':module-exchange') {
+	dependencies {
+		implementation project(':module-utility')
+		implementation project(':module-trip')
+		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	}
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		}
+	}
+
+}
 
 project(':module-trip') {
 	dependencies {
@@ -68,7 +87,7 @@ project(':module-trip') {
 	}
 }
 
-project(':module-exchange') {
+project(':module-alarm'){
 	dependencies {
 		implementation project(':module-utility')
 	}

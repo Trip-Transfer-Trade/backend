@@ -1,0 +1,45 @@
+package com.example.module_exchange.exchange;
+
+import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
+import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
+import com.example.module_exchange.exchange.stockTradeHistory.TradeType;
+import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
+import com.example.module_trip.account.AccountUpdateResponseDTO;
+import com.example.module_utility.response.Response;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/exchanges")
+public class ExchangeController {
+
+    private final ExchangeService exchangeService;
+    private final StockTradeService stockTradeService;
+
+    public ExchangeController(ExchangeService exchangeService, StockTradeService stockTradeService) {
+        this.exchangeService = exchangeService;
+        this.stockTradeService = stockTradeService;
+    }
+
+    @PostMapping("")
+    public void saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
+        exchangeService.executeExchangeProcess(exchangeDTO);
+    }
+
+    @PostMapping("/transactions")
+    public ResponseEntity<Response<AccountUpdateResponseDTO>> saveTransaction(@RequestBody TransactionDTO transactionDTO) {
+        AccountUpdateResponseDTO accountUpdateResponseDTO = exchangeService.excuteTransactionProcess(transactionDTO);
+        Response<AccountUpdateResponseDTO> response = Response.success(accountUpdateResponseDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/stocks/buy")
+    public void getBuyStock(@RequestBody StockTradeDTO stockTradeDTO) {
+        stockTradeService.orderStockBuy(stockTradeDTO);
+    }
+
+    @PostMapping("/stocks/sell")
+    public void getSellStock(@RequestBody StockTradeDTO stockTradeDTO) {
+        stockTradeService.orderStockSell(stockTradeDTO);
+    }
+}

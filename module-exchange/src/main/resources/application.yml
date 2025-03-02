@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: exchange-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/trip_db
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+
+server:
+  port: 8084
+
+
+ACCESS_TOKEN: ${ACCESS_TOKEN:default_access_token}
+APP_KEY: ${APP_KEY:default_app_key}
+APP_SECRET: ${APP_SECRET:default_app_secret}
