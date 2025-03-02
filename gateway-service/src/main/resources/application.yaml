@@ -1,0 +1,18 @@
+#sever:
+#  port: 9093
+#
+#spring:
+#  application:
+#    name: gateway-service
+#  cloud:
+#    gateway:
+#      mvc:
+#        routes:
+#          - id: auth-service
+#            uri: http://localhost:9091
+#            predicates:
+#              - Path: /auth/**
+#          - id: trip-service
+#            uri: http://localhost:9092
+#            predicates:
+#              - Path: /trips/**

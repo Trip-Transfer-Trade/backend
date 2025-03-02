@@ -1,5 +1,6 @@
 package com.example.module_trip.tripGoal;
 
+import com.example.module_trip.account.Account;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -17,12 +18,13 @@ public class TripGoalRequestDTO {
 
     private int accountId;
 
-    public TripGoal toEntity() {
+    public TripGoal toEntity(Account account) {
         return TripGoal.builder()
                 .name(name)
                 .country(country)
                 .goalAmount(goalAmount)
                 .profit(profit)
+                .account(account)
                 .build();
     }
 }
