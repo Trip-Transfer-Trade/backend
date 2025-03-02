@@ -44,7 +44,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return exchange.getResponse().setComplete();
         }
         String username = jwtUtil.extractUsername(token);
-
+        logger.info(username);
         ServerHttpRequest modifiedRequest = request.mutate()
                 .header("X-Authenticated-User", username)
                 .build();
