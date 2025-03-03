@@ -36,7 +36,7 @@ public class TripGoalResponseDTO {
                 .country(tripGoal.getCountry())
                 .goalAmount(tripGoal.getGoalAmount())
                 .profit(tripGoal.getProfit())
-                .accountId(tripGoal.getId())
+                .accountId(tripGoal.getAccount().getId())
                 .build();
     }
 }

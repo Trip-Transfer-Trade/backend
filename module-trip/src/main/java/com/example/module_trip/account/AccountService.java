@@ -1,10 +1,7 @@
 package com.example.module_trip.account;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.example.module_utility.response.Response;
 
-import javax.security.auth.login.AccountNotFoundException;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.List;
@@ -19,7 +16,7 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
-    @Transactional
+//    @Transactional// repository에 저장하는 작업만 할거면 trnasactional 안묶어도 될 듯
     public void saveAccount(AccountCreateRequestDTO accountCreateRequestDTO) {
         String generatedAccountNumber = generateRandomAccountNumber();
         Account account = accountCreateRequestDTO.toEntity(generatedAccountNumber);
@@ -35,7 +32,7 @@ public class AccountService {
         return sb.toString();
     }
 
-    public List<AccountResponseDTO> getAccountById(Integer userId) {
+    public List<AccountResponseDTO> getAccountByUserId(Integer userId) {
         return accountRepository.findByUserId(userId)
                 .stream()
                 .map(AccountResponseDTO::toDTO)
@@ -64,4 +61,9 @@ public class AccountService {
         return AccountUpdateResponseDTO.toDTO(updatedAccount);
     }
 
+    public AccountResponseDTO getAccountByIdAndType(Integer userId, AccountType type) {
+        return accountRepository.findByUserIdAndAccountType(userId,type)
+                .map(AccountResponseDTO::toDTO)
+                .orElseThrow(()-> new IllegalArgumentException("Account not found with user Id & account type"));
+    }
 }
