@@ -79,18 +79,14 @@ public class ExchangeService {
 
     @Transactional
     public AccountUpdateResponseDTO excuteTransactionProcess(TransactionDTO transactionDTO) {
-        Integer accountId = getAccountIdFromUserId(transactionDTO.getUserId());
+        Integer accountId = transactionDTO.getAccountId();
         Integer targetAccountId = getAccountIdFromAccountNumber(transactionDTO.getTargetAccountNumber());
 
         BigDecimal amount = transactionDTO.getAmount();
-        // 1. 환전 통화 from/to 찾기
         ExchangeCurrency fromTransactionCurrency = getOrCreateExchangeCurrency(accountId, transactionDTO.getCurrencyCode());
         ExchangeCurrency toTransactionCurrency = getOrCreateExchangeCurrency(targetAccountId, transactionDTO.getCurrencyCode());
-        // 금액 예외 처리 추가
         validateSufficientBalance(fromTransactionCurrency,amount);
 
-        // 2.입출금 거래 내역 저장
-        // 입출금 case : 내 전체 -> 목표 계좌
         TransactionHistory fromTransactionHistory = transactionDTO.toTransactionHistory(fromTransactionCurrency, TransactionType.WITHDRAWAL);
         transactionHistoryRepository.save(fromTransactionHistory);
         TransactionHistory toTransactionHistory = transactionDTO.toTransactionHistory(toTransactionCurrency, TransactionType.DEPOSIT);
@@ -104,13 +100,6 @@ public class ExchangeService {
         return response.getBody().getData();
     }
 
-//    public excuteExchangeBeforeTrade
-
-    private Integer getAccountIdFromUserId(int userId) {
-        AccountResponseDTO accountResponse = accountClient.getAccountById(userId);
-        return accountResponse.getAccountId();
-    }
-
     private Integer getAccountIdFromUserIdAndType(int userId, AccountType accountType) {
         AccountResponseDTO accountResponse = accountClient.getAccountByUserIdAndAccountType(userId, accountType);
         return accountResponse.getAccountId();
@@ -120,6 +109,7 @@ public class ExchangeService {
         TripGoalResponseDTO tripGoalResponseDTO = tripClient.getTripGoal(tripId);
         return tripGoalResponseDTO.getAccountId();
     }
+
     private Integer getAccountIdFromAccountNumber(String accountNumber) {
         ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(accountNumber);
         return accountResponse.getBody().getData().getAccountId();
