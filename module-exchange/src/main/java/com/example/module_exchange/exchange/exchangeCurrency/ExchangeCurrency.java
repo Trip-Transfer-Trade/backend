@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 public class ExchangeCurrency extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String currencyCode;

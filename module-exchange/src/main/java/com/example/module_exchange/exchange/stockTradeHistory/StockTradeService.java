@@ -34,8 +34,8 @@ public class StockTradeService {
 
         ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromUserId(accountId, stockTradeDTO.getCurrencyCode());
 
+        isQuantityZero(stockTradeDTO);
         validateSufficientBalance(exchangeCurrency, stockTradeDTO);
-
 
         StockTradeHistory stockTradeHistory = stockTradeDTO.toStockTradeHistory(exchangeCurrency, tradeType);
         stockTradeHistoryRepository.save(stockTradeHistory);
@@ -54,6 +54,7 @@ public class StockTradeService {
 
         ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromUserId(accountId, stockTradeDTO.getCurrencyCode());
 
+        isQuantityZero(stockTradeDTO);
         validateSufficientQuantity(exchangeCurrency, stockTradeDTO);
 
         StockTradeHistory stockTradeHistory = stockTradeDTO.toStockTradeHistory(exchangeCurrency, tradeType);
@@ -84,7 +85,7 @@ public class StockTradeService {
     }
 
     private void validateSufficientBalance(ExchangeCurrency currency, StockTradeDTO stockTradeDTO) {
-        BigDecimal totalPurchaseAmount = stockTradeDTO.getAmount().multiply(stockTradeDTO.getAmount());
+        BigDecimal totalPurchaseAmount = stockTradeDTO.getAmount();
         if(totalPurchaseAmount.compareTo(currency.getAmount()) > 0){
             throw new RuntimeException("매수 실패: 보유한 예수금이 주문 금액보다 작습니다.");
         }
@@ -93,6 +94,8 @@ public class StockTradeService {
     private void validateSufficientQuantity(ExchangeCurrency currency, StockTradeDTO stockTradeDTO) {
         BigDecimal totalBuyQuantity = stockTradeHistoryRepository.findTotalBuyQuantityByStockCode(stockTradeDTO.getStockCode());
         BigDecimal totalSellQuantity = stockTradeHistoryRepository.findTotalSellQuantityByStockCode(stockTradeDTO.getStockCode());
+        totalSellQuantity = (totalSellQuantity != null) ? totalSellQuantity : BigDecimal.ZERO;
+
         BigDecimal ownedQuantity = totalBuyQuantity.subtract(totalSellQuantity);
 
         BigDecimal orderSellQuantity = BigDecimal.valueOf(stockTradeDTO.getQuantity());
@@ -100,7 +103,11 @@ public class StockTradeService {
         if(orderSellQuantity.compareTo(ownedQuantity) > 0){
             throw new RuntimeException("매도 실패: 보유한 수량이 주문 수량보다 작습니다.");
         }
+    }
 
-
+    private void isQuantityZero(StockTradeDTO stockTradeDTO) {
+        if(stockTradeDTO.getQuantity() == 0){
+            throw new RuntimeException("주문 실패: 수량은 0보다 커야 합니다.");
+        }
     }
 }

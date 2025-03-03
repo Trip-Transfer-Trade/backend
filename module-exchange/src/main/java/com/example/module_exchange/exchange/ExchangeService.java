@@ -1,6 +1,7 @@
 package com.example.module_exchange.exchange;
 
 import com.example.module_exchange.clients.AccountClient;
+import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
@@ -10,7 +11,9 @@ import com.example.module_exchange.exchange.transactionHistory.TransactionHistor
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
 import com.example.module_trip.account.AccountResponseDTO;
+import com.example.module_trip.account.AccountType;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
+import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,12 +25,14 @@ import java.math.BigDecimal;
 public class ExchangeService {
 
     private final AccountClient accountClient;
+    private final TripClient tripClient;
     private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
 
-    public ExchangeService(AccountClient accountClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository) {
+    public ExchangeService(AccountClient accountClient, TripClient tripClient,ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository) {
         this.accountClient = accountClient;
+        this.tripClient = tripClient;
         this.exchangeHistoryRepository = exchangeHistoryRepository;
         this.transactionHistoryRepository = transactionHistoryRepository;
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
@@ -35,8 +40,17 @@ public class ExchangeService {
 
     @Transactional
     public void executeExchangeProcess(ExchangeDTO exchangeDTO) {
+        Integer accountId;
 
-        Integer accountId = getAccountIdFromUserId(exchangeDTO.getUserId());
+        if (exchangeDTO.getTripId()==null){
+            // 일반 계좌 불러오기
+            accountId = getAccountIdFromUserIdAndType(exchangeDTO.getUserId(), AccountType.NORMAL);
+        }
+        else{
+            // trip id로 계좌 불러오기
+            accountId = getAccountIdFromTripId(exchangeDTO.getTripId());
+        }
+        System.out.println("accountId" +accountId);
 
         String fromCurrencyCode = exchangeDTO.getFromCurrency();
         String toCurrencyCode = exchangeDTO.getToCurrency();
@@ -46,6 +60,7 @@ public class ExchangeService {
 
         ExchangeCurrency fromExchangeCurrency = getOrCreateExchangeCurrency(accountId, fromCurrencyCode);
         ExchangeCurrency toExchangeCurrency = getOrCreateExchangeCurrency(accountId, toCurrencyCode);
+        validateSufficientBalance(fromExchangeCurrency,fromAmount);
 
         ExchangeHistory fromExchangeHistory = exchangeDTO.toExchangeHistory(fromExchangeCurrency);
         exchangeHistoryRepository.save(fromExchangeHistory);
@@ -64,18 +79,14 @@ public class ExchangeService {
 
     @Transactional
     public AccountUpdateResponseDTO excuteTransactionProcess(TransactionDTO transactionDTO) {
-        Integer accountId = getAccountIdFromUserId(transactionDTO.getUserId());
+        Integer accountId = transactionDTO.getAccountId();
         Integer targetAccountId = getAccountIdFromAccountNumber(transactionDTO.getTargetAccountNumber());
 
         BigDecimal amount = transactionDTO.getAmount();
-        // 1. 환전 통화 from/to 찾기
         ExchangeCurrency fromTransactionCurrency = getOrCreateExchangeCurrency(accountId, transactionDTO.getCurrencyCode());
         ExchangeCurrency toTransactionCurrency = getOrCreateExchangeCurrency(targetAccountId, transactionDTO.getCurrencyCode());
-        // 금액 예외 처리 추가
         validateSufficientBalance(fromTransactionCurrency,amount);
 
-        // 2.입출금 거래 내역 저장
-        // 입출금 case : 내 전체 -> 목표 계좌
         TransactionHistory fromTransactionHistory = transactionDTO.toTransactionHistory(fromTransactionCurrency, TransactionType.WITHDRAWAL);
         transactionHistoryRepository.save(fromTransactionHistory);
         TransactionHistory toTransactionHistory = transactionDTO.toTransactionHistory(toTransactionCurrency, TransactionType.DEPOSIT);
@@ -89,10 +100,14 @@ public class ExchangeService {
         return response.getBody().getData();
     }
 
-
-    private Integer getAccountIdFromUserId(int userId) {
-        AccountResponseDTO accountResponse = accountClient.getAccountById(userId);
+    private Integer getAccountIdFromUserIdAndType(int userId, AccountType accountType) {
+        AccountResponseDTO accountResponse = accountClient.getAccountByUserIdAndAccountType(userId, accountType);
         return accountResponse.getAccountId();
+    }
+
+    private Integer getAccountIdFromTripId(int tripId) {
+        TripGoalResponseDTO tripGoalResponseDTO = tripClient.getTripGoal(tripId);
+        return tripGoalResponseDTO.getAccountId();
     }
 
     private Integer getAccountIdFromAccountNumber(String accountNumber) {

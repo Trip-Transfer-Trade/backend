@@ -14,7 +14,6 @@ public class TripGoalRequestDTO {
     private String name;
     private String country;
     private BigDecimal goalAmount;
-    private BigDecimal profit;
 
     private int accountId;
 
@@ -23,7 +22,7 @@ public class TripGoalRequestDTO {
                 .name(name)
                 .country(country)
                 .goalAmount(goalAmount)
-                .profit(profit)
+                .profit(BigDecimal.ZERO)
                 .account(account)
                 .build();
     }

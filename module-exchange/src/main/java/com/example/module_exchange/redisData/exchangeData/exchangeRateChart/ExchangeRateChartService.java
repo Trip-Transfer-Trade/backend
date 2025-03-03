@@ -100,6 +100,21 @@ public class ExchangeRateChartService {
         return new ExchangeRateChartDTO(code, exchangeRateDataList);
     }
 
+    public ExchangeRateChartDTO.ExchangeRateData getUSExchangeRate() {
+        ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();
+        String cacheKey = "exchangeRate:USD";
+        Set<String> latestRateData = zSetOperations.reverseRange(cacheKey, 0, 0);
+
+        if (latestRateData == null || latestRateData.isEmpty()) {
+            return null; // 데이터가 없을 경우 null 반환
+        }
+
+        String latestData = latestRateData.iterator().next();
+        String[] parts = latestData.split(":");
+
+        return new ExchangeRateChartDTO.ExchangeRateData(parts[0], parts[1]);
+    }
+
     // 1년 환율 데이터 저장 함수 -> 초기 실행 후 사용 안 함
     public void saveTestData() {
         ZSetOperations<String, String> zSetOperations = redisTemplate.opsForZSet();

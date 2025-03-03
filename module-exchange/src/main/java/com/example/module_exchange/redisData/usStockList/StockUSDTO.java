@@ -10,7 +10,7 @@ public class StockUSDTO {
     @JsonProperty("rank")
     private int rank;
 
-    @JsonProperty("name")
+    @JsonProperty("knam")
     private String name;
 
     @JsonProperty("symb")

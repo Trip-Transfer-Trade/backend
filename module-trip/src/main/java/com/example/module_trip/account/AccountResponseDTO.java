@@ -15,29 +15,24 @@ public class AccountResponseDTO {
     private Integer accountId;
     private String accountNumber;
     private AccountType accountType;
-    private BigDecimal availableBalance;
     private BigDecimal totalValue;
-
-    private Integer userId;
 
 
     @Builder
-    public AccountResponseDTO(Integer accountId, String accountNumber, BigDecimal availableBalance, BigDecimal totalValue) {
+    public AccountResponseDTO(Integer accountId, String accountNumber, BigDecimal totalValue, AccountType accountType) {
         this.accountId = accountId;
         this.accountNumber = accountNumber;
-        this.availableBalance = availableBalance;
         this.totalValue = totalValue;
+        this.accountType = accountType;
     }
 
     public static AccountResponseDTO toDTO(Account account) {
         return AccountResponseDTO.builder()
                 .accountId(account.getId())
                 .accountNumber(account.getAccountNumber())
+                .accountType(account.getAccountType())
                 .totalValue(account.getTotalValue())
                 .build();
     }
-
-
-
 
 }

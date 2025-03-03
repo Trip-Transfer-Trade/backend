@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 public class TransactionDTO {
-    private Integer userId;
+    private Integer accountId;
     private BigDecimal amount;
     private String targetAccountNumber;
     private String currencyCode;

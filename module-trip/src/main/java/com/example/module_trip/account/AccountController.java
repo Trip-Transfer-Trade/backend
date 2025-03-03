@@ -22,9 +22,15 @@ public class AccountController {
         accountService.saveAccount(accountCreateRequestDTO);
 
     }
-    @GetMapping("")
-    public List<AccountResponseDTO> getAccount(@RequestParam("user_id") Integer userId){
-        return accountService.getAccountById(userId);
+
+    @GetMapping(value = "", params = "accountType")
+    public AccountResponseDTO getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType type){
+        return accountService.getAccountByIdAndType(userId, type);
+    }
+
+    @GetMapping(value = "", params = "!accountType")
+    public List<AccountResponseDTO> getAccountByUserId(@RequestParam("userId") Integer userId){
+        return accountService.getAccountByUserId(userId);
     }
 
     @GetMapping("/{accountId}")
