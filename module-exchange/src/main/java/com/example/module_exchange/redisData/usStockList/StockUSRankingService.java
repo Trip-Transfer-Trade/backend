@@ -50,6 +50,7 @@ public class StockUSRankingService {
         String value = ops.get(cacheKey);
         if(value != null){
             try{
+                logger.info("redis 응답");
                 return objectMapper.readValue(value, StockUSRankingDTO.class);
             } catch (Exception e) {
                 logger.error("US Redis 캐시 변환 오류");

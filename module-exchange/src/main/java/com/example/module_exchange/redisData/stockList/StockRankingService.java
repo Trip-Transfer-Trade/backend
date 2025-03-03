@@ -50,6 +50,7 @@ public class StockRankingService {
         String value = ops.get(cacheKey);
         if (value != null) {
             try{
+                logger.info("redis 응답", value);
                 return objectMapper.readValue(value, StockRankingDTO.class);
             } catch (Exception e){
                 logger.error("Redis 캐시 변환 오류");
@@ -85,7 +86,7 @@ public class StockRankingService {
 
         try {
             StockRankingDTO result = objectMapper.readValue(response.getBody(), StockRankingDTO.class);
-            ops.set(cacheKey, objectMapper.writeValueAsString(result), 10, TimeUnit.SECONDS);
+            ops.set(cacheKey, objectMapper.writeValueAsString(result), 1000, TimeUnit.SECONDS);
 
             return result;
         } catch (Exception e) {

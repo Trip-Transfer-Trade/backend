@@ -29,6 +29,11 @@ public class ExchangeRateController {
         return "success";
     }
 
+    @GetMapping("/rate/us")
+    public ExchangeRateChartDTO.ExchangeRateData getUSExchangeRate(){
+        return exchangeRateChartService.getUSExchangeRate();
+    }
+
     // 환율 차트 데이터 조회
     @GetMapping("/chart")
     public ExchangeRateChartDTO getExchangeRateChart(@RequestParam String code, @RequestParam int days) {
