@@ -13,8 +13,12 @@ public class TripGoalService {
 
     private final TripGoalRepository tripGoalRepository;
     private final AccountRepository accountRepository;
+    public TripGoalService(TripGoalRepository tripGoalRepository, AccountRepository accountRepository) {
+        this.tripGoalRepository = tripGoalRepository;
+        this.accountRepository = accountRepository;
+    }
 
-//    @Transactional
+    @Transactional
     public void saveTripGoal(TripGoalRequestDTO tripGoalRequestDTO) {
         Account account = accountRepository.findById(tripGoalRequestDTO.getAccountId())
                 .orElseThrow(() -> new EntityNotFoundException("Account not found"));
@@ -29,6 +33,18 @@ public class TripGoalService {
 
         return tripGoalResponseDTO;
     }
+//    @Transactional
+//    public void saveTripGoal(TripGoalRequestDTO tripGoalRequestDTO) {
+//        TripGoal tripGoal = tripGoalRequestDTO.toEntity();
+//        tripGoalRepository.save(tripGoal);
+//    }
+//
+//    public TripGoalResponseDTO findTripGoalById(Integer userId) {
+//        TripGoal tripGoal =tripGoalRepository.findById(userId).get();
+//        TripGoalResponseDTO tripGoalResponseDTO = TripGoalResponseDTO.toDTO(tripGoal);
+//
+//        return tripGoalResponseDTO;
+//    }
 
     public String findTripGoalNameById(Integer goalId) {
         return tripGoalRepository.findById(goalId).get().getName();

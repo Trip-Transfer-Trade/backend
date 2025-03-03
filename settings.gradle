@@ -1,6 +1,9 @@
 rootProject.name = 'ttt-root-project'
+
 include 'module-alarm'
 include 'module-exchange'
 include 'module-member'
 include 'module-trip'
 include 'module-utility'
+include 'module-auth'
+include 'gateway-service'
