@@ -11,8 +11,7 @@ import java.math.BigDecimal;
 @Getter
 public class ExchangeDTO {
 
-    private Integer userId; //일단 임시로 userId 받아오기
-    private Integer tripId;
+    private Integer accountId;
     private BigDecimal fromAmount; // 현재 환전하고 싶은 금액 (환전 전 금액)
     private String fromCurrency;   // 현재 환전하고 싶은 금액에 해당하는 통화 코드 (환전 전 통화 코드)
     private String toCurrency;     // 환전하고 싶은 통화 (환전 후 통화 코드)

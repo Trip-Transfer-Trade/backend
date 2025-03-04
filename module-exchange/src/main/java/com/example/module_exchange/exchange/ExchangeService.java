@@ -40,17 +40,7 @@ public class ExchangeService {
 
     @Transactional
     public void executeExchangeProcess(ExchangeDTO exchangeDTO) {
-        Integer accountId;
-
-        if (exchangeDTO.getTripId()==null){
-            // 일반 계좌 불러오기
-            accountId = getAccountIdFromUserIdAndType(exchangeDTO.getUserId(), AccountType.NORMAL);
-        }
-        else{
-            // trip id로 계좌 불러오기
-            accountId = getAccountIdFromTripId(exchangeDTO.getTripId());
-        }
-        System.out.println("accountId" +accountId);
+        Integer accountId = exchangeDTO.getAccountId();
 
         String fromCurrencyCode = exchangeDTO.getFromCurrency();
         String toCurrencyCode = exchangeDTO.getToCurrency();
@@ -78,7 +68,7 @@ public class ExchangeService {
     }
 
     @Transactional
-    public AccountUpdateResponseDTO excuteTransactionProcess(TransactionDTO transactionDTO) {
+    public AccountUpdateResponseDTO executeTransactionProcess(TransactionDTO transactionDTO) {
         Integer accountId = transactionDTO.getAccountId();
         Integer targetAccountId = getAccountIdFromAccountNumber(transactionDTO.getTargetAccountNumber());
 

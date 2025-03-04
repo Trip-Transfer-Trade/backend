@@ -22,13 +22,14 @@ public class ExchangeController {
     }
 
     @PostMapping("")
-    public void saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
+    public ResponseEntity<Response<Void>> saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
         exchangeService.executeExchangeProcess(exchangeDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @PostMapping("/transactions")
     public ResponseEntity<Response<AccountUpdateResponseDTO>> saveTransaction(@RequestBody TransactionDTO transactionDTO) {
-        AccountUpdateResponseDTO accountUpdateResponseDTO = exchangeService.excuteTransactionProcess(transactionDTO);
+        AccountUpdateResponseDTO accountUpdateResponseDTO = exchangeService.executeTransactionProcess(transactionDTO);
         Response<AccountUpdateResponseDTO> response = Response.success(accountUpdateResponseDTO);
         return ResponseEntity.ok(response);
     }
