@@ -6,23 +6,34 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRep
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
+import com.example.module_exchange.redisData.orderBook.OrderBookDTO;
+import com.example.module_exchange.redisData.orderBook.OrderBookService;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class StockTradeService {
+    private static final Logger logger = LoggerFactory.getLogger(StockTradeService.class);
+
     private final TripClient tripClient;
     private final StockTradeHistoryRepository stockTradeHistoryRepository;
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
@@ -31,6 +42,18 @@ public class StockTradeService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
+
+    @Value("${APP_URL}")
+    private String apiUrl;
+
+    @Value("${APP_KEY}")
+    private String appKey;
+
+    @Value("${APP_SECRET}")
+    private String appSecret;
+
+    @Value("${ACCESS_TOKEN}")
+    private String accessToken;
 
     public StockTradeService(TripClient tripClient, StockTradeHistoryRepository stockTradeHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, TransactionHistoryRepository transactionHistoryRepository, RestTemplate restTemplate, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate) {
         this.tripClient = tripClient;
@@ -59,7 +82,6 @@ public class StockTradeService {
         TransactionHistory transactionHistory = stockTradeDTO.toTransactionHistory(exchangeCurrency, TransactionType.WITHDRAWAL, amount);
         transactionHistoryRepository.save(transactionHistory);
 
-        // redis 에 매수 매도 내역 저장
         saveOrderToRedis(stockTradeDTO, true);
 
         exchangeCurrency.changeAmount(amount.negate());
@@ -85,6 +107,39 @@ public class StockTradeService {
         saveOrderToRedis(stockTradeDTO, false);
 
         exchangeCurrency.changeAmount(amount);
+    }
+
+    public StockHoldingsDTO getStockInfoFromRedis(int tripId) {
+        String pattern = "trip:" + tripId + ":stock:*";
+
+        Set<String> keys = redisTemplate.keys(pattern);
+
+        List<StockDetailDTO> stockDetails = new ArrayList<>();
+
+        for(String key : keys){
+            Map<Object, Object> stockData = redisTemplate.opsForHash().entries(key);
+            try {
+                String stockCode = key.substring(key.lastIndexOf(":") + 1);
+                String quantity = stockData.get("total_quantity").toString();
+                String avgPrice = stockData.get("average_price").toString();
+
+                String stockName = getStockName(stockCode);
+                String currencyPrice = getStockPrice(stockCode);
+
+                StockDetailDTO stockDetailDTO = StockDetailDTO.builder()
+                        .stockCode(stockCode)
+                        .quantity(quantity)
+                        .avgPrice(avgPrice)
+                        .stockName(stockName)
+                        .currencyPrice(currencyPrice)
+                        .build();
+                stockDetails.add(stockDetailDTO);
+            } catch (Exception e) {
+                System.err.println("Error processing stock data for key: " + key);
+                e.printStackTrace();
+            }
+        }
+        return new StockHoldingsDTO(stockDetails);
     }
 
     private Integer getAccountIdFromTripId(int tripId) {
@@ -154,10 +209,6 @@ public class StockTradeService {
                 local avg_price = tonumber(redis.call('HGET', key, 'average_price') or '0')
                 local total_cost = tonumber(redis.call('HGET', key, 'total_cost') or '0')
                 
-                if total_quantity < tonumber(ARGV[2]) then
-                    return "ERROR: 매도 수량이 보유 수량보다 많습니다."
-                end
-                
                 local new_total_cost = 0
                 local new_total_quantity = total_quantity - tonumber(ARGV[2])
                 
@@ -183,7 +234,7 @@ public class StockTradeService {
         RedisScript<List> script = new DefaultRedisScript<>(luaScript, List.class);
         List<Object> result = redisTemplate.execute(script,
                 Collections.singletonList(stockTradeDTO.getStockCode()),   // KEYS[1]
-                String.valueOf(stockTradeDTO.getPricePerUnit()),                 // ARGV[1]
+                String.valueOf(stockTradeDTO.getPricePerUnit()),           // ARGV[1]
                 String.valueOf(stockTradeDTO.getQuantity()),               // ARGV[2]
                 String.valueOf(stockTradeDTO.getTripId())                  // ARGV[3]
         );
@@ -201,4 +252,87 @@ public class StockTradeService {
         }
         return map;
     }
+
+    private String getStockName(String stockCode) {
+        String cacheKey = "stockName:" + stockCode;
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
+
+        String value = ops.get(cacheKey);
+        if(value != null){
+            try{
+                return value;
+            } catch (Exception e){
+                logger.error("Redis 캐시 변환 오류");
+            }
+        }
+
+        // 한투 API 호출
+        String url = apiUrl + "/uapi/domestic-stock/v1/quotations/search-info";
+        String queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=300";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("authorization", "Bearer " + accessToken);
+        headers.set("content-type", "application/json");
+        headers.set("appkey", appKey);
+        headers.set("appsecret", appSecret);
+        headers.set("tr_id", "CTPF1604R");
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(url + queryParam, HttpMethod.GET, entity, String.class);
+
+        logger.info("한투 API 응답: {}", response.getBody());
+
+        try{
+            JsonNode rootNode = objectMapper.readTree(response.getBody());
+            String stockName = rootNode.path("output").path("prdt_abrv_name").asText();
+            ops.set(cacheKey, stockName, 1000, TimeUnit.SECONDS);
+            return stockName;
+        }catch (Exception e){
+            logger.error("API 호출 실패", e);
+            return null;
+        }
+    }
+
+    private String getStockPrice(String stockCode) {
+        String cacheKey = "stockPrice:" + stockCode;
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
+
+        String value = ops.get(cacheKey);
+        if(value != null){
+            try{
+                return value;
+            } catch (Exception e){
+                logger.error("Redis 캐시 변환 오류");
+            }
+        }
+
+        // 한투 API 호출
+        String url = apiUrl + "/uapi/domestic-stock/v1/quotations/inquire-price";
+        String queryParam = "?fid_cond_mrkt_div_code=J" + "&fid_input_iscd=" + stockCode;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("authorization", "Bearer " + accessToken);
+        headers.set("content-type", "application/json");
+        headers.set("appkey", appKey);
+        headers.set("appsecret", appSecret);
+        headers.set("tr_id", "FHKST01010100");
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<String> response = restTemplate.exchange(url + queryParam, HttpMethod.GET, entity, String.class);
+
+        logger.info("한투 API 응답: {}", response.getBody());
+
+        try{
+            JsonNode rootNode = objectMapper.readTree(response.getBody());
+            String currencyPrice = rootNode.path("output").path("stck_prpr").asText();
+            ops.set(cacheKey, currencyPrice, 1000, TimeUnit.SECONDS);
+            return currencyPrice;
+        }catch (Exception e){
+            logger.error("API 호출 실패", e);
+            return null;
+        }
+
+    }
+
+
 }

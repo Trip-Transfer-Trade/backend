@@ -1,5 +1,6 @@
 package com.example.module_exchange.exchange;
 
+import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
 import com.example.module_exchange.exchange.stockTradeHistory.TradeType;
@@ -42,5 +43,10 @@ public class ExchangeController {
     @PostMapping("/stocks/sell")
     public void getSellStock(@RequestBody StockTradeDTO stockTradeDTO) {
         stockTradeService.orderStockSell(stockTradeDTO);
+    }
+
+    @GetMapping("/stocks/holding")
+    public StockHoldingsDTO getHoldingStock(@RequestParam int tripId) {
+        return stockTradeService.getStockInfoFromRedis(tripId);
     }
 }
