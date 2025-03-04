@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
 public class TripGoalService {
 
     private final TripGoalRepository tripGoalRepository;
@@ -23,7 +22,7 @@ public class TripGoalService {
         Account account = accountRepository.findById(tripGoalRequestDTO.getAccountId())
                 .orElseThrow(() -> new EntityNotFoundException("Account not found"));
 
-        TripGoal tripGoal = tripGoalRequestDTO.toEntity(account);
+        TripGoal tripGoal = tripGoalRequestDTO.toEntity();
         tripGoalRepository.save(tripGoal);
     }
 
