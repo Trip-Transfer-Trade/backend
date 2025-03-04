@@ -38,6 +38,7 @@ allprojects {
 
 		implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
 		implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//		implementation 'org.springframework.boot:spring-boot-starter-security'
 		implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 		implementation 'org.springframework.boot:spring-boot-starter-validation'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -98,18 +99,7 @@ project(':module-alarm'){
 project(':module-member') {
 	dependencies {
 		implementation project(':module-utility')
-		implementation project(':module-auth')
-	}
-}
-
-project(':module-auth') {
-	dependencies {
-		implementation project(':module-utility')
-		implementation 'org.springframework.boot:spring-boot-starter-web'
-		//jwt 관련
-		implementation 'io.jsonwebtoken:jjwt:0.9.1'
-		implementation 'javax.xml.bind:jaxb-api:2.3.1'
-		implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
+		implementation 'org.springframework.security:spring-security-crypto'
 	}
 }
 
