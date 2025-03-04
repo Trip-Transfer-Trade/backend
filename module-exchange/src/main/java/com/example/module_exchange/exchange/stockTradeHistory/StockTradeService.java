@@ -6,8 +6,6 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRep
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
-import com.example.module_exchange.redisData.orderBook.OrderBookDTO;
-import com.example.module_exchange.redisData.orderBook.OrderBookService;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

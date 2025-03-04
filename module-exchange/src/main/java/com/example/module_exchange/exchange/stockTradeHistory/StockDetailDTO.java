@@ -1,6 +1,5 @@
 package com.example.module_exchange.exchange.stockTradeHistory;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
