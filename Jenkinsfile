@@ -22,7 +22,7 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    def services = ['api-gateway', 'member-service', 'trip-service', 'exchange-service', 'alarm-service']
+                    def services = ['gateway-service', 'member-service', 'trip-service', 'exchange-service', 'alarm-service']
                     for (service in services) {
                         sh "docker build -t ${REGISTRY}/${service}:latest -f ${service}/Dockerfile ."
                     }
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('', DOCKER_CREDENTIALS_ID) {
-                        def services = ['api-gateway', 'member-service', 'trip-service', 'exchange-service', 'alarm-service']
+                        def services = ['gateway-service', 'member-service', 'trip-service', 'exchange-service', 'alarm-service']
                         for (service in services) {
                             sh "docker push ${REGISTRY}/${service}:latest"
                         }
