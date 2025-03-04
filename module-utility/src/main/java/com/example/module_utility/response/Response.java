@@ -1,8 +1,10 @@
 package com.example.module_utility.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response<T> {
     private final int status;
     private final String message;
