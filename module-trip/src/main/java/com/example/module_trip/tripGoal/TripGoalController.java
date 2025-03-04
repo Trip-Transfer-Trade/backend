@@ -1,14 +1,15 @@
 package com.example.module_trip.tripGoal;
 
 
-import lombok.extern.slf4j.Slf4j;
+
+import com.example.module_utility.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@Slf4j
+
 @RestController
-@RequestMapping("/trips")
+@RequestMapping("/api/trips")
 public class TripGoalController {
 
     private final TripGoalService tripGoalService;
@@ -16,31 +17,29 @@ public class TripGoalController {
     public TripGoalController(TripGoalService tripGoalService) {
         this.tripGoalService = tripGoalService;
     }
+
     @PostMapping("/goal")
-    public void saveTripGoal(@RequestBody TripGoalRequestDTO tripGoalRequestDTO) {
+    public ResponseEntity<Response<Void>> saveTripGoal(@RequestBody TripGoalRequestDTO tripGoalRequestDTO) {
         tripGoalService.saveTripGoal(tripGoalRequestDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
+
     @GetMapping("/test-auth")
     public ResponseEntity<String> testAuth(@RequestHeader(value = "Authorization", required = false) String token,
                                            @RequestHeader(value = "X-Authenticated-User", required = false) String username) {
         return ResponseEntity.ok("토큰: " + token + " 사용자 ID: " + username);
     }
 
-//    @GetMapping("")
-//    public TripGoalResponseDTO getTripGoals(@RequestHeader("X-Authenticated-User") Integer userId) {
-//        return tripGoalService.findTripGoalById(userId);
-//    @GetMapping("/{tripId}")
-//    public TripGoalResponseDTO getTripGoal(@PathVariable Integer tripId) {
-//        return tripGoalService.findTripGoalById(tripId);
-//
-//    }
-//    @GetMapping("/name/{tripId}")
-//    public ResponseEntity<Response<String>> getTripGoalName(@PathVariable("tripId") Integer tripId) {
-//        return ResponseEntity.ok(Response.success(tripGoalService.findTripGoalNameById(tripId)));
-//
-//    }
-//    @GetMapping("")
-//    public TripGoalResponseDTO getTripGoals(@RequestParam Integer userId) {
-//        return tripGoalService.findTripGoalById(userId);
-//    }
+    @GetMapping("/{tripId}")
+    public ResponseEntity<Response<TripGoalResponseDTO>> getTripGoal(@PathVariable Integer tripId) {
+        TripGoalResponseDTO response = tripGoalService.findTripGoalById(tripId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/account/{accountId}")
+    public ResponseEntity<Response<TripGoalResponseDTO>> getTripGoalByAccountId(@PathVariable Integer accountId) {
+        TripGoalResponseDTO response = tripGoalService.findTripGoalByAccountId(accountId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
 }
