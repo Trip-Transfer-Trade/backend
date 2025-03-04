@@ -28,7 +28,7 @@ public class SecurityConfig {
                 .securityContextRepository(new StatelessWebSessionSecurityContextRepository())
 //                .securityMatcher(new PathPatternParserServerWebExchangeMatcher("/**"))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/auth/login", "/auth/signup").permitAll()
+                        .pathMatchers("/api/members/login", "/api/members/signup").permitAll()
                         .anyExchange().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())

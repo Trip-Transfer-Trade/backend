@@ -6,10 +6,7 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
-import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
-import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
-import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
-import com.example.module_exchange.exchange.transactionHistory.TransactionType;
+import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
@@ -20,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ExchangeService {
@@ -40,17 +39,7 @@ public class ExchangeService {
 
     @Transactional
     public void executeExchangeProcess(ExchangeDTO exchangeDTO) {
-        Integer accountId;
-
-        if (exchangeDTO.getTripId()==null){
-            // 일반 계좌 불러오기
-            accountId = getAccountIdFromUserIdAndType(exchangeDTO.getUserId(), AccountType.NORMAL);
-        }
-        else{
-            // trip id로 계좌 불러오기
-            accountId = getAccountIdFromTripId(exchangeDTO.getTripId());
-        }
-        System.out.println("accountId" +accountId);
+        Integer accountId = exchangeDTO.getAccountId();
 
         String fromCurrencyCode = exchangeDTO.getFromCurrency();
         String toCurrencyCode = exchangeDTO.getToCurrency();
@@ -78,7 +67,7 @@ public class ExchangeService {
     }
 
     @Transactional
-    public AccountUpdateResponseDTO excuteTransactionProcess(TransactionDTO transactionDTO) {
+    public AccountUpdateResponseDTO executeTransactionProcess(TransactionDTO transactionDTO) {
         Integer accountId = transactionDTO.getAccountId();
         Integer targetAccountId = getAccountIdFromAccountNumber(transactionDTO.getTargetAccountNumber());
 
@@ -132,5 +121,12 @@ public class ExchangeService {
                             .build();
                     return exchangeCurrencyRepository.save(newCurrency);
                 });
+    }
+
+    public List<TransactionHistoryResponseDTO> getTransactionHistory(Integer accountId) {
+        return transactionHistoryRepository.findByExchangeCurrency_AccountId(accountId)
+                .stream()
+                .map(TransactionHistoryResponseDTO::toDTO)
+                .collect(Collectors.toList());
     }
 }
