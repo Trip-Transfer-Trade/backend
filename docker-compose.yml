@@ -19,7 +19,7 @@ services:
   member-service:
     build:
       context: .
-      dockerfile: ./member-service/Dockerfile
+      dockerfile: ./module-member/Dockerfile
     container_name: member-service
     ports:
       - "8081:8081"
@@ -29,7 +29,7 @@ services:
   trip-service:
     build:
       context: .
-      dockerfile: ./trip-service/Dockerfile
+      dockerfile: ./module-trip/Dockerfile
     container_name: trip-service
     ports:
       - "8082:8082"
@@ -39,7 +39,7 @@ services:
   exchange-service:
     build:
       context: .
-      dockerfile: ./exchange-service/Dockerfile
+      dockerfile: ./module-exchange/Dockerfile
     container_name: exchange-service
     ports:
       - "8083:8083"
@@ -49,7 +49,7 @@ services:
   alarm-service:
     build:
       context: .
-      dockerfile: ./alarm-service/Dockerfile
+      dockerfile: ./module-alarm/Dockerfile
     container_name: alarm-service
     ports:
       - "8084:8084"
