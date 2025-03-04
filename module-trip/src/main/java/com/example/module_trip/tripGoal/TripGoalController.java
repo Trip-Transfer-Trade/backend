@@ -1,7 +1,5 @@
 package com.example.module_trip.tripGoal;
 
-
-
 import com.example.module_utility.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +9,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/trips")
 public class TripGoalController {
+    private static final Logger logger = LoggerFactory.getLogger(TripGoalController.class);
 
     private final TripGoalService tripGoalService;
 
@@ -31,6 +30,12 @@ public class TripGoalController {
     }
 
     @GetMapping("/{tripId}")
+    public TripGoalResponseDTO getTripGoal(@PathVariable Integer tripId) {
+        logger.info("📌 getTripGoal 호출됨 - tripId: {}", tripId);
+        return tripGoalService.findTripGoalById(tripId);
+    }
+
+    @GetMapping("/{tripId}")
     public ResponseEntity<Response<TripGoalResponseDTO>> getTripGoal(@PathVariable Integer tripId) {
         TripGoalResponseDTO response = tripGoalService.findTripGoalById(tripId);
         return ResponseEntity.ok(Response.success(response));
@@ -41,5 +46,4 @@ public class TripGoalController {
         TripGoalResponseDTO response = tripGoalService.findTripGoalByAccountId(accountId);
         return ResponseEntity.ok(Response.success(response));
     }
-
 }
