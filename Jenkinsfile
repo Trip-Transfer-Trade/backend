@@ -22,9 +22,16 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    def services = ['gateway-service', 'member-service', 'trip-service', 'exchange-service', 'alarm-service']
-                    for (service in services) {
-                        sh "docker build -t ${REGISTRY}/${service}:latest -f ${service}/Dockerfile ."
+                    def services = [
+                        'gateway-service': 'gateway-service',
+                        'member-service': 'module-member',
+                        'trip-service': 'module-trip',
+                        'exchange-service': 'module-exchange',
+                        'alarm-service': 'module-alarm'
+                    ]
+                    for (service in services.keySet()) {
+                        def folder = services[service]
+                        sh "docker build -t ${REGISTRY}/${service}:latest -f ${folder}/Dockerfile ${folder}"
                     }
                 }
             }
