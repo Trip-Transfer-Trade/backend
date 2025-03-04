@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git 'https://github.com/Trip-Transfer-Trade/backend.git'
+                git branch: 'dev', url: 'https://github.com/Trip-Transfer-Trade/backend.git'
             }
         }
 
