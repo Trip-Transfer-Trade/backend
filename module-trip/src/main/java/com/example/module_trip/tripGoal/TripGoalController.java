@@ -2,14 +2,17 @@ package com.example.module_trip.tripGoal;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 @Slf4j
 @RestController
-@RequestMapping("/trips")
+@RequestMapping("/api/trips")
 public class TripGoalController {
+    private static final Logger logger = LoggerFactory.getLogger(TripGoalController.class);
 
     private final TripGoalService tripGoalService;
 
@@ -29,11 +32,13 @@ public class TripGoalController {
 //    @GetMapping("")
 //    public TripGoalResponseDTO getTripGoals(@RequestHeader("X-Authenticated-User") Integer userId) {
 //        return tripGoalService.findTripGoalById(userId);
-//    @GetMapping("/{tripId}")
-//    public TripGoalResponseDTO getTripGoal(@PathVariable Integer tripId) {
-//        return tripGoalService.findTripGoalById(tripId);
-//
-//    }
+
+    @GetMapping("/{tripId}")
+    public TripGoalResponseDTO getTripGoal(@PathVariable Integer tripId) {
+        logger.info("📌 getTripGoal 호출됨 - tripId: {}", tripId);
+        return tripGoalService.findTripGoalById(tripId);
+    }
+
 //    @GetMapping("/name/{tripId}")
 //    public ResponseEntity<Response<String>> getTripGoalName(@PathVariable("tripId") Integer tripId) {
 //        return ResponseEntity.ok(Response.success(tripGoalService.findTripGoalNameById(tripId)));

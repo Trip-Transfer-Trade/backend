@@ -10,8 +10,7 @@ import java.math.BigDecimal;
 
 @Getter
 public class StockTradeDTO {
-    private Integer userId;
-    private String accountNumber;
+    private Integer tripId;
     private BigDecimal amount;
     private String currencyCode;
     private String stockCode;
@@ -36,7 +35,7 @@ public class StockTradeDTO {
                 .transactionType(transactionType)
                 .transactionCategory(TransactionCategory.STOCK_TRADE)
                 .transactionAmount(TransactionAmount)
-                .targetAccountNumber(accountNumber)
+//                .targetAccountNumber(accountNumber)
                 .exchangeCurrency(exchangeCurrency)
                 .build();
     }

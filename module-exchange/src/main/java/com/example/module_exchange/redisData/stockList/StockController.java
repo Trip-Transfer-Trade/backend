@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/stocks")
+@RequestMapping("/api/exchanges")
 public class StockController {
 
     private final StockRankingService tradingVolumeService;
