@@ -30,6 +30,7 @@ public class User {
     private String gender;
     private Date birthDate;
     private String phoneNumber;
+    @Column(nullable = true)
     private String riskTolerance;
 
 }

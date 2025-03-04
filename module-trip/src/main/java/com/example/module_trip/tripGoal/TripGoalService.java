@@ -46,7 +46,4 @@ public class TripGoalService {
 //        return tripGoalResponseDTO;
 //    }
 
-    public String findTripGoalNameById(Integer goalId) {
-        return tripGoalRepository.findById(goalId).get().getName();
-    }
 }

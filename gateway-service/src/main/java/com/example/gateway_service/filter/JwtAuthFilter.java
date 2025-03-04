@@ -1,8 +1,6 @@
 package com.example.gateway_service.filter;
 
 import com.example.gateway_service.util.JwtUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -16,7 +14,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthFilter implements GlobalFilter, Ordered {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     private final JwtUtil jwtUtil;
 
     public JwtAuthFilter(JwtUtil jwtUtil) {
@@ -27,29 +24,32 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
-        if (request.getURI().getPath().contains("/auth/signup") || request.getURI().getPath().contains("/auth/login")) {
+        if (isPublicEndpoint(request)) {
             return chain.filter(exchange);
         }
 
-        String token = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (token == null || !token.startsWith("Bearer ") || token.length() <= 7) {
+        String token = resolveToken(request);
+        if (token == null || !jwtUtil.validateToken(token)) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
 
-        // JWT 검증
-        token = token.substring(7);
-        if (!jwtUtil.validateToken(token)) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
-        }
         String username = jwtUtil.extractUsername(token);
-        logger.info(username);
         ServerHttpRequest modifiedRequest = request.mutate()
                 .header("X-Authenticated-User", username)
                 .build();
 
         return chain.filter(exchange.mutate().request(modifiedRequest).build());
+    }
+
+    private boolean isPublicEndpoint(ServerHttpRequest request) {
+        String path = request.getURI().getPath();
+        return path.contains("/auth/signup") || path.contains("/auth/login");
+    }
+
+    private String resolveToken(ServerHttpRequest request) {
+        String bearerToken = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
     }
 
     @Override

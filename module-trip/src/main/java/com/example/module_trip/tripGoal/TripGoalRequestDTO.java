@@ -14,16 +14,16 @@ public class TripGoalRequestDTO {
     private String name;
     private String country;
     private BigDecimal goalAmount;
+    private BigDecimal profit;
 
     private int accountId;
 
-    public TripGoal toEntity(Account account) {
+    public TripGoal toEntity() {
         return TripGoal.builder()
                 .name(name)
                 .country(country)
                 .goalAmount(goalAmount)
-                .profit(BigDecimal.ZERO)
-                .account(account)
+                .profit(profit)
                 .build();
     }
 }

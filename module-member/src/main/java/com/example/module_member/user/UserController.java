@@ -3,7 +3,9 @@ package com.example.module_member.user;
 import com.example.module_member.dto.LoginRequestDto;
 import com.example.module_member.dto.LoginResponseDto;
 import com.example.module_member.dto.SignUpRequestDto;
-import com.example.module_utility.response.ApiResponse;
+import com.example.module_utility.response.Response;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,18 +19,38 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<String>> signUp(@RequestBody SignUpRequestDto request) {
+    public ResponseEntity<Response<Void>> signUp(@RequestBody SignUpRequestDto request) {
         return ResponseEntity.ok(userService.signUp(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
-        return ResponseEntity.ok(userService.login(request));
+    public ResponseEntity<Response<LoginResponseDto>> login(@RequestBody LoginRequestDto request, HttpServletResponse response) {
+        Response<LoginResponseDto> loginResponse = userService.login(request);
+
+        if (loginResponse.getStatus() != 200) {
+            return ResponseEntity.status(loginResponse.getStatus()).body(loginResponse);
+        }
+
+        String token = loginResponse.getData().getToken();
+        setJwtCookie(response, token);
+
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    private void setJwtCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie("token", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(60 * 60 * 10);
+        response.addCookie(cookie);
     }
 
     @GetMapping("/test-auth")
-    public ResponseEntity<String> testAuth(@RequestHeader(value = "Authorization", required = false) String token,
-                                           @RequestHeader(value = "X-Authenticated-User", required = false) String username) {
-        return ResponseEntity.ok("토큰: " + token + " 사용자 ID: " + username);
+    public ResponseEntity<Response<String>> testAuth(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @RequestHeader(value = "X-Authenticated-User", required = false) String username) {
+        String message = "토큰: " + token + " 사용자 ID: " + username;
+        return ResponseEntity.ok(Response.success(message));
     }
 }
