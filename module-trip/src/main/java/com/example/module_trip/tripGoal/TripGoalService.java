@@ -8,14 +8,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 public class TripGoalService {
 
     private final TripGoalRepository tripGoalRepository;
     private final AccountRepository accountRepository;
-    public TripGoalService(TripGoalRepository tripGoalRepository, AccountRepository accountRepository) {
-        this.tripGoalRepository = tripGoalRepository;
-        this.accountRepository = accountRepository;
-    }
 
     @Transactional
     public void saveTripGoal(TripGoalRequestDTO tripGoalRequestDTO) {
@@ -32,17 +29,9 @@ public class TripGoalService {
 
         return tripGoalResponseDTO;
     }
-//    @Transactional
-//    public void saveTripGoal(TripGoalRequestDTO tripGoalRequestDTO) {
-//        TripGoal tripGoal = tripGoalRequestDTO.toEntity();
-//        tripGoalRepository.save(tripGoal);
-//    }
-//
-//    public TripGoalResponseDTO findTripGoalById(Integer userId) {
-//        TripGoal tripGoal =tripGoalRepository.findById(userId).get();
-//        TripGoalResponseDTO tripGoalResponseDTO = TripGoalResponseDTO.toDTO(tripGoal);
-//
-//        return tripGoalResponseDTO;
-//    }
 
+    public TripGoalResponseDTO findTripGoalByAccountId(Integer accountId) {
+        TripGoal tripGoal = tripGoalRepository.findByAccount_Id(accountId);
+        return TripGoalResponseDTO.toDTO(tripGoal);
+    }
 }

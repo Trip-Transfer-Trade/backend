@@ -86,7 +86,6 @@ project(':module-exchange') {
 project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
-		implementation project(':module-auth')
 	}
 }
 
