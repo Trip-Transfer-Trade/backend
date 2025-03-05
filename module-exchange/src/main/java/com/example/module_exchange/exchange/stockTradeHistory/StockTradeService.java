@@ -70,10 +70,6 @@ public class StockTradeService {
         BigDecimal amount = stockTradeDTO.getAmount();
         TradeType tradeType = TradeType.BUY;
 
-        System.out.println("🎯 가져온 TripId: " + stockTradeDTO.getTripId());
-        System.out.println("🎯 가져온 accountId: " + accountId);
-
-
         ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, stockTradeDTO.getCurrencyCode());
 
         isQuantityZero(stockTradeDTO);
@@ -148,8 +144,6 @@ public class StockTradeService {
     private Integer getAccountIdFromTripId(int tripId) {
         ResponseEntity<Response<TripGoalResponseDTO>> responseEntity = tripClient.getTripGoal(tripId);
         TripGoalResponseDTO tripGoalResponseDTO = responseEntity.getBody().getData();
-
-        System.out.println("🎯 가져온 accountId 함수: " + tripGoalResponseDTO.getAccountId());
         return tripGoalResponseDTO.getAccountId();
     }
 
@@ -342,5 +336,29 @@ public class StockTradeService {
 
     }
 
+    // 매도 발생 시 실현 손익 계산
+//    private void realisedCalc(int tripId){
+//        BigDecimal profit = getRealised(tripId);
+//
+//    }
 
+    // 전날 profit 가져오기
+    @Transactional
+    public void storeAllUserProfit(){
+
+        ResponseEntity<Response<List<TripGoalResponseDTO>>> responseEntity = tripClient.getAllTrips();
+        List<TripGoalResponseDTO> allTripGoals = responseEntity.getBody().getData();
+
+        for(TripGoalResponseDTO tripGoalResponseDTO : allTripGoals){
+            Integer tripId = tripGoalResponseDTO.getId();
+            BigDecimal profit = tripGoalResponseDTO.getProfit() != null ? tripGoalResponseDTO.getProfit() : BigDecimal.ZERO;
+
+            String cacheKey = "userProfit:" + tripId + ":" + profit;
+            ValueOperations<String, String> ops = redisTemplate.opsForValue();
+            ops.set(cacheKey, profit.toString(), 1000, TimeUnit.SECONDS);
+
+            System.out.println("여행 목표 ID " + tripId + " | profit: " + profit + " 저장 완료!");
+        }
+        System.out.println("모든 사용자 profit 저장 완료!");
+    }
 }

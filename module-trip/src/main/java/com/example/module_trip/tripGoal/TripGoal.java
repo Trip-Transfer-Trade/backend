@@ -18,7 +18,7 @@ public class TripGoal extends BaseEntity {
     private String name;
     private String country;
     private BigDecimal goalAmount;
-    private BigDecimal profit;
+    private BigDecimal profit = BigDecimal.ZERO;;
 
     @OneToOne
     @JoinColumn(name="account_id",nullable = false)
@@ -29,7 +29,7 @@ public class TripGoal extends BaseEntity {
         this.name = name;
         this.country = country;
         this.goalAmount = goalAmount;
-        this.profit = profit;
+        this.profit = (profit != null) ? profit : BigDecimal.ZERO;
         this.account = account;
     }
 

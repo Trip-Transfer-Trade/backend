@@ -46,4 +46,7 @@ public class ExchangeRateController {
         exchangeRateChartService.saveTestData();
         return "success";
     }
+
+
+
 }
