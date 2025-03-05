@@ -1,13 +1,16 @@
 package com.example.module_trip.tripGoal;
 
+import com.example.module_trip.account.Account;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class TripGoalResponseDTO {
     private Integer id;
@@ -44,6 +47,18 @@ public class TripGoalResponseDTO {
                 .accountId(tripGoal.getAccount().getId())
                 .realisedProfit(tripGoal.getRealisedProfit())
                 .endDate(tripGoal.getEndDate())
+                .build();
+    }
+
+    public TripGoal toEntity(Account account) {
+        return TripGoal.builder()
+                .name(name)
+                .country(country)
+                .goalAmount(goalAmount)
+                .profit(profit)
+                .account(account)
+                .realisedProfit(realisedProfit)
+                .endDate(endDate)
                 .build();
     }
 }
