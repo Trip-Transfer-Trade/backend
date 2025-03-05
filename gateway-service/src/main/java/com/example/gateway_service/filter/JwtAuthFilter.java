@@ -41,11 +41,11 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             return exchange.getResponse().setComplete();
         }
 
-        String username = jwtUtil.extractUsername(token);
-        logger.info("✅ 인증 성공 - 사용자: {} (경로: {})", username, request.getURI().getPath());
+        int userId = jwtUtil.extractUserId(token);
+        logger.info("✅ 인증 성공 - 사용자: {} (경로: {})", userId, request.getURI().getPath());
 
         ServerHttpRequest modifiedRequest = request.mutate()
-                .header("X-Authenticated-User", username)
+                .header("X-Authenticated-User", String.valueOf(userId))
                 .build();
 
         return chain.filter(exchange.mutate().request(modifiedRequest).build());
