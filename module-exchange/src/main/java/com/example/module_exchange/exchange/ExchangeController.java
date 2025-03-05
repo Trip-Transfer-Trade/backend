@@ -32,8 +32,8 @@ public class ExchangeController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<Response<AccountUpdateResponseDTO>> saveTransaction(@RequestBody TransactionDTO transactionDTO) {
-        AccountUpdateResponseDTO accountUpdateResponseDTO = exchangeService.executeTransactionProcess(transactionDTO);
+    public ResponseEntity<Response<AccountUpdateResponseDTO>> saveTransaction(@RequestHeader (value = "X-Authenticated-User", required = false) String username, @RequestBody TransactionDTO transactionDTO) {
+        AccountUpdateResponseDTO accountUpdateResponseDTO = exchangeService.executeTransactionProcess(transactionDTO, username);
         Response<AccountUpdateResponseDTO> response = Response.success(accountUpdateResponseDTO);
         return ResponseEntity.ok(response);
     }

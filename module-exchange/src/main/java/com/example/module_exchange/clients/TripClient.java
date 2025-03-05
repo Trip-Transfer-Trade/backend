@@ -11,4 +11,8 @@ public interface TripClient {
 
     @GetMapping("/{tripId}")
     ResponseEntity<Response<TripGoalResponseDTO>> getTripGoal(@PathVariable("tripId") Integer tripId);
+
+    @GetMapping("/account/{accountId}")
+    ResponseEntity<Response<TripGoalResponseDTO>> getTripGoalByAccountId(@PathVariable("accountId") Integer accountId);
+
 }

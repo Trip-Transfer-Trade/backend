@@ -3,15 +3,17 @@ package com.example.module_member.dto;
 import com.example.module_member.user.User;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class UserResponseDto {
-    private final String userName;
-    private final String name;
-    private final String gender;
-    private final String birthDate;
-    private final String phoneNumber;
-    private final String riskTolerance;
+    private String userName;
+    private String name;
+    private String gender;
+    private String birthDate;
+    private String phoneNumber;
+    private String riskTolerance;
 
     @Builder
     public UserResponseDto(User user) {
