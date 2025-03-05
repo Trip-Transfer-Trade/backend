@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/trip_db
     username: root
-    password: 1234
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -24,3 +24,6 @@ spring:
 ACCESS_TOKEN: ${ACCESS_TOKEN:default_access_token}
 APP_KEY: ${APP_KEY:default_app_key}
 APP_SECRET: ${APP_SECRET:default_app_secret}
+
+server:
+  port: 8083
