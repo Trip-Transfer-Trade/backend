@@ -7,6 +7,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.tree.TreePath;
+import java.math.BigDecimal;
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class TripGoalService {
@@ -33,5 +37,13 @@ public class TripGoalService {
     public TripGoalResponseDTO findTripGoalByAccountId(Integer accountId) {
         TripGoal tripGoal = tripGoalRepository.findByAccount_Id(accountId);
         return TripGoalResponseDTO.toDTO(tripGoal);
+    }
+
+    public List<TripGoalResponseDTO> findAllTripGoal() {
+        List<TripGoal> tripGoals = tripGoalRepository.findAll();
+
+        return tripGoals.stream()
+                .map(TripGoalResponseDTO::toDTO)
+                .toList();
     }
 }
