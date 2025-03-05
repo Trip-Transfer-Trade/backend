@@ -55,9 +55,9 @@ public class UserController {
 
     @GetMapping("/test-auth")
     public ResponseEntity<Response<String>> testAuth(
-            @RequestHeader(value = "Authorization", required = false) String token,
-            @RequestHeader(value = "X-Authenticated-User", required = false) String username) {
-        String message = "토큰: " + token + " 사용자 ID: " + username;
+            @RequestHeader("X-Authenticated-Username") String username,
+            @RequestHeader("X-Authenticated-User") int userId) {
+        String message = "사용자 ID: " + userId + " / 사용자 이름: " + username;
         return ResponseEntity.ok(Response.success(message));
     }
 }

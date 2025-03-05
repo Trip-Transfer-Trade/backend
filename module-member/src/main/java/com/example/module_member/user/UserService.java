@@ -46,7 +46,7 @@ public class UserService {
             return Response.error(401, "아이디 혹은 비밀번호가 잘못 입력되었습니다.");
         }
 
-        String token = jwtUtil.generateToken(user.getUserName());
+        String token = jwtUtil.generateToken(user.getId(), user.getUserName());
         return Response.success(new LoginResponseDto(token));
     }
 
