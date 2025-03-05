@@ -1,5 +1,6 @@
 package com.example.module_exchange.exchange;
 
+import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
@@ -56,6 +57,13 @@ public class ExchangeController {
     @GetMapping("/transactions/{accountId}")
     public ResponseEntity<Response<List<TransactionHistoryResponseDTO>>> getTransactions(@PathVariable Integer accountId) {
         List<TransactionHistoryResponseDTO> response = exchangeService.getTransactionHistory(accountId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<Response<List<WalletResponseDTO>>> findExchangeCurrecyByUsernameAndCurrencyCode(@RequestHeader (value = "X-Authenticated-User", required = false) String username, @RequestParam String currencyCode) {
+        System.out.println(username+" "+currencyCode);
+        List<WalletResponseDTO> response = exchangeService.findExchangeCurrecyByUsernameAndCurrencyCode(username, currencyCode);
         return ResponseEntity.ok(Response.success(response));
     }
 }

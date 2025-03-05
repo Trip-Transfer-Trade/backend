@@ -28,8 +28,9 @@ public class AccountController {
     }
 
     @GetMapping(value = "", params = "!accountType")
-    public List<AccountResponseDTO> getAccountByUserId(@RequestParam("userId") Integer userId){
-        return accountService.getAccountByUserId(userId);
+    public ResponseEntity<Response<List<AccountResponseDTO>>> getAccountByUserId(@RequestParam("userId") Integer userId){
+        List<AccountResponseDTO> response = accountService.getAccountByUserId(userId);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping("/{accountId}")

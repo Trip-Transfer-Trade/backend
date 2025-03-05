@@ -5,6 +5,7 @@ import com.example.module_exchange.clients.MemberClient;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.*;
@@ -148,6 +149,18 @@ public class ExchangeService {
         return transactionHistoryRepository.findByExchangeCurrency_AccountIdOrderByCreatedDateDesc(accountId)
                 .stream()
                 .map(TransactionHistoryResponseDTO::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<WalletResponseDTO> findExchangeCurrecyByUsernameAndCurrencyCode(String username, String currencyCode) {
+        Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();
+
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        return exchangeCurrencyRepository.findByCurrencyCodeAndAccountIdIn(currencyCode, accountIds)
+                .stream()
+                .map(WalletResponseDTO::toDto)
                 .collect(Collectors.toList());
     }
 }
