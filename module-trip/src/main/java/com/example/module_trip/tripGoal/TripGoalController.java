@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -50,6 +51,5 @@ public class TripGoalController {
         List<TripGoalResponseDTO> tripGoals = tripGoalService.findAllTripGoal();
         return ResponseEntity.ok(new Response<>(200, "success", tripGoals));
     }
-
 
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
@@ -14,17 +15,21 @@ public class TripGoalResponseDTO {
     private String country;
     private BigDecimal goalAmount;
     private BigDecimal profit;
+    private BigDecimal realisedProfit;
+    private LocalDate endDate;
 
     private int accountId;
 
 
     @Builder
-    public TripGoalResponseDTO(Integer id, String name, String country, BigDecimal goalAmount, BigDecimal profit, int accountId) {
+    public TripGoalResponseDTO(Integer id, String name, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, LocalDate endDate,int accountId) {
         this.id = id;
         this.name = name;
         this.country = country;
         this.goalAmount = goalAmount;
         this.profit = profit;
+        this.realisedProfit = realisedProfit;
+        this.endDate = endDate;
         this.accountId = accountId;
 
     }
@@ -37,6 +42,8 @@ public class TripGoalResponseDTO {
                 .goalAmount(tripGoal.getGoalAmount())
                 .profit(tripGoal.getProfit())
                 .accountId(tripGoal.getAccount().getId())
+                .realisedProfit(tripGoal.getRealisedProfit())
+                .endDate(tripGoal.getEndDate())
                 .build();
     }
 }

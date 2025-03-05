@@ -344,21 +344,21 @@ public class StockTradeService {
 
     // 전날 profit 가져오기
     @Transactional
-    public void storeAllUserProfit(){
+    public void storeAllUserRealisedProfit(){
 
         ResponseEntity<Response<List<TripGoalResponseDTO>>> responseEntity = tripClient.getAllTrips();
         List<TripGoalResponseDTO> allTripGoals = responseEntity.getBody().getData();
 
         for(TripGoalResponseDTO tripGoalResponseDTO : allTripGoals){
             Integer tripId = tripGoalResponseDTO.getId();
-            BigDecimal profit = tripGoalResponseDTO.getProfit() != null ? tripGoalResponseDTO.getProfit() : BigDecimal.ZERO;
+            BigDecimal realizedProfit = tripGoalResponseDTO.getRealisedProfit() != null ? tripGoalResponseDTO.getRealisedProfit() : BigDecimal.ZERO;
 
-            String cacheKey = "userProfit:" + tripId + ":" + profit;
+            String cacheKey = "userProfit:" + tripId + ":" + realizedProfit;
             ValueOperations<String, String> ops = redisTemplate.opsForValue();
-            ops.set(cacheKey, profit.toString(), 1000, TimeUnit.SECONDS);
+            ops.set(cacheKey, realizedProfit.toString());
 
-            System.out.println("여행 목표 ID " + tripId + " | profit: " + profit + " 저장 완료!");
+            System.out.println("여행 목표 ID " + tripId + " | realizedProfit: " + realizedProfit + " 저장 완료!");
         }
-        System.out.println("모든 사용자 profit 저장 완료!");
+        System.out.println("모든 사용자 실현 손익 저장 완료!");
     }
 }
