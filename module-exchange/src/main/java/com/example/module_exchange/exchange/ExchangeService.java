@@ -95,7 +95,8 @@ public class ExchangeService {
     }
 
     private Integer getAccountIdFromTripId(int tripId) {
-        TripGoalResponseDTO tripGoalResponseDTO = tripClient.getTripGoal(tripId);
+        ResponseEntity<Response<TripGoalResponseDTO>> responseEntity = tripClient.getTripGoal(tripId);
+        TripGoalResponseDTO tripGoalResponseDTO = responseEntity.getBody().getData();
         return tripGoalResponseDTO.getAccountId();
     }
 

@@ -30,4 +30,4 @@ spring:
         - id: alarm-service
           uri: "http://localhost:8084"
           predicates:
-            - Path=/alarms/**
+            - Path=/api/alarms/**

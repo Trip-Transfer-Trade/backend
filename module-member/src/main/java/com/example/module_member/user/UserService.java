@@ -3,8 +3,10 @@ package com.example.module_member.user;
 import com.example.module_member.dto.LoginRequestDto;
 import com.example.module_member.dto.LoginResponseDto;
 import com.example.module_member.dto.SignUpRequestDto;
+import com.example.module_member.dto.UserResponseDto;
 import com.example.module_utility.response.Response;
 import com.example.module_member.security.JwtUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -46,5 +48,11 @@ public class UserService {
 
         String token = jwtUtil.generateToken(user.getUserName());
         return Response.success(new LoginResponseDto(token));
+    }
+
+    public UserResponseDto findUserByUsername(String username) {
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+        return UserResponseDto.fromEntity(user);
     }
 }
