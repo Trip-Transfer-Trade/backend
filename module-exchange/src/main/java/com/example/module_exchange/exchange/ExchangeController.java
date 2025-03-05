@@ -1,6 +1,8 @@
 package com.example.module_exchange.exchange;
 
 import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
@@ -68,4 +70,18 @@ public class ExchangeController {
         List<WalletResponseDTO> response = exchangeService.findExchangeCurrecyByUsernameAndCurrencyCode(username, currencyCode);
         return ResponseEntity.ok(Response.success(response));
     }
+
+//    @GetMapping("/wallet/account/{accountId}")
+//    public ResponseEntity<Response<List<WalletResponseDTO>>> getWalletBalance(@PathVariable int accountId) {
+//        List<WalletResponseDTO> wallet = exchangeService.getWalletBalance(accountId);
+//        return ResponseEntity.ok(Response.success(wallet));
+//    }
+
+    @GetMapping("/wallet")
+    public ResponseEntity<Response<List<WalletSummaryResponseDTO>>> getUserWallet(
+            @RequestHeader(value = "X-Authenticated-User", required = false) String username) {
+        List<WalletSummaryResponseDTO> walletSummary = exchangeService.getUserWalletSummary(username);
+        return ResponseEntity.ok(Response.success(walletSummary));
+    }
+
 }

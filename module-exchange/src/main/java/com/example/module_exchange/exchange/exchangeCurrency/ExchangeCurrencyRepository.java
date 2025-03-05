@@ -19,4 +19,7 @@ public interface ExchangeCurrencyRepository extends JpaRepository<ExchangeCurren
     );
 
     List<ExchangeCurrency> findByCurrencyCodeAndAccountIdIn(String currencyCode, List<Integer> accountIds);
+
+    List<ExchangeCurrency> findByAccountId(Integer accountId);
+
 }
