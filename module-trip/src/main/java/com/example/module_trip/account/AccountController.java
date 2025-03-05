@@ -20,7 +20,6 @@ public class AccountController {
     @PostMapping("")
     public void saveAccount(@RequestBody AccountCreateRequestDTO accountCreateRequestDTO){
         accountService.saveAccount(accountCreateRequestDTO);
-
     }
 
     @GetMapping(value = "", params = "accountType")

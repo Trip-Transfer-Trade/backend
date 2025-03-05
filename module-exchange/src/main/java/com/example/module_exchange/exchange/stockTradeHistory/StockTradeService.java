@@ -7,6 +7,7 @@ import com.example.module_exchange.exchange.transactionHistory.TransactionHistor
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
+import com.example.module_utility.response.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -68,6 +69,10 @@ public class StockTradeService {
         Integer accountId = getAccountIdFromTripId(stockTradeDTO.getTripId());
         BigDecimal amount = stockTradeDTO.getAmount();
         TradeType tradeType = TradeType.BUY;
+
+        System.out.println("🎯 가져온 TripId: " + stockTradeDTO.getTripId());
+        System.out.println("🎯 가져온 accountId: " + accountId);
+
 
         ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, stockTradeDTO.getCurrencyCode());
 
@@ -141,7 +146,10 @@ public class StockTradeService {
     }
 
     private Integer getAccountIdFromTripId(int tripId) {
-        TripGoalResponseDTO tripGoalResponseDTO = tripClient.getTripGoal(tripId);
+        ResponseEntity<Response<TripGoalResponseDTO>> responseEntity = tripClient.getTripGoal(tripId);
+        TripGoalResponseDTO tripGoalResponseDTO = responseEntity.getBody().getData();
+
+        System.out.println("🎯 가져온 accountId 함수: " + tripGoalResponseDTO.getAccountId());
         return tripGoalResponseDTO.getAccountId();
     }
 
@@ -160,6 +168,8 @@ public class StockTradeService {
 
     private void validateSufficientBalance(ExchangeCurrency currency, StockTradeDTO stockTradeDTO) {
         BigDecimal totalPurchaseAmount = stockTradeDTO.getAmount();
+        System.out.println("🔍 주문 금액: " + totalPurchaseAmount);
+        System.out.println("💰 현재 보유 예수금: " + currency.getAmount());
         if(totalPurchaseAmount.compareTo(currency.getAmount()) > 0){
             throw new RuntimeException("매수 실패: 보유한 예수금이 주문 금액보다 작습니다.");
         }
