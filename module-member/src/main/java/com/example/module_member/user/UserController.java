@@ -3,6 +3,7 @@ package com.example.module_member.user;
 import com.example.module_member.dto.LoginRequestDto;
 import com.example.module_member.dto.LoginResponseDto;
 import com.example.module_member.dto.SignUpRequestDto;
+import com.example.module_member.dto.UserResponseDto;
 import com.example.module_utility.response.Response;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +17,12 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("")
+    public ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-User", required = false) String username) {
+        UserResponseDto response = userService.findUserByUsername(username);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @PostMapping("/signup")
