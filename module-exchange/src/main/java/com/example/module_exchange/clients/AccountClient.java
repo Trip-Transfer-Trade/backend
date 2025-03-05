@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
-@FeignClient(name = "account-service", url = "http://localhost:8083/api/accounts")
+@FeignClient(name = "account-service", url = "http://localhost:8082/api/accounts")
 public interface AccountClient {
     @GetMapping(value = "", params = "accountType")
     AccountResponseDTO getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType accountType);
