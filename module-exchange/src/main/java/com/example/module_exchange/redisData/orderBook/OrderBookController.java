@@ -1,5 +1,7 @@
 package com.example.module_exchange.redisData.orderBook;
 
+import com.example.module_utility.response.Response;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +18,8 @@ public class OrderBookController {
     }
 
     @GetMapping("/{code}")
-    public OrderBookDTO getOrderBook(@PathVariable String code) {
-        return orderBookService.getOrderBook(code);
+    public ResponseEntity<Response<OrderBookDTO>> getOrderBook(@PathVariable String code) {
+        OrderBookDTO response = orderBookService.getOrderBook(code);
+        return ResponseEntity.ok(Response.success(response));
     }
 }

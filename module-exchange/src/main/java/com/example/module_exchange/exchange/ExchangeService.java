@@ -77,7 +77,7 @@ public class ExchangeService {
         ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(transactionDTO.getTargetAccountNumber());
         Integer targetAccountId = accountResponse.getBody().getData().getAccountId();
         AccountType targetAccountType = accountResponse.getBody().getData().getAccountType();
-        AccountType accountType = accountClient.getAccountById(accountId).getAccountType();
+        AccountType accountType = accountClient.getAccountById(accountId).getBody().getData().getAccountType();
 
         // 기본 username
         String toDescription = setDescriptionFromAccount(targetAccountType,targetAccountId,username); // 내가 누구한테 보낼지

@@ -23,8 +23,9 @@ public class AccountController {
     }
 
     @GetMapping(value = "", params = "accountType")
-    public AccountResponseDTO getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType type){
-        return accountService.getAccountByIdAndType(userId, type);
+    public ResponseEntity<Response<AccountResponseDTO>> getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType type){
+        AccountResponseDTO response = accountService.getAccountByIdAndType(userId, type);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping(value = "", params = "!accountType")
@@ -34,8 +35,9 @@ public class AccountController {
     }
 
     @GetMapping("/{accountId}")
-    public AccountResponseDTO getAccountById(@PathVariable("accountId") Integer accountId){
-        return  accountService.getAccountByAccountId(accountId);
+    public ResponseEntity<Response<AccountResponseDTO>> getAccountById(@PathVariable("accountId") Integer accountId){
+        AccountResponseDTO response =  accountService.getAccountByAccountId(accountId);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping("/number/{accountNumber}")

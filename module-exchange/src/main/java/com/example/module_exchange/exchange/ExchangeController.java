@@ -4,7 +4,6 @@ import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
-import com.example.module_exchange.exchange.stockTradeHistory.TradeType;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
@@ -40,18 +39,21 @@ public class ExchangeController {
     }
 
     @PostMapping("/stocks/buy")
-    public void getBuyStock(@RequestBody StockTradeDTO stockTradeDTO) {
+    public ResponseEntity<Response<Void>> getBuyStock(@RequestBody StockTradeDTO stockTradeDTO) {
         stockTradeService.orderStockBuy(stockTradeDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @PostMapping("/stocks/sell")
-    public void getSellStock(@RequestBody StockTradeDTO stockTradeDTO) {
+    public ResponseEntity<Response<Void>> getSellStock(@RequestBody StockTradeDTO stockTradeDTO) {
         stockTradeService.orderStockSell(stockTradeDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @GetMapping("/stocks/holding")
-    public StockHoldingsDTO getHoldingStock(@RequestParam int tripId) {
-        return stockTradeService.getStockInfoFromRedis(tripId);
+    public ResponseEntity<Response<StockHoldingsDTO>> getHoldingStock(@RequestParam int tripId) {
+        StockHoldingsDTO response= stockTradeService.getStockInfoFromRedis(tripId);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping("/transactions/{accountId}")
