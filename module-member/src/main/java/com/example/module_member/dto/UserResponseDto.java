@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class UserResponseDto {
+    private Integer userId;
     private String userName;
     private String name;
     private String gender;
@@ -17,6 +18,7 @@ public class UserResponseDto {
 
     @Builder
     public UserResponseDto(User user) {
+        this.userId = user.getId();
         this.userName = user.getUserName();
         this.name = user.getName();
         this.gender = user.getGender();
