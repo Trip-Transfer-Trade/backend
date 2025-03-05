@@ -10,10 +10,9 @@ import org.springframework.web.bind.annotation.*;
 public interface TripClient {
 
     @GetMapping("/{tripId}")
-    TripGoalResponseDTO getTripGoal(@PathVariable("tripId") Integer tripId);
+    ResponseEntity<Response<TripGoalResponseDTO>> getTripGoal(@PathVariable("tripId") Integer tripId);
 
     @GetMapping("/account/{accountId}")
     ResponseEntity<Response<TripGoalResponseDTO>> getTripGoalByAccountId(@PathVariable("accountId") Integer accountId);
-
 
 }

@@ -108,9 +108,16 @@ public class ExchangeService {
         return memberClient.findUserByUsername(username).getBody().getData().getName();
     }
 
+
     private String getTripNameFromAccountId(Integer accountId) {
         ResponseEntity<Response<TripGoalResponseDTO>> tripResponse = tripClient.getTripGoalByAccountId(accountId);
         return tripResponse.getBody().getData().getName();
+    }
+
+    private Integer getAccountIdFromTripId(int tripId) {
+        ResponseEntity<Response<TripGoalResponseDTO>> responseEntity = tripClient.getTripGoal(tripId);
+        TripGoalResponseDTO tripGoalResponseDTO = responseEntity.getBody().getData();
+        return tripGoalResponseDTO.getAccountId();
     }
 
     private Integer getAccountIdFromAccountNumber(String accountNumber) {
