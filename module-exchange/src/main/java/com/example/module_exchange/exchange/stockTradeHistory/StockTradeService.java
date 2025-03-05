@@ -6,6 +6,8 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRep
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
+import com.example.module_trip.tripGoal.TripGoal;
+import com.example.module_trip.tripGoal.TripGoalRepository;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -69,10 +71,6 @@ public class StockTradeService {
         Integer accountId = getAccountIdFromTripId(stockTradeDTO.getTripId());
         BigDecimal amount = stockTradeDTO.getAmount();
         TradeType tradeType = TradeType.BUY;
-
-        System.out.println("🎯 가져온 TripId: " + stockTradeDTO.getTripId());
-        System.out.println("🎯 가져온 accountId: " + accountId);
-
 
         ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, stockTradeDTO.getCurrencyCode());
 
@@ -148,8 +146,6 @@ public class StockTradeService {
     private Integer getAccountIdFromTripId(int tripId) {
         ResponseEntity<Response<TripGoalResponseDTO>> responseEntity = tripClient.getTripGoal(tripId);
         TripGoalResponseDTO tripGoalResponseDTO = responseEntity.getBody().getData();
-
-        System.out.println("🎯 가져온 accountId 함수: " + tripGoalResponseDTO.getAccountId());
         return tripGoalResponseDTO.getAccountId();
     }
 
@@ -341,6 +337,56 @@ public class StockTradeService {
         }
 
     }
+
+    // 매도 발생 시 실현 손익 계산
+//    private void realisedCalc(int tripId){
+//        BigDecimal profit = getRealised(tripId);
+//
+//    }
+
+    // 전날 realisedProfit 가져오기
+    @Transactional
+    public void getAllUserRealisedProfit(){
+        ResponseEntity<Response<List<TripGoalResponseDTO>>> responseEntity = tripClient.getAllTrips();
+        List<TripGoalResponseDTO> allTripGoals = responseEntity.getBody().getData();
+
+        for(TripGoalResponseDTO tripGoalResponseDTO : allTripGoals){
+            Integer tripId = tripGoalResponseDTO.getId();
+            BigDecimal realisedProfit = tripGoalResponseDTO.getRealisedProfit() != null ? tripGoalResponseDTO.getRealisedProfit() : BigDecimal.ZERO;
+
+            String cacheKey = "trip:" + tripId + "realisedProfit:" + realisedProfit;
+            ValueOperations<String, String> ops = redisTemplate.opsForValue();
+            ops.set(cacheKey, realisedProfit.toString());
+
+            System.out.println("여행 목표 ID " + tripId + " | realisedProfit: " + realisedProfit + " 저장 완료!");
+        }
+        System.out.println("모든 사용자 실현 손익 저장 완료!");
+    }
+
+    // 장 마감 후 realisedProfit 저장
+//    public void storeAllUserRealisedProfit() {
+//        ValueOperations<String, String> ops = redisTemplate.opsForValue();
+//
+//        Set<String> keys = redisTemplate.keys("trip:*realisedProfit:*");
+//
+//        for (String key : keys) {
+//            String[] parts = key.split("realisedProfit:");
+//
+//            BigDecimal realisedProfit = new BigDecimal(parts[1]);
+//            Integer tripId = Integer.parseInt(parts[0].split(":")[1]);
+//
+//            TripGoal tripGoal = tripGoalRepository.findById(tripId).orElse(null);
+//            if(tripGoal != null){
+//                tripGoal.setRealisedProfit(realisedProfit);
+//                tripGoalRepository.save(tripGoal);
+//                System.out.println("여행 목표 ID " + tripId + " | realisedProfit: " + realisedProfit + " 저장 완료!");
+//            } else {
+//                System.out.println("여행 목표 ID " + tripId + "찾을 수 없음");
+//            }
+//            redisTemplate.delete(key);
+//        }
+//        System.out.println("모든 realisedProfit DB 저장 완료!");
+//    }
 
 
 }

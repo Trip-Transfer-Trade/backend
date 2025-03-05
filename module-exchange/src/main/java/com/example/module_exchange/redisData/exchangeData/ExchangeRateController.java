@@ -49,4 +49,7 @@ public class ExchangeRateController {
         exchangeRateChartService.saveTestData();
         return ResponseEntity.ok(Response.successWithoutData());
     }
+
+
+
 }
