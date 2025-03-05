@@ -13,9 +13,12 @@ public class JwtUtil {
     private static final String SECRET_KEY = "test";
 
     public Integer extractUserId(String token) {
-        return Integer.parseInt(extractClaim(token, Claims::getSubject)); // ✅ userId는 int이므로 변환 필요
+        return Integer.parseInt(extractClaim(token, Claims::getSubject));
     }
 
+    public String extractUsername(String token) {
+        return extractClaim(token, claims -> claims.get("username", String.class));
+    }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);

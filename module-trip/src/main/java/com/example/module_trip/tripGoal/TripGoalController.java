@@ -31,9 +31,8 @@ public class TripGoalController {
     }
 
     @GetMapping("/test-auth")
-    public ResponseEntity<String> testAuth(@RequestHeader(value = "Authorization", required = false) String token,
-                                           @RequestHeader(value = "X-Authenticated-User", required = false) int userid) {
-        return ResponseEntity.ok("토큰: " + token + " 사용자 ID: " + userid);
+    public ResponseEntity<String> testAuth(@RequestHeader(value = "X-Authenticated-User", required = false) int userid) {
+        return ResponseEntity.ok(" 사용자 ID: " + userid);
     }
 
     @GetMapping("/{tripId}")
