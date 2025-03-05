@@ -8,5 +8,5 @@ import java.util.Collection;
 @Repository
 public interface TransactionHistoryRepository extends JpaRepository<TransactionHistory, Integer> {
 
-    Collection<TransactionHistory> findByExchangeCurrency_AccountId(Integer accountId);
+    Collection<TransactionHistory> findByExchangeCurrency_AccountIdOrderByCreatedDateDesc(Integer accountId);
 }

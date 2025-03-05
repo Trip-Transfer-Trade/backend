@@ -13,12 +13,13 @@ public class TransactionDTO {
     private String targetAccountNumber;
     private String currencyCode;
 
-    public TransactionHistory toTransactionHistory(ExchangeCurrency exchangeCurrency,TransactionType transactionType) {
+    public TransactionHistory toTransactionHistory(ExchangeCurrency exchangeCurrency,TransactionType transactionType, String description) {
         return TransactionHistory.builder()
                 .transactionAmount(amount)
                 .transactionType(transactionType)
                 .transactionCategory(TransactionCategory.BASIC)
                 .targetAccountNumber(targetAccountNumber)
+                .description(description)
                 .exchangeCurrency(exchangeCurrency)
                 .build();
     }

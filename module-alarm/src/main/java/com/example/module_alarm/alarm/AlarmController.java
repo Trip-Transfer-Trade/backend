@@ -16,9 +16,9 @@ public class AlarmController {
     private final AlarmService alarmService;
 
     @PostMapping("")
-    public ResponseEntity sendAlarm(@RequestBody AlarmRequestDTO alarmRequestDTO) {
+    public ResponseEntity<Response<Void>> sendAlarm(@RequestBody AlarmRequestDTO alarmRequestDTO) {
         alarmService.sendAlarm(alarmRequestDTO);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @GetMapping("")

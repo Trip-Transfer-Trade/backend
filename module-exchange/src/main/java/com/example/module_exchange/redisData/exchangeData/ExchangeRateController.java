@@ -2,6 +2,8 @@ package com.example.module_exchange.redisData.exchangeData;
 
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartDTO;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
+import com.example.module_utility.response.Response;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,33 +20,34 @@ public class ExchangeRateController {
 
     // 통화 23개 당일 환율 조회
     @GetMapping("/rate")
-    public ExchangeRateListDTO getExchangeRate() {
-        return exchangeRateService.getExchangeRate();
+    public ResponseEntity<Response<ExchangeRateListDTO>> getExchangeRate() {
+        ExchangeRateListDTO response = exchangeRateService.getExchangeRate();
+        return ResponseEntity.ok(Response.success(response));
     }
 
     // 매일 새로운 환율 저장 -> scheduler 설정해둠
     @PostMapping("/save")
-    public String saveExchangeRate() {
+    public ResponseEntity<Response<Void>> saveExchangeRate() {
         exchangeRateChartService.saveExchangeRateChart();
-        return "success";
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @GetMapping("/rate/us")
-    public ExchangeRateChartDTO.ExchangeRateData getUSExchangeRate(){
-        return exchangeRateChartService.getUSExchangeRate();
+    public ResponseEntity<Response<ExchangeRateChartDTO.ExchangeRateData>> getUSExchangeRate(){
+        return ResponseEntity.ok(Response.success(exchangeRateChartService.getUSExchangeRate()));
     }
 
     // 환율 차트 데이터 조회
     @GetMapping("/chart")
-    public ExchangeRateChartDTO getExchangeRateChart(@RequestParam String code, @RequestParam int days) {
-        return exchangeRateChartService.getExchangeRateChart(code, days);
+    public ResponseEntity<Response<ExchangeRateChartDTO>> getExchangeRateChart(@RequestParam String code, @RequestParam int days) {
+        return ResponseEntity.ok(Response.success(exchangeRateChartService.getExchangeRateChart(code, days)));
     }
 
     // 1년 환율 데이터 저장 함수 -> 초기 실행 후 사용 안 함
     @PostMapping("/test")
-    public String saveTestExchangeRate() {
+    public ResponseEntity<Response<Void>> saveTestExchangeRate() {
         exchangeRateChartService.saveTestData();
-        return "success";
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
 
