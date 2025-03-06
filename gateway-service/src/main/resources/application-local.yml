@@ -1,46 +1,33 @@
 server:
-  port: 8085
+  port: 8080
 
 spring:
   main:
     web-application-type: reactive
     allow-bean-definition-overriding: true
-
   application:
     name: gateway-service
-
   datasource:
     url: none
     driver-class-name: none
-
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-
   cloud:
     gateway:
       routes:
         - id: member-service
-          uri: lb://member-service
+          uri: "http://localhost:8081"
           predicates:
-            - Path=/members/**
+            - Path=/api/members/**
         - id: trip-service
-          uri: lb://trip-service
+          uri: "http://localhost:8082"
           predicates:
-            - Path=/trips/**
+            - Path=/api/trips/**
         - id: exchange-service
-          uri: lb://exchange-service
+          uri: "http://localhost:8083"
           predicates:
-            - Path=/exchanges/**
+            - Path=/api/exchanges/**
         - id: alarm-service
-          uri: lb://alarm-service
+          uri: "http://localhost:8084"
           predicates:
-            - Path=/alarms/**
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://54.180.235.123:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
+            - Path=/api/alarms/**

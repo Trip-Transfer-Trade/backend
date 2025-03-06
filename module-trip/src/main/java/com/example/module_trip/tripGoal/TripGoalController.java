@@ -53,4 +53,10 @@ public class TripGoalController {
         return ResponseEntity.ok(new Response<>(200, "success", tripGoals));
     }
 
+    @PutMapping("/realised")
+    public ResponseEntity<Response<TripGoalResponseDTO>> updateRealisedProfit(@RequestBody TripGoalUpdateDTO tripGoalUpdateDTO) {
+        Response<TripGoalResponseDTO> response = Response.success(tripGoalService.updateRealisedProfit(tripGoalUpdateDTO));
+        return ResponseEntity.ok(response);
+    }
+
 }
