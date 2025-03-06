@@ -9,6 +9,7 @@ import com.example.module_exchange.exchange.transactionHistory.TransactionType;
 import com.example.module_trip.tripGoal.TripGoal;
 import com.example.module_trip.tripGoal.TripGoalRepository;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
+import com.example.module_trip.tripGoal.TripGoalUpdateDTO;
 import com.example.module_utility.response.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -339,10 +340,10 @@ public class StockTradeService {
     }
 
     // 매도 발생 시 실현 손익 계산
-//    private void realisedCalc(int tripId){
-//        BigDecimal profit = getRealised(tripId);
-//
-//    }
+    private void realisedCalc(int tripId){
+
+
+    }
 
     // 전날 realisedProfit 가져오기
     @Transactional
@@ -364,29 +365,24 @@ public class StockTradeService {
     }
 
     // 장 마감 후 realisedProfit 저장
-//    public void storeAllUserRealisedProfit() {
-//        ValueOperations<String, String> ops = redisTemplate.opsForValue();
-//
-//        Set<String> keys = redisTemplate.keys("trip:*realisedProfit:*");
-//
-//        for (String key : keys) {
-//            String[] parts = key.split("realisedProfit:");
-//
-//            BigDecimal realisedProfit = new BigDecimal(parts[1]);
-//            Integer tripId = Integer.parseInt(parts[0].split(":")[1]);
-//
-//            TripGoal tripGoal = tripGoalRepository.findById(tripId).orElse(null);
-//            if(tripGoal != null){
-//                tripGoal.setRealisedProfit(realisedProfit);
-//                tripGoalRepository.save(tripGoal);
-//                System.out.println("여행 목표 ID " + tripId + " | realisedProfit: " + realisedProfit + " 저장 완료!");
-//            } else {
-//                System.out.println("여행 목표 ID " + tripId + "찾을 수 없음");
-//            }
-//            redisTemplate.delete(key);
-//        }
-//        System.out.println("모든 realisedProfit DB 저장 완료!");
-//    }
+    public void storeAllUserRealisedProfit() {
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
 
+        Set<String> keys = redisTemplate.keys("trip:*realisedProfit:*");
 
+        for (String key : keys) {
+            TripGoalUpdateDTO tripGoalUpdateDTO = TripGoalUpdateDTO.fromRedisKey(key);
+
+            ResponseEntity<Response<TripGoalResponseDTO>> response = tripClient.updateRealisedProfit(tripGoalUpdateDTO);
+
+            if(response.getStatusCode().is2xxSuccessful()){
+                System.out.println("여행 목표 ID " + tripGoalUpdateDTO.getTripGoalId() + " | realisedProfit: " + tripGoalUpdateDTO.getRealisedProfit() + " 저장 완료!");
+            }
+            else {
+                System.out.println("여행 목표 ID " + tripGoalUpdateDTO.getTripGoalId() + "찾을 수 없음");
+            }
+            redisTemplate.delete(key);
+        }
+        System.out.println("모든 realisedProfit DB 저장 완료!");
+    }
 }

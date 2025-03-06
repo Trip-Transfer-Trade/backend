@@ -46,4 +46,11 @@ public class TripGoalService {
                 .map(TripGoalResponseDTO::toDTO)
                 .toList();
     }
+
+    public TripGoalResponseDTO updateRealisedProfit(TripGoalUpdateDTO tripGoalUpdateDTO) {
+        TripGoal tripGoal = tripGoalRepository.findById(tripGoalUpdateDTO.getTripGoalId()).get();
+        tripGoal.setRealisedProfit(tripGoalUpdateDTO.getRealisedProfit());
+        TripGoal updatedTripGoal = tripGoalRepository.save(tripGoal);
+        return TripGoalResponseDTO.toDTO(updatedTripGoal);
+    }
 }
