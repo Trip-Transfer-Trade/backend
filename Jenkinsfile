@@ -9,10 +9,6 @@ pipeline {
     // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
-        S3_ENV_FILE = "s3://my-ttt-env/common.env" // S3 환경 변수 파일 경로
-        LOCAL_ENV_FILE = "/tmp/common.env" // 로컬 환경 변수 파일 경로
-        EUREKA_SERVER_URL = "http://10.0.1.78:8761/eureka/apps"
-        SERVER_PORT = "8085"  //서버 port 8085로 수정
     }
 
     triggers {
@@ -99,62 +95,6 @@ pipeline {
                             docker push ${DOCKER_HUB_USERNAME}/${module}:latest
                             """
                         }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to ASG') {
-            when {
-                expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
-            }
-            steps {
-                script {
-                    env.AFFECTED_MODULES.split(" ").each { module ->
-                        def targetASG = ""
-                        def targetPort = ""
-
-                        if (module == "gateway-service") {
-                            targetASG = "api-gateway-asg"
-                            targetPort = "8085"
-                        } else if (module == "module-alarm") {
-                            targetASG = "alarm-service-asg"
-                            targetPort = "8084"
-                        } else if (module == "module-exchange") {
-                            targetASG = "exchange-service-asg"
-                            targetPort = "8083"
-                        } else if (module == "module-member") {
-                            targetASG = "member-service-asg"
-                            targetPort = "8081"
-                        } else if (module == "module-trip") {
-                            targetASG = "trip-service-asg"
-                            targetPort = "8082"
-                        }
-                        echo "🚀 Deploying ${module} to ${targetASG} on port ${targetPort}"
-
-                        sh """
-                        INSTANCE_IDS=\$(aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${targetASG}`].InstanceId' --output text || true)
-
-                        for instance in \$INSTANCE_IDS; do
-                            echo "🔄 인스턴스 \$instance 에 배포 중..."
-                            ssh -o StrictHostKeyChecking=no ubuntu@\${instance} '
-                                echo "📥 S3에서 환경 변수 파일 다운로드 중..."
-                                aws s3 cp ${S3_ENV_FILE} /home/ubuntu/common.env &&
-                                echo "✅ 환경 변수 파일 다운로드 완료."
-
-                                echo "🚀 Docker 최신 이미지 다운로드 중..."
-                                docker pull \${DOCKER_HUB_USERNAME}/${module}:latest &&
-
-                                echo "🛑 기존 컨테이너 중지 및 제거..."
-                                docker stop ${module} || true &&
-                                docker rm ${module} || true &&
-
-                                echo "🐳 새 컨테이너 실행..."
-                                docker run -d --name ${module} --env-file /home/ubuntu/common.env -p ${targetPort}:${SERVER_PORT} \${DOCKER_HUB_USERNAME}/${module}:latest
-                            '
-                        done
-                        """
-
                     }
                 }
             }
