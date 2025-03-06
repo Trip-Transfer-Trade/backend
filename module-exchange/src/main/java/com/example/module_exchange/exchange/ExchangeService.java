@@ -236,7 +236,7 @@ public class ExchangeService {
     }
 
     public List<TransactionHistoryResponseDTO> getTransactionHistory(Integer accountId) {
-        return transactionHistoryRepository.findByExchangeCurrency_AccountIdOrderByCreatedDateDesc(accountId)
+        return transactionHistoryRepository.findByExchangeCurrency_AccountIdAndTransactionCategoryOrderByCreatedDateDesc(accountId,TransactionCategory.BASIC)
                 .stream()
                 .map(TransactionHistoryResponseDTO::toDTO)
                 .collect(Collectors.toList());
