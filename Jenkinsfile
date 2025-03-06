@@ -9,7 +9,7 @@ pipeline {
     // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
-        S3_ENV_FILE = "s3://your-bucket-name/env/common.env" // S3 환경 변수 파일 경로
+        S3_ENV_FILE = "s3://my-ttt-env/common.env" // S3 환경 변수 파일 경로
         LOCAL_ENV_FILE = "/tmp/common.env" // 로컬 환경 변수 파일 경로
         EUREKA_SERVER_URL = "http://10.0.1.78:8761/eureka/apps"
     }
@@ -23,24 +23,6 @@ pipeline {
             steps {
                 script {
                     checkout scm   // Jenkins가 Git 정보를 자동으로 가져옴
-                }
-            }
-        }
-
-        // 환경 변수 파일 가져오기
-        stage('Download Environment File from S3') {
-            steps {
-                script {
-                    sh """
-                    echo "📥 S3에서 환경 변수 파일 다운로드 중..."
-                    aws s3 cp ${S3_ENV_FILE} ${LOCAL_ENV_FILE}
-                    echo "✅ 환경 변수 파일 다운로드 완료: ${LOCAL_ENV_FILE}"
-                    """
-
-                    // .env 파일을 환경변수로 로드
-                    sh """
-                    export \$(grep -v '^#' ${LOCAL_ENV_FILE} | xargs)
-                    """
                 }
             }
         }
