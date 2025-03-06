@@ -82,9 +82,20 @@ pipeline {
                             sh """
                             echo ">>> Building ${module}"
                             cd ${module} || exit 1
+                            pwd  # 현재 디렉토리 출력
+                            ls -al  # Dockerfile 및 build/libs/*.jar 파일 확인
+
                             chmod +x ./gradlew
                             ./gradlew clean build -x test
-                            docker build --build-arg SERVER_PORT=${SERVER_PORT} -t ${DOCKER_HUB_USERNAME}/${module}:latest .
+
+                            echo "🔍 Checking if Dockerfile exists..."
+                            if [ ! -f Dockerfile ]; then
+                                echo "❌ Error: Dockerfile not found in ${module}"
+                                exit 1
+                            fi
+
+                            echo "✅ Dockerfile found! Starting build..."
+                            docker build --build-arg SERVER_PORT=${env.SERVER_PORT} -t ${DOCKER_HUB_USERNAME}/${module}:latest -f Dockerfile .
                             docker push ${DOCKER_HUB_USERNAME}/${module}:latest
                             """
                         }
