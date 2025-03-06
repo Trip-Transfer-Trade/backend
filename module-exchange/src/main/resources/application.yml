@@ -1,10 +1,14 @@
+server:
+  port: ${EXCHANGE_SERVICE_PORT}
+
 spring:
   application:
     name: exchange-service
+
   datasource:
-    url: jdbc:mysql://localhost:3306/trip_db
-    username: root
-    password: 1234
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -17,10 +21,11 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: ""
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
+# 🔑 외부 API 키
 ACCESS_TOKEN: ${ACCESS_TOKEN:default_access_token}
 APP_KEY: ${APP_KEY:default_app_key}
 APP_SECRET: ${APP_SECRET:default_app_secret}
