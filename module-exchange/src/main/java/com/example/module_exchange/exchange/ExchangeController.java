@@ -34,10 +34,10 @@ public class ExchangeController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<Response<AccountUpdateResponseDTO>> saveTransaction(@RequestHeader (value = "X-Authenticated-User", required = false) String username, @RequestBody TransactionDTO transactionDTO) {
-        AccountUpdateResponseDTO accountUpdateResponseDTO = exchangeService.executeTransactionProcess(transactionDTO, username);
-        Response<AccountUpdateResponseDTO> response = Response.success(accountUpdateResponseDTO);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Response<Void>> saveTransaction(@RequestHeader (value = "X-Authenticated-Username", required = false) String username, @RequestBody TransactionDTO transactionDTO) {
+        System.out.println(username);
+        exchangeService.executeTransactionProcess(transactionDTO, username);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @PostMapping("/stocks/buy")
