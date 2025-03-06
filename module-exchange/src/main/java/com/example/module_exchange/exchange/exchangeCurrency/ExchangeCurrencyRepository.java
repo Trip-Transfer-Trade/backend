@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,4 +17,9 @@ public interface ExchangeCurrencyRepository extends JpaRepository<ExchangeCurren
             @Param("accountId") Integer accountId,
             @Param("currencyCode") String currencyCode
     );
+
+    List<ExchangeCurrency> findByCurrencyCodeAndAccountIdIn(String currencyCode, List<Integer> accountIds);
+
+    List<ExchangeCurrency> findByAccountId(Integer accountId);
+
 }

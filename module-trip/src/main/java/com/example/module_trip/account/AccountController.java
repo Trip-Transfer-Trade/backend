@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
-@RequestMapping("api/accounts")
+@RequestMapping("/api/accounts")
 public class AccountController {
 
     private final AccountService accountService;
@@ -20,22 +20,24 @@ public class AccountController {
     @PostMapping("")
     public void saveAccount(@RequestBody AccountCreateRequestDTO accountCreateRequestDTO){
         accountService.saveAccount(accountCreateRequestDTO);
-
     }
 
     @GetMapping(value = "", params = "accountType")
-    public AccountResponseDTO getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType type){
-        return accountService.getAccountByIdAndType(userId, type);
+    public ResponseEntity<Response<AccountResponseDTO>> getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType type){
+        AccountResponseDTO response = accountService.getAccountByIdAndType(userId, type);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping(value = "", params = "!accountType")
-    public List<AccountResponseDTO> getAccountByUserId(@RequestParam("userId") Integer userId){
-        return accountService.getAccountByUserId(userId);
+    public ResponseEntity<Response<List<AccountResponseDTO>>> getAccountByUserId(@RequestParam("userId") Integer userId){
+        List<AccountResponseDTO> response = accountService.getAccountByUserId(userId);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping("/{accountId}")
-    public AccountResponseDTO getAccountById(@PathVariable("accountId") Integer accountId){
-        return  accountService.getAccountByAccountId(accountId);
+    public ResponseEntity<Response<AccountResponseDTO>> getAccountById(@PathVariable("accountId") Integer accountId){
+        AccountResponseDTO response =  accountService.getAccountByAccountId(accountId);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @GetMapping("/number/{accountNumber}")

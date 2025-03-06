@@ -1,9 +1,13 @@
 package com.example.module_exchange.exchange;
 
 import com.example.module_exchange.clients.AccountClient;
+import com.example.module_exchange.clients.MemberClient;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.*;
@@ -17,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+
 
 @Service
 public class ExchangeService {
@@ -28,10 +35,12 @@ public class ExchangeService {
     private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
+    private final MemberClient memberClient;
 
-    public ExchangeService(AccountClient accountClient, TripClient tripClient,ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository) {
+    public ExchangeService(AccountClient accountClient, TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository) {
         this.accountClient = accountClient;
         this.tripClient = tripClient;
+        this.memberClient = memberClient;
         this.exchangeHistoryRepository = exchangeHistoryRepository;
         this.transactionHistoryRepository = transactionHistoryRepository;
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
@@ -66,19 +75,28 @@ public class ExchangeService {
 
     }
 
+
     @Transactional
-    public AccountUpdateResponseDTO executeTransactionProcess(TransactionDTO transactionDTO) {
+    public AccountUpdateResponseDTO executeTransactionProcess(TransactionDTO transactionDTO, String username) {
         Integer accountId = transactionDTO.getAccountId();
-        Integer targetAccountId = getAccountIdFromAccountNumber(transactionDTO.getTargetAccountNumber());
+        ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(transactionDTO.getTargetAccountNumber());
+        Integer targetAccountId = accountResponse.getBody().getData().getAccountId();
+        AccountType targetAccountType = accountResponse.getBody().getData().getAccountType();
+        AccountType accountType = accountClient.getAccountById(accountId).getBody().getData().getAccountType();
+
+        // 기본 username
+        String toDescription = setDescriptionFromAccount(targetAccountType,targetAccountId,username); // 내가 누구한테 보낼지
+        String fromDescription = setDescriptionFromAccount(accountType, accountId, username); // 내가 누구한테 받을 지
+
 
         BigDecimal amount = transactionDTO.getAmount();
         ExchangeCurrency fromTransactionCurrency = getOrCreateExchangeCurrency(accountId, transactionDTO.getCurrencyCode());
         ExchangeCurrency toTransactionCurrency = getOrCreateExchangeCurrency(targetAccountId, transactionDTO.getCurrencyCode());
         validateSufficientBalance(fromTransactionCurrency,amount);
 
-        TransactionHistory fromTransactionHistory = transactionDTO.toTransactionHistory(fromTransactionCurrency, TransactionType.WITHDRAWAL);
+        TransactionHistory fromTransactionHistory = transactionDTO.toTransactionHistory(fromTransactionCurrency, TransactionType.WITHDRAWAL, toDescription);
         transactionHistoryRepository.save(fromTransactionHistory);
-        TransactionHistory toTransactionHistory = transactionDTO.toTransactionHistory(toTransactionCurrency, TransactionType.DEPOSIT);
+        TransactionHistory toTransactionHistory = transactionDTO.toTransactionHistory(toTransactionCurrency, TransactionType.DEPOSIT, fromDescription);
         transactionHistoryRepository.save(toTransactionHistory);
 
         fromTransactionCurrency.changeAmount(amount.negate());
@@ -89,13 +107,22 @@ public class ExchangeService {
         return response.getBody().getData();
     }
 
-    private Integer getAccountIdFromUserIdAndType(int userId, AccountType accountType) {
-        AccountResponseDTO accountResponse = accountClient.getAccountByUserIdAndAccountType(userId, accountType);
-        return accountResponse.getAccountId();
+    private String setDescriptionFromAccount(AccountType accountType, Integer accountId, String username) {
+        if(accountType==AccountType.TRAVEL_GOAL){
+            return getTripNameFromAccountId(accountId);
+        }
+        return memberClient.findUserByUsername(username).getBody().getData().getName();
+    }
+
+
+    private String getTripNameFromAccountId(Integer accountId) {
+        ResponseEntity<Response<TripGoalResponseDTO>> tripResponse = tripClient.getTripGoalByAccountId(accountId);
+        return tripResponse.getBody().getData().getName();
     }
 
     private Integer getAccountIdFromTripId(int tripId) {
-        TripGoalResponseDTO tripGoalResponseDTO = tripClient.getTripGoal(tripId);
+        ResponseEntity<Response<TripGoalResponseDTO>> responseEntity = tripClient.getTripGoal(tripId);
+        TripGoalResponseDTO tripGoalResponseDTO = responseEntity.getBody().getData();
         return tripGoalResponseDTO.getAccountId();
     }
 
@@ -124,9 +151,57 @@ public class ExchangeService {
     }
 
     public List<TransactionHistoryResponseDTO> getTransactionHistory(Integer accountId) {
-        return transactionHistoryRepository.findByExchangeCurrency_AccountId(accountId)
+        return transactionHistoryRepository.findByExchangeCurrency_AccountIdOrderByCreatedDateDesc(accountId)
                 .stream()
                 .map(TransactionHistoryResponseDTO::toDTO)
                 .collect(Collectors.toList());
     }
+
+    public List<WalletResponseDTO> findExchangeCurrecyByUsernameAndCurrencyCode(String username, String currencyCode) {
+        Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();
+
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        return exchangeCurrencyRepository.findByCurrencyCodeAndAccountIdIn(currencyCode, accountIds)
+                .stream()
+                .map(WalletResponseDTO::toDto)
+                .collect(Collectors.toList());
+    }
+
+//    public List<WalletResponseDTO> getWalletBalance(Integer accountId) {
+//        List<ExchangeCurrency> currencies = exchangeCurrencyRepository.findByAccountId(accountId);
+//
+//        return currencies.stream()
+//                .map(WalletResponseDTO::toDto)
+//                .collect(Collectors.toList());
+//    }
+
+    public List<WalletSummaryResponseDTO> getUserWalletSummary(String username) {
+
+        Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();
+
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        Map<String, BigDecimal> currencyBalances = new HashMap<>();
+
+        for (Integer accountId : accountIds) {
+            List<ExchangeCurrency> currencies = exchangeCurrencyRepository.findByAccountId(accountId);
+
+            for (ExchangeCurrency currency : currencies) {
+                currencyBalances.merge(
+                        currency.getCurrencyCode(),
+                        currency.getAmount(),
+                        BigDecimal::add
+                );
+            }
+        }
+
+        return currencyBalances.entrySet().stream()
+                .map(entry -> new WalletSummaryResponseDTO(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+
 }

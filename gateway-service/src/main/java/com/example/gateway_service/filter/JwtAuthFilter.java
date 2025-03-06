@@ -40,12 +40,13 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-
+        int userId = jwtUtil.extractUserId(token);
         String username = jwtUtil.extractUsername(token);
-        logger.info("✅ 인증 성공 - 사용자: {} (경로: {})", username, request.getURI().getPath());
+        logger.info("✅ 인증 성공 - 사용자: {} (경로: {})", userId, request.getURI().getPath());
 
         ServerHttpRequest modifiedRequest = request.mutate()
-                .header("X-Authenticated-User", username)
+                .header("X-Authenticated-User", String.valueOf(userId))
+                .header("X-Authenticated-Username", username)
                 .build();
 
         return chain.filter(exchange.mutate().request(modifiedRequest).build());

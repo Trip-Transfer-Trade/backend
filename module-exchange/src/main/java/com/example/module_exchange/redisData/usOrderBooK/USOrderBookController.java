@@ -1,12 +1,14 @@
 package com.example.module_exchange.redisData.usOrderBooK;
 
+import com.example.module_utility.response.Response;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/stocks/us")
+@RequestMapping("/api/exchanges/us")
 public class USOrderBookController {
 
     private final USOrderBookService usOrderBookService;
@@ -16,7 +18,8 @@ public class USOrderBookController {
     }
 
     @GetMapping("/{code}")
-    public USOrderBookDTO getOrderBook(@PathVariable String code) {
-        return usOrderBookService.getUSOrderBook(code);
+    public ResponseEntity<Response<USOrderBookDTO>> getOrderBook(@PathVariable String code) {
+        USOrderBookDTO response = usOrderBookService.getUSOrderBook(code);
+        return ResponseEntity.ok(Response.success(response));
     }
 }
