@@ -9,6 +9,7 @@ import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
 import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
+import com.example.module_exchange.exchange.exchangeHistory.ExchangeType;
 import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,8 +62,8 @@ public class ExchangeService {
         ExchangeCurrency toExchangeCurrency = getOrCreateExchangeCurrency(accountId, toCurrencyCode);
         validateSufficientBalance(fromExchangeCurrency,fromAmount);
 
-        ExchangeHistory fromExchangeHistory = exchangeDTO.toExchangeHistory(fromExchangeCurrency);
-        ExchangeHistory toExchangeHistory = exchangeDTO.toExchangeHistory(toExchangeCurrency);
+        ExchangeHistory fromExchangeHistory = exchangeDTO.toExchangeHistory(fromExchangeCurrency, ExchangeType.WITHDRAWAL, fromAmount);
+        ExchangeHistory toExchangeHistory = exchangeDTO.toExchangeHistory(toExchangeCurrency,ExchangeType.DEPOSIT,toAmount);
 
         TransactionHistory fromTransactionHistory = exchangeDTO.toTransactionHistory(fromExchangeCurrency, TransactionType.WITHDRAWAL, fromAmount);
         TransactionHistory toTransactionHistory = exchangeDTO.toTransactionHistory(toExchangeCurrency, TransactionType.DEPOSIT, toAmount);
@@ -83,8 +85,77 @@ public class ExchangeService {
 
         exchangeCurrencyRepository.save(fromExchangeCurrency);
         exchangeCurrencyRepository.save(toExchangeCurrency);
+        // exchangeCurrency 가져올 때 auto commit -> save 해주어야됨
     }
 
+
+    public void executeExchangeBatchProcess(ExchangeBatchDTO exchangeBatchDTO) {
+        BigDecimal exchangeRate = exchangeBatchDTO.getExchangeRate();
+
+        String fromCurrency = exchangeBatchDTO.getFromCurrency();
+        String toCurrency = exchangeBatchDTO.getToCurrency();
+
+        ExchangeCurrency toExchangeCurrency = getOrCreateExchangeCurrency(exchangeBatchDTO.getAccountId(),toCurrency);
+        BigDecimal toAmount = BigDecimal.ZERO;
+        List<ExchangeHistory> exchangeHistories = new ArrayList<>();
+        List<TransactionHistory> transactionHistories = new ArrayList<>();
+        List<ExchangeCurrency> exchangeCurrencies = new ArrayList<>();
+
+        for (BatchDTO exchange : exchangeBatchDTO.getBatchDTOList()){
+            ExchangeCurrency fromExchangeCurrency = getOrCreateExchangeCurrency(exchange.getAccountId(),fromCurrency);
+            System.out.println(toExchangeCurrency.getAccountId());
+
+            BigDecimal fromAmount = exchange.getAmount();
+            validateSufficientBalance(fromExchangeCurrency,fromAmount);
+
+            toAmount.add(fromAmount);
+
+            exchangeHistories.add(ExchangeHistory.builder()
+                    .exchangeType(ExchangeType.WITHDRAWAL)
+                    .amount(fromAmount)
+                    .exchangeRate(exchangeRate)
+                    .exchangeCurrency(fromExchangeCurrency)
+                    .build());
+
+            transactionHistories.add(TransactionHistory.builder()
+                    .transactionType(TransactionType.WITHDRAWAL)
+                    .transactionCategory(TransactionCategory.EXCHANGE)
+                    .transactionAmount(fromAmount)
+                    .description("환전 출금")
+                    .exchangeCurrency(fromExchangeCurrency)
+                    .build());
+
+            fromExchangeCurrency.changeAmount(fromAmount.negate());
+            exchangeCurrencies.add(fromExchangeCurrency);
+        }
+
+        ExchangeHistory toExchangeHistory = ExchangeHistory.builder()
+                        .exchangeType(ExchangeType.DEPOSIT).exchangeRate(exchangeRate)
+                        .amount(toAmount).exchangeCurrency(toExchangeCurrency).build();
+
+        TransactionHistory toTransactionHistory = TransactionHistory.builder()
+                        .transactionType(TransactionType.DEPOSIT).transactionCategory(TransactionCategory.EXCHANGE)
+                        .transactionAmount(toAmount).exchangeCurrency(toExchangeCurrency).description("환전 입금").build();
+
+        BigDecimal totalAmount =toAmount.multiply(exchangeRate);
+
+        executeExchangeBatchOperations(exchangeHistories,transactionHistories,exchangeCurrencies,
+                toExchangeCurrency, totalAmount,toExchangeHistory, toTransactionHistory );
+    }
+
+    @Transactional
+    public void executeExchangeBatchOperations(List<ExchangeHistory> exchangeHistories, List<TransactionHistory> transactionHistories, List<ExchangeCurrency> exchangeCurrencies,
+                                               ExchangeCurrency toExchangeCurrency, BigDecimal toAmount, ExchangeHistory toExchangeHistory, TransactionHistory toTransactionHistory){
+        exchangeHistoryRepository.saveAll(exchangeHistories);
+        exchangeHistoryRepository.save(toExchangeHistory);
+
+        transactionHistoryRepository.saveAll(transactionHistories);
+        transactionHistoryRepository.save(toTransactionHistory);
+
+        exchangeCurrencyRepository.saveAll(exchangeCurrencies);
+        toExchangeCurrency.changeAmount(toAmount);
+        exchangeCurrencyRepository.save(toExchangeCurrency);
+    }
 
     public void executeTransactionProcess(TransactionDTO transactionDTO, String username) {
         Integer accountId = transactionDTO.getAccountId();
@@ -111,13 +182,14 @@ public class ExchangeService {
     @Transactional
     public void executeTransactionalOperations(BigDecimal amount, ExchangeCurrency fromTransactionCurrency, ExchangeCurrency toTransactionCurrency,
                                                                    TransactionHistory fromTransactionHistory,TransactionHistory toTransactionHistory) {
-        TransactionHistory savedFromTransactionHistory = transactionHistoryRepository.save(fromTransactionHistory);
-        TransactionHistory savedToTransactionHistory = transactionHistoryRepository.save(toTransactionHistory);
+        transactionHistoryRepository.save(fromTransactionHistory);
+        transactionHistoryRepository.save(toTransactionHistory);
 
         fromTransactionCurrency.changeAmount(amount.negate());
-        ExchangeCurrency fromExchangeCurrency = exchangeCurrencyRepository.save(fromTransactionCurrency);
+        exchangeCurrencyRepository.save(fromTransactionCurrency);
+
         toTransactionCurrency.changeAmount(amount);
-        ExchangeCurrency toExchangeCurrency = exchangeCurrencyRepository.save(toTransactionCurrency);
+        exchangeCurrencyRepository.save(toTransactionCurrency);
 
     }
 
@@ -215,6 +287,5 @@ public class ExchangeService {
                 .map(entry -> new WalletSummaryResponseDTO(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
     }
-
 
 }
