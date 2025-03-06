@@ -1,6 +1,7 @@
 package com.example.module_trip.account;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,6 +24,21 @@ public class AccountService {
         String generatedAccountNumber = generateRandomAccountNumber();
         Account account = accountCreateRequestDTO.toEntity(generatedAccountNumber);
         accountRepository.save(account);
+    }
+
+    @Transactional
+    public Account createTravelGoalAccount(int userId) {
+        Account travelGoalAccount = Account.builder()
+                .userId(userId)
+                .accountType(AccountType.TRAVEL_GOAL)
+                .accountNumber(generateRandomAccountNumber())
+                .build();
+
+        return accountRepository.save(travelGoalAccount);
+    }
+
+    public Optional<Account> findAccountByUserIdAndType(int userId, AccountType accountType) {
+        return accountRepository.findByUserIdAndAccountType(userId, accountType);
     }
 
     private String generateRandomAccountNumber() {

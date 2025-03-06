@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Component
 public class JwtAuthFilter implements GlobalFilter, Ordered {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
@@ -59,9 +61,13 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     private String resolveToken(ServerHttpRequest request) {
         String bearerToken = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return request.getCookies().getFirst("token") != null
+                ? Objects.requireNonNull(request.getCookies().getFirst("token")).getValue()
+                : null;
     }
-
     @Override
     public int getOrder() {
         return -1;

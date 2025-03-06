@@ -41,13 +41,11 @@ public class SecurityConfig {
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173");
-//        config.setAllowedOriginPatterns(List.of("htt"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "https://triptransfertrade.shop/"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return new CorsWebFilter(source);
     }
     private static class StatelessWebSessionSecurityContextRepository implements ServerSecurityContextRepository{
