@@ -12,6 +12,7 @@ pipeline {
         S3_ENV_FILE = "s3://my-ttt-env/common.env" // S3 환경 변수 파일 경로
         LOCAL_ENV_FILE = "/tmp/common.env" // 로컬 환경 변수 파일 경로
         EUREKA_SERVER_URL = "http://10.0.1.78:8761/eureka/apps"
+        SERVER_PORT = "8085"  //서버 port 8085로 수정
     }
 
     triggers {
