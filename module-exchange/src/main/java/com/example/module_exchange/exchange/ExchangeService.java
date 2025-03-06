@@ -6,16 +6,16 @@ import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
 import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
-import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
 import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
-import com.example.module_trip.account.AccountUpdateResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
+
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import java.util.Map;
 
 
+@Slf4j
 @Service
 public class ExchangeService {
 
@@ -46,7 +47,6 @@ public class ExchangeService {
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
     }
 
-    @Transactional
     public void executeExchangeProcess(ExchangeDTO exchangeDTO) {
         Integer accountId = exchangeDTO.getAccountId();
 
@@ -61,33 +61,40 @@ public class ExchangeService {
         validateSufficientBalance(fromExchangeCurrency,fromAmount);
 
         ExchangeHistory fromExchangeHistory = exchangeDTO.toExchangeHistory(fromExchangeCurrency);
-        exchangeHistoryRepository.save(fromExchangeHistory);
         ExchangeHistory toExchangeHistory = exchangeDTO.toExchangeHistory(toExchangeCurrency);
-        exchangeHistoryRepository.save(toExchangeHistory);
 
         TransactionHistory fromTransactionHistory = exchangeDTO.toTransactionHistory(fromExchangeCurrency, TransactionType.WITHDRAWAL, fromAmount);
-        transactionHistoryRepository.save(fromTransactionHistory);
         TransactionHistory toTransactionHistory = exchangeDTO.toTransactionHistory(toExchangeCurrency, TransactionType.DEPOSIT, toAmount);
+
+        executeExchangeOperations(fromExchangeHistory, toExchangeHistory, fromTransactionHistory, toTransactionHistory, fromExchangeCurrency, toExchangeCurrency, fromAmount, toAmount);
+    }
+
+    @Transactional
+    public void executeExchangeOperations(ExchangeHistory fromExchangeHistory, ExchangeHistory toExchangeHistory, TransactionHistory fromTransactionHistory, TransactionHistory toTransactionHistory,
+                                          ExchangeCurrency fromExchangeCurrency, ExchangeCurrency toExchangeCurrency, BigDecimal fromAmount, BigDecimal toAmount) {
+        exchangeHistoryRepository.save(fromExchangeHistory);
+        exchangeHistoryRepository.save(toExchangeHistory);
+
+        transactionHistoryRepository.save(fromTransactionHistory);
         transactionHistoryRepository.save(toTransactionHistory);
 
         fromExchangeCurrency.changeAmount(fromAmount.negate());
         toExchangeCurrency.changeAmount(toAmount);
 
+        exchangeCurrencyRepository.save(fromExchangeCurrency);
+        exchangeCurrencyRepository.save(toExchangeCurrency);
     }
 
 
-    @Transactional
-    public AccountUpdateResponseDTO executeTransactionProcess(TransactionDTO transactionDTO, String username) {
+    public void executeTransactionProcess(TransactionDTO transactionDTO, String username) {
         Integer accountId = transactionDTO.getAccountId();
         ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(transactionDTO.getTargetAccountNumber());
         Integer targetAccountId = accountResponse.getBody().getData().getAccountId();
         AccountType targetAccountType = accountResponse.getBody().getData().getAccountType();
         AccountType accountType = accountClient.getAccountById(accountId).getBody().getData().getAccountType();
 
-        // 기본 username
-        String toDescription = setDescriptionFromAccount(targetAccountType,targetAccountId,username); // 내가 누구한테 보낼지
-        String fromDescription = setDescriptionFromAccount(accountType, accountId, username); // 내가 누구한테 받을 지
-
+        String toDescription = setDescriptionFromAccount(targetAccountType,targetAccountId,username);
+        String fromDescription = setDescriptionFromAccount(accountType, accountId, username);
 
         BigDecimal amount = transactionDTO.getAmount();
         ExchangeCurrency fromTransactionCurrency = getOrCreateExchangeCurrency(accountId, transactionDTO.getCurrencyCode());
@@ -95,16 +102,23 @@ public class ExchangeService {
         validateSufficientBalance(fromTransactionCurrency,amount);
 
         TransactionHistory fromTransactionHistory = transactionDTO.toTransactionHistory(fromTransactionCurrency, TransactionType.WITHDRAWAL, toDescription);
-        transactionHistoryRepository.save(fromTransactionHistory);
         TransactionHistory toTransactionHistory = transactionDTO.toTransactionHistory(toTransactionCurrency, TransactionType.DEPOSIT, fromDescription);
-        transactionHistoryRepository.save(toTransactionHistory);
+
+        executeTransactionalOperations(amount, fromTransactionCurrency, toTransactionCurrency, fromTransactionHistory, toTransactionHistory);
+
+    }
+
+    @Transactional
+    public void executeTransactionalOperations(BigDecimal amount, ExchangeCurrency fromTransactionCurrency, ExchangeCurrency toTransactionCurrency,
+                                                                   TransactionHistory fromTransactionHistory,TransactionHistory toTransactionHistory) {
+        TransactionHistory savedFromTransactionHistory = transactionHistoryRepository.save(fromTransactionHistory);
+        TransactionHistory savedToTransactionHistory = transactionHistoryRepository.save(toTransactionHistory);
 
         fromTransactionCurrency.changeAmount(amount.negate());
+        ExchangeCurrency fromExchangeCurrency = exchangeCurrencyRepository.save(fromTransactionCurrency);
         toTransactionCurrency.changeAmount(amount);
+        ExchangeCurrency toExchangeCurrency = exchangeCurrencyRepository.save(toTransactionCurrency);
 
-        accountClient.updateAccountAmount(accountId, amount.negate());
-        ResponseEntity<Response<AccountUpdateResponseDTO>> response = accountClient.updateAccountAmount(targetAccountId, amount);
-        return response.getBody().getData();
     }
 
     private String setDescriptionFromAccount(AccountType accountType, Integer accountId, String username) {
@@ -113,7 +127,6 @@ public class ExchangeService {
         }
         return memberClient.findUserByUsername(username).getBody().getData().getName();
     }
-
 
     private String getTripNameFromAccountId(Integer accountId) {
         ResponseEntity<Response<TripGoalResponseDTO>> tripResponse = tripClient.getTripGoalByAccountId(accountId);
