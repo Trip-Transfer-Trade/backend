@@ -1,5 +1,5 @@
 server:
-  port: ${ALARM_SERVICE_PORT}
+  port: 8084
 
 spring:
   application:

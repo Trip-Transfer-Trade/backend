@@ -35,12 +35,12 @@ pipeline {
                     def affectedModules = []
 
                     if (params.FULL_BUILD) {
-                        affectedModules = ["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip", "module-utility"]
+                        affectedModules = ["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"]
                     } else {
                         def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD", returnStdout: true).trim().split("\n")
 
                         if (changedFiles.any { it.startsWith("module-utility/") }) {
-                            affectedModules.addAll(["gateway-service", "module-alarm", "module-exchange", "module-member", "module-stock", "module-trip"])
+                            affectedModules.addAll(["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"])
                         }
                         if (changedFiles.any { it.startsWith("gateway-service/") }) {
                             affectedModules.add("gateway-service")
@@ -95,7 +95,7 @@ pipeline {
                             fi
 
                             echo "✅ Dockerfile found! Starting build..."
-                            docker build --build-arg SERVER_PORT=${env.SERVER_PORT} -t ${DOCKER_HUB_USERNAME}/${module}:latest -f Dockerfile .
+                            docker build -t ${DOCKER_HUB_USERNAME}/${module}:latest -f Dockerfile .
                             docker push ${DOCKER_HUB_USERNAME}/${module}:latest
                             """
                         }
@@ -112,19 +112,25 @@ pipeline {
                 script {
                     env.AFFECTED_MODULES.split(" ").each { module ->
                         def targetASG = ""
+                        def targetPort = ""
 
                         if (module == "gateway-service") {
                             targetASG = "api-gateway-asg"
+                            targetPort = "8085"
                         } else if (module == "module-alarm") {
                             targetASG = "alarm-service-asg"
+                            targetPort = "8084"
                         } else if (module == "module-exchange") {
                             targetASG = "exchange-service-asg"
+                            targetPort = "8083"
                         } else if (module == "module-member") {
                             targetASG = "member-service-asg"
+                            targetPort = "8081"
                         } else if (module == "module-trip") {
                             targetASG = "trip-service-asg"
+                            targetPort = "8082"
                         }
-                        echo "🚀 Deploying ${module} to ${targetASG}"
+                        echo "🚀 Deploying ${module} to ${targetASG} on port ${targetPort}"
 
                         sh """
                         INSTANCE_IDS=\$(aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${targetASG}`].InstanceId' --output text || true)
@@ -144,7 +150,7 @@ pipeline {
                                 docker rm ${module} || true &&
 
                                 echo "🐳 새 컨테이너 실행..."
-                                docker run -d --name ${module} --env-file /home/ubuntu/common.env -p 8080:8080 \${DOCKER_HUB_USERNAME}/${module}:latest
+                                docker run -d --name ${module} --env-file /home/ubuntu/common.env -p ${targetPort}:${SERVER_PORT} \${DOCKER_HUB_USERNAME}/${module}:latest
                             '
                         done
                         """
