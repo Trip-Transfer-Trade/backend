@@ -1,8 +1,8 @@
 package com.example.module_trip.tripGoal;
 
 import com.example.module_trip.account.Account;
-import com.example.module_trip.account.AccountRepository;
 import com.example.module_trip.account.AccountService;
+import com.example.module_trip.account.AccountType;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,6 @@ import java.util.List;
 public class TripGoalService {
 
     private final TripGoalRepository tripGoalRepository;
-    private final AccountRepository accountRepository;
     private final AccountService accountService;
 
     //    @Transactional
@@ -28,12 +27,15 @@ public class TripGoalService {
 //        TripGoal tripGoal = tripGoalRequestDTO.toEntity();
 //        tripGoalRepository.save(tripGoal);
 //    }
+
     @Transactional
     public void saveTripGoal(int userId, TripGoalRequestDTO dto) {
-        int accountId = accountService.findAccountIdByUserId(userId);
+        boolean hasNormalAccount = accountService.findAccountByUserIdAndType(userId, AccountType.NORMAL).isPresent();
+        if (!hasNormalAccount) {
+            throw new IllegalStateException("여행 목표를 생성하려면 먼저 NORMAL 계좌를 만들어야 합니다.");
+        }
 
-        Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new EntityNotFoundException("Account not found for id: " + accountId));
+        Account newTravelGoalAccount = accountService.createTravelGoalAccount(userId);
 
         TripGoal tripGoal = TripGoal.builder()
                 .name(dto.getName())
@@ -42,12 +44,11 @@ public class TripGoalService {
                 .profit(BigDecimal.ZERO)
                 .realisedProfit(BigDecimal.ZERO)
                 .endDate(dto.getEndDate())
-                .account(account) // ✅ Account 객체 설정
+                .account(newTravelGoalAccount)
                 .build();
 
         tripGoalRepository.save(tripGoal);
     }
-
 
     public TripGoalResponseDTO findTripGoalById(Integer tripId) {
         TripGoal tripGoal =tripGoalRepository.findById(tripId).get();

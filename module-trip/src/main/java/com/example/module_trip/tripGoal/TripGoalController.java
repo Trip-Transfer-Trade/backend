@@ -23,11 +23,10 @@ public class TripGoalController {
 
     @PostMapping("/goal")
     public ResponseEntity<String> saveTripGoal(
-            @RequestHeader("X-Authenticated-User") int userId, // ✅ Gateway에서 전달된 userId 사용
+            @RequestHeader("X-Authenticated-User") int userId,
             @RequestBody TripGoalRequestDTO dto) {
-
         tripGoalService.saveTripGoal(userId, dto);
-        return ResponseEntity.ok("여행 목표가 저장되었습니다.");
+        return ResponseEntity.ok("여행 목표와 연결된 계좌가 생성되었습니다.");
     }
 
     @GetMapping("/test-auth")

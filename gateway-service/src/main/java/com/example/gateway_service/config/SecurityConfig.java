@@ -40,14 +40,12 @@ public class SecurityConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.addAllowedOrigin("http://localhost:5173");
-//        config.setAllowedOriginPatterns(List.of("htt"));
+        config.setAllowCredentials(true); // ✅ 쿠키 전송 허용
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173", "https://yourfrontend.com")); // ✅ 여러 도메인 허용
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return new CorsWebFilter(source);
     }
     private static class StatelessWebSessionSecurityContextRepository implements ServerSecurityContextRepository{
