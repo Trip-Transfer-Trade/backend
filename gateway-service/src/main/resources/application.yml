@@ -49,3 +49,13 @@ eureka:
   instance:
     prefer-ip-address: false  # IP가 아닌 도메인 기반으로 Eureka 등록
     hostname: triptransfertrade.shop  # ALB 도메인 사용
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
