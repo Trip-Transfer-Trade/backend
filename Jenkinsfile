@@ -9,7 +9,7 @@ pipeline {
     // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
-        S3_ENV_FILE = "s3://my-ttt-env/env/common.env" // S3 환경 변수 파일 경로
+        S3_ENV_FILE = "s3://my-ttt-env/common.env" // S3 환경 변수 파일 경로
         LOCAL_ENV_FILE = "/tmp/common.env" // 로컬 환경 변수 파일 경로
         EUREKA_SERVER_URL = "http://10.0.1.78:8761/eureka/apps"
     }
