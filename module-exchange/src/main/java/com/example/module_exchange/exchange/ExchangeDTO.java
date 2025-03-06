@@ -2,13 +2,18 @@ package com.example.module_exchange.exchange;
 
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
+import com.example.module_exchange.exchange.exchangeHistory.ExchangeType;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 
 @Getter
+@AllArgsConstructor
+@Builder
 public class ExchangeDTO {
 
     private Integer accountId;
@@ -18,13 +23,11 @@ public class ExchangeDTO {
     private BigDecimal toAmount;   // 환전 후 금액
     private BigDecimal exchangeRate; // 적용된 환율
 
-    public ExchangeHistory toExchangeHistory(ExchangeCurrency exchangeCurrency) {
+    public ExchangeHistory toExchangeHistory(ExchangeCurrency exchangeCurrency, ExchangeType exchangeType, BigDecimal amount) {
         return ExchangeHistory.builder()
-                .fromAmount(fromAmount)
-                .fromCurrency(fromCurrency)
-                .toCurrency(toCurrency)
-                .toAmount(toAmount)
+                .amount(amount)
                 .exchangeRate(exchangeRate)
+                .exchangeType(exchangeType)
                 .exchangeCurrency(exchangeCurrency)
                 .build();
     }
@@ -36,5 +39,7 @@ public class ExchangeDTO {
                 .exchangeCurrency(exchangeCurrency)
                 .build();
     }
+
+
 
 }
