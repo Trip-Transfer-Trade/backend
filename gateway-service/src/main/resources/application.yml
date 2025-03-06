@@ -24,21 +24,21 @@ spring:
           lower-case-service-id: true  # 서비스 ID를 소문자로 변환하여 Eureka와 일치시킴
       routes:
         - id: member-service
-          uri: http://triptransfertrade.shop/members  # ALB 사용
+          uri: http://triptransfertrade.shop/api/members  # ALB 사용
           predicates:
-            - Path=/members/**
+            - Path=api/members/**
         - id: trip-service
-          uri: http://triptransfertrade.shop/trips  # ALB 사용
+          uri: http://triptransfertrade.shop/api/trips  # ALB 사용
           predicates:
-            - Path=/trips/**
+            - Path=api/trips/**
         - id: exchange-service
-          uri: http://triptransfertrade.shop/exchanges  # ALB 사용
+          uri: http://triptransfertrade.shop/api/exchanges  # ALB 사용
           predicates:
-            - Path=/exchanges/**
+            - Path=api/exchanges/**
         - id: alarm-service
-          uri: http://triptransfertrade.shop/alarms  # ALB 사용
+          uri: http://triptransfertrade.shop/api/alarms  # ALB 사용
           predicates:
-            - Path=/alarms/**
+            - Path=api/alarms/**
 
 eureka:
   client:
