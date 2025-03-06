@@ -26,19 +26,19 @@ spring:
         - id: member-service
           uri: http://triptransfertrade.shop/api/members  # ALB 사용
           predicates:
-            - Path=api/members/**
+            - Path=/api/members/**
         - id: trip-service
           uri: http://triptransfertrade.shop/api/trips  # ALB 사용
           predicates:
-            - Path=api/trips/**
+            - Path=/api/trips/**
         - id: exchange-service
           uri: http://triptransfertrade.shop/api/exchanges  # ALB 사용
           predicates:
-            - Path=api/exchanges/**
+            - Path=/api/exchanges/**
         - id: alarm-service
           uri: http://triptransfertrade.shop/api/alarms  # ALB 사용
           predicates:
-            - Path=api/alarms/**
+            - Path=/api/alarms/**
 
 eureka:
   client:
