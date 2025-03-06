@@ -1,33 +1,30 @@
 pipeline {
     agent any
 
-    // FULL_BUILD라는 Boolean(참/거짓) 파라미터를 추가. true 이면 전체 모듈을 강제로 빌드, false이면 변경된 모듈만 감지
     parameters {
         booleanParam(name: 'FULL_BUILD', defaultValue: false, description: '전체 모듈을 빌드할지 여부')
     }
 
-    // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
-        S3_ENV_FILE = "s3://your-bucket-name/env/common.env" // S3 환경 변수 파일 경로
-        LOCAL_ENV_FILE = "/tmp/common.env" // 로컬 환경 변수 파일 경로
+        S3_ENV_FILE = "s3://your-bucket-name/env/common.env"
+        LOCAL_ENV_FILE = "/tmp/common.env"
         EUREKA_SERVER_URL = "http://10.0.1.78:8761/eureka/apps"
     }
 
     triggers {
-        githubPush()   // Github Webhook 트리거
+        githubPush()
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 script {
-                    checkout scm   // Jenkins가 Git 정보를 자동으로 가져옴
+                    checkout scm
                 }
             }
         }
 
-        // 환경 변수 파일 가져오기
         stage('Download Environment File from S3') {
             steps {
                 script {
@@ -37,15 +34,13 @@ pipeline {
                     echo "✅ 환경 변수 파일 다운로드 완료: ${LOCAL_ENV_FILE}"
                     """
 
-                    // .env 파일을 환경변수로 로드
                     sh """
-                    export $(grep -v '^#' ${LOCAL_ENV_FILE} | xargs)
+                    export \$(grep -v '^#' ${LOCAL_ENV_FILE} | xargs)
                     """
                 }
             }
         }
 
-        // 모듈 변경사항 가져오기
         stage('Detect Changed Modules') {
             steps {
                 script {
@@ -101,7 +96,7 @@ pipeline {
                             cd ${module} || exit 1
                             chmod +x ./gradlew
                             ./gradlew clean build -x test
-                            docker build --build-arg SERVER_PORT=\${SERVER_PORT} -t ${DOCKER_HUB_USERNAME}/${module}:latest .
+                            docker build --build-arg SERVER_PORT=${SERVER_PORT} -t ${DOCKER_HUB_USERNAME}/${module}:latest .
                             docker push ${DOCKER_HUB_USERNAME}/${module}:latest
                             """
                         }
@@ -133,7 +128,7 @@ pipeline {
                         echo "🚀 Deploying ${module} to ${targetASG}"
 
                         sh """
-                        INSTANCE_IDS=\$(aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`$targetASG`].InstanceId' --output text || true)
+                        INSTANCE_IDS=\$(aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${targetASG}`].InstanceId' --output text || true)
 
                         for instance in \$INSTANCE_IDS; do
                             echo "🔄 인스턴스 \$instance 에 배포 중..."
@@ -143,18 +138,17 @@ pipeline {
                                 echo "✅ 환경 변수 파일 다운로드 완료."
 
                                 echo "🚀 Docker 최신 이미지 다운로드 중..."
-                                docker pull \${DOCKER_HUB_USERNAME}/${module}:latest &&
+                                docker pull ${DOCKER_HUB_USERNAME}/${module}:latest &&
 
                                 echo "🛑 기존 컨테이너 중지 및 제거..."
                                 docker stop ${module} || true &&
                                 docker rm ${module} || true &&
 
                                 echo "🐳 새 컨테이너 실행..."
-                                docker run -d --name ${module} --env-file /home/ubuntu/common.env -p 8080:8080 \${DOCKER_HUB_USERNAME}/${module}:latest
+                                docker run -d --name ${module} --env-file /home/ubuntu/common.env -p 8080:8080 ${DOCKER_HUB_USERNAME}/${module}:latest
                             '
                         done
                         """
-
                     }
                 }
             }
