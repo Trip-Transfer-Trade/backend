@@ -18,21 +18,25 @@ spring:
 
   cloud:
     gateway:
+      discovery:
+        locator:
+          enabled: true  # Eureka를 통해 서비스 검색 활성화
+          lower-case-service-id: true  # 서비스 ID를 소문자로 변환하여 Eureka와 일치시킴
       routes:
         - id: member-service
-          uri: lb://member-service
+          uri: http://triptransfertrade.shop/members  # ALB 사용
           predicates:
             - Path=/members/**
         - id: trip-service
-          uri: lb://trip-service
+          uri: http://triptransfertrade.shop/trips  # ALB 사용
           predicates:
             - Path=/trips/**
         - id: exchange-service
-          uri: lb://exchange-service
+          uri: http://triptransfertrade.shop/exchanges  # ALB 사용
           predicates:
             - Path=/exchanges/**
         - id: alarm-service
-          uri: lb://alarm-service
+          uri: http://triptransfertrade.shop/alarms  # ALB 사용
           predicates:
             - Path=/alarms/**
 
@@ -43,4 +47,5 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   instance:
-    prefer-ip-address: true
+    prefer-ip-address: false  # IP가 아닌 도메인 기반으로 Eureka 등록
+    hostname: triptransfertrade.shop  # ALB 도메인 사용
