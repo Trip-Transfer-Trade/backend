@@ -24,7 +24,7 @@ public class ProfitScheduler {
         logger.info("ProfitScheduler 실행됨");
         stockTradeService.getAllUserRealisedProfit();
     }
-
+  
     @Scheduled(cron = "0 41 9 * * *")
     public void schedule2() {
         Set<String> keys = redisTemplate.keys("userProfit:*");

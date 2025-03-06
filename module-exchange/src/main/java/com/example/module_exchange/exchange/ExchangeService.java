@@ -6,6 +6,8 @@ import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
 import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.*;
@@ -19,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Map;
+
 
 @Service
 public class ExchangeService {
@@ -163,4 +168,40 @@ public class ExchangeService {
                 .map(WalletResponseDTO::toDto)
                 .collect(Collectors.toList());
     }
+
+//    public List<WalletResponseDTO> getWalletBalance(Integer accountId) {
+//        List<ExchangeCurrency> currencies = exchangeCurrencyRepository.findByAccountId(accountId);
+//
+//        return currencies.stream()
+//                .map(WalletResponseDTO::toDto)
+//                .collect(Collectors.toList());
+//    }
+
+    public List<WalletSummaryResponseDTO> getUserWalletSummary(String username) {
+
+        Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();
+
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        Map<String, BigDecimal> currencyBalances = new HashMap<>();
+
+        for (Integer accountId : accountIds) {
+            List<ExchangeCurrency> currencies = exchangeCurrencyRepository.findByAccountId(accountId);
+
+            for (ExchangeCurrency currency : currencies) {
+                currencyBalances.merge(
+                        currency.getCurrencyCode(),
+                        currency.getAmount(),
+                        BigDecimal::add
+                );
+            }
+        }
+
+        return currencyBalances.entrySet().stream()
+                .map(entry -> new WalletSummaryResponseDTO(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+
 }

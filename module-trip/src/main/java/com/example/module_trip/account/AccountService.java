@@ -1,10 +1,12 @@
 package com.example.module_trip.account;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -66,4 +68,11 @@ public class AccountService {
                 .map(AccountResponseDTO::toDTO)
                 .orElseThrow(()-> new IllegalArgumentException("Account not found with user Id & account type"));
     }
+
+    public int findAccountIdByUserId(int userId) {
+        return accountRepository.findFirstByUserId(userId)
+                .map(Account::getId)
+                .orElseThrow(() -> new EntityNotFoundException("Account not found for userId: " + userId));
+    }
+
 }
