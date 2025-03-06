@@ -27,24 +27,6 @@ pipeline {
             }
         }
 
-        // 환경 변수 파일 가져오기
-        stage('Download Environment File from S3') {
-            steps {
-                script {
-                    sh """
-                    echo "📥 S3에서 환경 변수 파일 다운로드 중..."
-                    aws s3 cp ${S3_ENV_FILE} ${LOCAL_ENV_FILE}
-                    echo "✅ 환경 변수 파일 다운로드 완료: ${LOCAL_ENV_FILE}"
-                    """
-
-                    // .env 파일을 환경변수로 로드
-                    sh """
-                    export \$(grep -v '^#' ${LOCAL_ENV_FILE} | xargs)
-                    """
-                }
-            }
-        }
-
         // 모듈 변경사항 가져오기
         stage('Detect Changed Modules') {
             steps {
