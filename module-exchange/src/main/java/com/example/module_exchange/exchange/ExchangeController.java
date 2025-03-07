@@ -40,7 +40,6 @@ public class ExchangeController {
 
     @PostMapping("/transactions")
     public ResponseEntity<Response<Void>> saveTransaction(@RequestHeader (value = "X-Authenticated-Username", required = false) String username, @RequestBody TransactionDTO transactionDTO) {
-        System.out.println(username);
         exchangeService.executeTransactionProcess(transactionDTO, username);
         return ResponseEntity.ok(Response.successWithoutData());
     }
