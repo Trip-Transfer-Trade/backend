@@ -1,14 +1,10 @@
 package com.example.module_trip.tripGoal;
 
-import com.example.module_trip.account.Account;
-import com.example.module_trip.account.AccountService;
-import com.example.module_trip.account.AccountType;
+import com.example.module_trip.account.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.swing.tree.TreePath;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -18,15 +14,7 @@ public class TripGoalService {
 
     private final TripGoalRepository tripGoalRepository;
     private final AccountService accountService;
-
-    //    @Transactional
-//    public void saveTripGoal(TripGoalRequestDTO tripGoalRequestDTO) {
-//        Account account = accountRepository.findById(tripGoalRequestDTO.getAccountId())
-//                .orElseThrow(() -> new EntityNotFoundException("Account not found"));
-//
-//        TripGoal tripGoal = tripGoalRequestDTO.toEntity();
-//        tripGoalRepository.save(tripGoal);
-//    }
+    private final AccountRepository accountRepository;
 
     @Transactional
     public void saveTripGoal(int userId, TripGoalRequestDTO dto) {
@@ -34,8 +22,11 @@ public class TripGoalService {
         if (!hasNormalAccount) {
             throw new IllegalStateException("여행 목표를 생성하려면 먼저 NORMAL 계좌를 만들어야 합니다.");
         }
-
-        Account newTravelGoalAccount = accountService.createTravelGoalAccount(userId);
+        AccountResponseDTO accountDTO = accountService.saveAccount(AccountCreateRequestDTO.builder()
+                .userId(userId)
+                .accountType(AccountType.TRAVEL_GOAL).build()); //userId, type
+        Account account = accountRepository.findById(accountDTO.getAccountId())
+                .orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다."));
 
         TripGoal tripGoal = TripGoal.builder()
                 .name(dto.getName())
@@ -44,7 +35,7 @@ public class TripGoalService {
                 .profit(BigDecimal.ZERO)
                 .realisedProfit(BigDecimal.ZERO)
                 .endDate(dto.getEndDate())
-                .account(newTravelGoalAccount)
+                .account(account)
                 .build();
 
         tripGoalRepository.save(tripGoal);

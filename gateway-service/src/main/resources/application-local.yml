@@ -22,7 +22,7 @@ spring:
         - id: trip-service
           uri: "http://localhost:8082"
           predicates:
-            - Path=/api/trips/**
+            - Path=/api/trips/**, /api/accounts/**
         - id: exchange-service
           uri: "http://localhost:8083"
           predicates:

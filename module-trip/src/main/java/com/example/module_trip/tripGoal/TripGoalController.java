@@ -26,6 +26,7 @@ public class TripGoalController {
             @RequestHeader("X-Authenticated-User") int userId,
             @RequestBody TripGoalRequestDTO dto) {
         tripGoalService.saveTripGoal(userId, dto);
+        System.out.println("🔥 받은 JSON: " + dto);
         return ResponseEntity.ok("여행 목표와 연결된 계좌가 생성되었습니다.");
     }
 
