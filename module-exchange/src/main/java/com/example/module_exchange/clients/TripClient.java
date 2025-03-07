@@ -23,4 +23,7 @@ public interface TripClient {
 
     @PutMapping("/realised")
     ResponseEntity<Response<TripGoalResponseDTO>> updateRealisedProfit(@RequestBody TripGoalUpdateDTO tripGoalUpdateDTO);
+
+    @GetMapping("/all/{accountId}")
+    ResponseEntity<Response<List<TripGoalResponseDTO>>> getAllTripsByAccountIdIn(@PathVariable List<Integer> accountId);
 }

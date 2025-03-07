@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.swing.tree.TreePath;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -60,6 +62,12 @@ public class TripGoalService {
     public TripGoalResponseDTO findTripGoalByAccountId(Integer accountId) {
         TripGoal tripGoal = tripGoalRepository.findByAccount_Id(accountId);
         return TripGoalResponseDTO.toDTO(tripGoal);
+    }
+
+    public List<TripGoalResponseDTO> findTripGoalsByAccountId(List <Integer> accountId) {
+        List<TripGoal> tripGoals = tripGoalRepository.findAllByAccountIdIn(accountId);
+        return tripGoals.stream()
+                .map(TripGoalResponseDTO::toDTO).collect(Collectors.toList());
     }
 
     public List<TripGoalResponseDTO> findAllTripGoal() {

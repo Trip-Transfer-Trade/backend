@@ -53,6 +53,12 @@ public class TripGoalController {
         return ResponseEntity.ok(new Response<>(200, "success", tripGoals));
     }
 
+    @GetMapping("/all/{accountId}")
+    public ResponseEntity<Response<List<TripGoalResponseDTO>>> getAllTripsByAccountIdIn(@PathVariable List<Integer> accountId){
+        List<TripGoalResponseDTO> tripGoals = tripGoalService.findTripGoalsByAccountId(accountId);
+        return ResponseEntity.ok(new Response<>(200, "success", tripGoals));
+    }
+
     @PutMapping("/realised")
     public ResponseEntity<Response<TripGoalResponseDTO>> updateRealisedProfit(@RequestBody TripGoalUpdateDTO tripGoalUpdateDTO) {
         Response<TripGoalResponseDTO> response = Response.success(tripGoalService.updateRealisedProfit(tripGoalUpdateDTO));
