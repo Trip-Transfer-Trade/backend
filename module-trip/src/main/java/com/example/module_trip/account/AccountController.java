@@ -52,4 +52,10 @@ public class AccountController {
         Response<AccountUpdateResponseDTO> response = Response.success(accountService.updateTotalValue(accountId, amount));
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<Response<List<AccountResponseDTO>>> getAllAccount(@RequestHeader(value = "X-Authenticated-User", required = false) int userid){
+        List<AccountResponseDTO> response = accountService.getAllAccountByUserId(userid);
+        return ResponseEntity.ok(Response.success(response));
+    }
 }

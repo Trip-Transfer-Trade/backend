@@ -1,14 +1,13 @@
 package com.example.module_exchange.exchange;
 
 import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
-import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
 import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
+import com.example.module_exchange.exchange.transactionHistory.AccountListDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
-import com.example.module_trip.account.AccountUpdateResponseDTO;
 import com.example.module_utility.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +29,12 @@ public class ExchangeController {
     @PostMapping("")
     public ResponseEntity<Response<Void>> saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
         exchangeService.executeExchangeProcess(exchangeDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<Response<Void>> saveExchangeBatch(@RequestHeader (value = "X-Authenticated-User", required = true) Integer userId, @RequestBody ExchangeBatchDTO exchangeBatchDTO) {
+        exchangeService.executeExchangeBatchProcess(exchangeBatchDTO);
         return ResponseEntity.ok(Response.successWithoutData());
     }
 
@@ -84,4 +89,10 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.success(walletSummary));
     }
 
+
+    @GetMapping("/account/all")
+    public ResponseEntity<Response<List<AccountListDTO>>> getUserAccount(@RequestHeader(value = "X-Authenticated-User", required = false) int userid, @RequestParam String currencyCode){
+        List<AccountListDTO> response = exchangeService.getAccountList(userid, currencyCode);
+        return ResponseEntity.ok(Response.success(response));
+    }
 }

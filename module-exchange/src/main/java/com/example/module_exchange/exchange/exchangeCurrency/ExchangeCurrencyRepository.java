@@ -22,4 +22,18 @@ public interface ExchangeCurrencyRepository extends JpaRepository<ExchangeCurren
 
     List<ExchangeCurrency> findByAccountId(Integer accountId);
 
+    List<ExchangeCurrency> findByAccountIdIn(List<Integer> accountIds);
+
+    List<ExchangeCurrency> findByAccountIdInAndCurrencyCode(List<Integer> accountIds, String currencyCode);
+
+//    @Query("SELECT e FROM ExchangeCurrency e WHERE e.accountId IN :accountIds AND e.currencyCode = :currencyCode")
+//    List<ExchangeCurrency> findByAccountIdInAndCurrencyCode(
+//            @Param("accountIds") List<Integer> accountIds,
+//            @Param("currencyCode") String currencyCode
+//    );
+
+    
+
+
+
 }

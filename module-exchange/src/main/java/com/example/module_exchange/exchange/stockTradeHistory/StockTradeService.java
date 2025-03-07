@@ -107,6 +107,7 @@ public class StockTradeService {
         transactionHistoryRepository.save(transactionHistory);
 
         saveOrderToRedis(stockTradeDTO, false);
+        realisedCalc(stockTradeDTO.getTripId(), stockTradeDTO.getStockCode(), stockTradeDTO.getQuantity());
 
         exchangeCurrency.changeAmount(amount);
     }
@@ -340,9 +341,35 @@ public class StockTradeService {
     }
 
     // 매도 발생 시 실현 손익 계산
-    private void realisedCalc(int tripId){
+    private void realisedCalc(int tripId, String stockCode, int quantity){
+        String pattern = "trip:" + tripId + "realisedProfit:*";
+        Set<String> keys = redisTemplate.keys(pattern);
 
+        String key = keys.iterator().next();
+        String value = key.split("realisedProfit:")[1];
+        BigDecimal currencyPrice = new BigDecimal(getStockPrice(stockCode));
+        BigDecimal avgPrice = new BigDecimal(getAvgPrice(tripId, stockCode));
 
+        BigDecimal profit = currencyPrice.subtract(avgPrice).multiply(new BigDecimal(quantity));
+        BigDecimal update = new BigDecimal(value).add(profit);
+
+        String newKey = "trip:" + tripId + "realisedProfit:" + update;
+        redisTemplate.rename(key, newKey);
+
+        System.out.println("✅ realisedProfit 업데이트 완료!");
+        System.out.println("기존 realisedProfit: " + value + " → 새로운 realisedProfit: " + update);
+        System.out.println("currencyPrice: " + currencyPrice + " | avgPrice: " + avgPrice + " | profit: " + profit);
+
+    }
+
+    // 평단가 가져오기
+    private String getAvgPrice(int tripId, String stockCode){
+        String key = "trip:" + tripId + ":stock:" + stockCode;
+        String field = "average_price";
+
+        Object avgPriceObj = redisTemplate.opsForHash().get(key, field);
+        String avgPrice = avgPriceObj.toString();
+        return avgPrice;
     }
 
     // 전날 realisedProfit 가져오기

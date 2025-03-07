@@ -16,7 +16,7 @@ public interface AccountClient {
     @GetMapping(value = "", params = "accountType")
     ResponseEntity<Response<AccountResponseDTO>> getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType accountType);
 
-    @GetMapping(value="",params="!accountType")
+    @GetMapping(value = "", params = "!accountType")
     ResponseEntity<Response<List<AccountResponseDTO>>> getAccountByUserId(@RequestParam("userId") Integer userId);
 
     @GetMapping("/{accountId}")
@@ -27,4 +27,7 @@ public interface AccountClient {
 
     @PutMapping("/{accountId}")
     ResponseEntity<Response<AccountUpdateResponseDTO>> updateAccountAmount(@PathVariable int accountId, @RequestBody BigDecimal amount);
+
+    @GetMapping("/all")
+    ResponseEntity<Response<List<AccountResponseDTO>>> getAllAccount(@RequestHeader(value = "X-Authenticated-User", required = false) int userid);
 }

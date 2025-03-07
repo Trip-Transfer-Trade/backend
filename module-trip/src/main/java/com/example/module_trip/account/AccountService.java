@@ -49,6 +49,13 @@ public class AccountService {
                 .collect(Collectors.toList());
     }
 
+    public List<AccountResponseDTO> getAllAccountByUserId(Integer userId) {
+        return accountRepository.findByUserId(userId)
+                .stream()
+                .map(AccountResponseDTO::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public AccountResponseDTO getAccountByAccountId(Integer accountId) {
          return accountRepository.findById(accountId)
                  .map(AccountResponseDTO::toDTO)

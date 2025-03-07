@@ -20,10 +20,11 @@ public class ExchangeHistory extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private String fromCurrency;
-    private String toCurrency;
-    private BigDecimal fromAmount;
-    private BigDecimal toAmount;
+
+    @Enumerated(EnumType.STRING)
+    private ExchangeType exchangeType;
+
+    private BigDecimal amount;
     private BigDecimal exchangeRate;
 
     @ManyToOne

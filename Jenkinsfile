@@ -9,9 +9,6 @@ pipeline {
     // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
-        S3_ENV_FILE = "s3://my-ttt-env/common.env" // S3 환경 변수 파일 경로
-        LOCAL_ENV_FILE = "/tmp/common.env" // 로컬 환경 변수 파일 경로
-        EUREKA_SERVER_URL = "http://10.0.1.78:8761/eureka/apps"
     }
 
     triggers {
@@ -34,12 +31,12 @@ pipeline {
                     def affectedModules = []
 
                     if (params.FULL_BUILD) {
-                        affectedModules = ["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip", "module-utility"]
+                        affectedModules = ["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"]
                     } else {
                         def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD", returnStdout: true).trim().split("\n")
 
                         if (changedFiles.any { it.startsWith("module-utility/") }) {
-                            affectedModules.addAll(["gateway-service", "module-alarm", "module-exchange", "module-member", "module-stock", "module-trip"])
+                            affectedModules.addAll(["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"])
                         }
                         if (changedFiles.any { it.startsWith("gateway-service/") }) {
                             affectedModules.add("gateway-service")
@@ -81,62 +78,23 @@ pipeline {
                             sh """
                             echo ">>> Building ${module}"
                             cd ${module} || exit 1
+                            pwd  # 현재 디렉토리 출력
+                            ls -al  # Dockerfile 및 build/libs/*.jar 파일 확인
+
                             chmod +x ./gradlew
                             ./gradlew clean build -x test
-                            docker build --build-arg SERVER_PORT=${SERVER_PORT} -t ${DOCKER_HUB_USERNAME}/${module}:latest .
+
+                            echo "🔍 Checking if Dockerfile exists..."
+                            if [ ! -f Dockerfile ]; then
+                                echo "❌ Error: Dockerfile not found in ${module}"
+                                exit 1
+                            fi
+
+                            echo "✅ Dockerfile found! Starting build..."
+                            docker build -t ${DOCKER_HUB_USERNAME}/${module}:latest -f Dockerfile .
                             docker push ${DOCKER_HUB_USERNAME}/${module}:latest
                             """
                         }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy to ASG') {
-            when {
-                expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
-            }
-            steps {
-                script {
-                    env.AFFECTED_MODULES.split(" ").each { module ->
-                        def targetASG = ""
-
-                        if (module == "gateway-service") {
-                            targetASG = "api-gateway-asg"
-                        } else if (module == "module-alarm") {
-                            targetASG = "alarm-service-asg"
-                        } else if (module == "module-exchange") {
-                            targetASG = "exchange-service-asg"
-                        } else if (module == "module-member") {
-                            targetASG = "member-service-asg"
-                        } else if (module == "module-trip") {
-                            targetASG = "trip-service-asg"
-                        }
-                        echo "🚀 Deploying ${module} to ${targetASG}"
-
-                        sh """
-                        INSTANCE_IDS=\$(aws autoscaling describe-auto-scaling-instances --query 'AutoScalingInstances[?AutoScalingGroupName==`${targetASG}`].InstanceId' --output text || true)
-
-                        for instance in \$INSTANCE_IDS; do
-                            echo "🔄 인스턴스 \$instance 에 배포 중..."
-                            ssh -o StrictHostKeyChecking=no ubuntu@\${instance} '
-                                echo "📥 S3에서 환경 변수 파일 다운로드 중..."
-                                aws s3 cp ${S3_ENV_FILE} /home/ubuntu/common.env &&
-                                echo "✅ 환경 변수 파일 다운로드 완료."
-
-                                echo "🚀 Docker 최신 이미지 다운로드 중..."
-                                docker pull \${DOCKER_HUB_USERNAME}/${module}:latest &&
-
-                                echo "🛑 기존 컨테이너 중지 및 제거..."
-                                docker stop ${module} || true &&
-                                docker rm ${module} || true &&
-
-                                echo "🐳 새 컨테이너 실행..."
-                                docker run -d --name ${module} --env-file /home/ubuntu/common.env -p 8080:8080 \${DOCKER_HUB_USERNAME}/${module}:latest
-                            '
-                        done
-                        """
-
                     }
                 }
             }
