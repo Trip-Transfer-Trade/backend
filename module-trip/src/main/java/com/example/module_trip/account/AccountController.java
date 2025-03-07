@@ -5,7 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -17,9 +19,17 @@ public class AccountController {
         this.accountService = accountService;
     }
 
+    @GetMapping("/status")
+    public ResponseEntity<String> getStatus(@RequestHeader(value = "X-Authenticated-User", required = false) Integer userId) {
+        String status = accountService.getAccountStatus(userId);
+        return ResponseEntity.ok(status);
+    }
+
     @PostMapping("")
-    public void saveAccount(@RequestBody AccountCreateRequestDTO accountCreateRequestDTO){
-        accountService.saveAccount(accountCreateRequestDTO);
+    public ResponseEntity<String> saveAccount(@RequestHeader("X-Authenticated-User") int userId, @RequestBody AccountCreateRequestDTO accountCreateRequestDTO){
+
+        String accountNumber = accountService.saveAccount(userId, accountCreateRequestDTO);
+        return ResponseEntity.ok(accountNumber);
     }
 
     @GetMapping(value = "", params = "accountType")

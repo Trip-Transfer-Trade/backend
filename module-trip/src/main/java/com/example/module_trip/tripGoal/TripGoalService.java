@@ -24,10 +24,12 @@ public class TripGoalService {
         if (!hasNormalAccount) {
             throw new IllegalStateException("여행 목표를 생성하려면 먼저 NORMAL 계좌를 만들어야 합니다.");
         }
-        AccountResponseDTO accountDTO = accountService.saveAccount(AccountCreateRequestDTO.builder()
-                .userId(userId)
-                .accountType(AccountType.TRAVEL_GOAL).build()); //userId, type
-        Account account = accountRepository.findById(accountDTO.getAccountId())
+        //TRAVEL_GOAL 계좌 개설
+        String accountNumber = accountService.saveAccount(userId, AccountCreateRequestDTO.builder()
+                .accountType(AccountType.TRAVEL_GOAL).build());
+
+        // 계좌 번호를 기반으로 계좌 정보 조회
+        Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() -> new EntityNotFoundException("계좌를 찾을 수 없습니다."));
 
         TripGoal tripGoal = TripGoal.builder()

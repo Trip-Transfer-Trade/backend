@@ -19,8 +19,10 @@ public class Account extends BaseEntity {
 
     private String accountNumber;
     @Enumerated(EnumType.STRING)
+    @Column(name = "account_type")
     private AccountType accountType;
     private BigDecimal totalValue = BigDecimal.ZERO;
+
 
     private Integer userId;
 

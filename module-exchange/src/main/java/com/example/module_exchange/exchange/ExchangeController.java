@@ -33,7 +33,7 @@ public class ExchangeController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<Response<Void>> saveExchangeBatch(@RequestHeader (value = "X-Authenticated-User", required = true) Integer userId, @RequestBody ExchangeBatchDTO exchangeBatchDTO) {
+    public ResponseEntity<Response<Void>> saveExchangeBatch(@RequestBody ExchangeBatchDTO exchangeBatchDTO) {
         exchangeService.executeExchangeBatchProcess(exchangeBatchDTO);
         return ResponseEntity.ok(Response.successWithoutData());
     }
