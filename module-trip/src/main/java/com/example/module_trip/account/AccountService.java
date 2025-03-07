@@ -2,6 +2,7 @@ package com.example.module_trip.account;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,22 +21,13 @@ public class AccountService {
     }
 
 //    @Transactional// repository에 저장하는 작업만 할거면 trnasactional 안묶어도 될 듯
-    public void saveAccount(AccountCreateRequestDTO accountCreateRequestDTO) {
+    public AccountResponseDTO saveAccount(AccountCreateRequestDTO accountCreateRequestDTO) {
         String generatedAccountNumber = generateRandomAccountNumber();
         Account account = accountCreateRequestDTO.toEntity(generatedAccountNumber);
         accountRepository.save(account);
+        return AccountResponseDTO.toDTO(account);
     }
 
-    @Transactional
-    public Account createTravelGoalAccount(int userId) {
-        Account travelGoalAccount = Account.builder()
-                .userId(userId)
-                .accountType(AccountType.TRAVEL_GOAL)
-                .accountNumber(generateRandomAccountNumber())
-                .build();
-
-        return accountRepository.save(travelGoalAccount);
-    }
 
     public Optional<Account> findAccountByUserIdAndType(int userId, AccountType accountType) {
         return accountRepository.findByUserIdAndAccountType(userId, accountType);
