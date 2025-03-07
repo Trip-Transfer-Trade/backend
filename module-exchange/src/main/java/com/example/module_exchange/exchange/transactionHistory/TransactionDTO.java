@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 public class TransactionDTO {
     private Integer accountId;
     private BigDecimal amount;
+    private String description;
     private String targetAccountNumber;
     private String currencyCode;
 

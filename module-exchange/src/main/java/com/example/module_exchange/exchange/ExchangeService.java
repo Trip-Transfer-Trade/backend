@@ -163,11 +163,20 @@ public class ExchangeService {
         Integer accountId = transactionDTO.getAccountId();
         ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(transactionDTO.getTargetAccountNumber());
         Integer targetAccountId = accountResponse.getBody().getData().getAccountId();
+        if (accountId.equals(targetAccountId)) {
+            throw new RuntimeException("자기 자신에게 송금할 수 없습니다.");
+        }
         AccountType targetAccountType = accountResponse.getBody().getData().getAccountType();
         AccountType accountType = accountClient.getAccountById(accountId).getBody().getData().getAccountType();
-
-        String toDescription = setDescriptionFromAccount(targetAccountType,targetAccountId,username);
-        String fromDescription = setDescriptionFromAccount(accountType, accountId, username);
+        String toDescription;
+        String fromDescription;
+        if (transactionDTO.getDescription()=="") {
+            toDescription = setDescriptionFromAccount(targetAccountType, targetAccountId, username);
+            fromDescription = setDescriptionFromAccount(accountType, accountId, username);
+        } else{
+            toDescription = transactionDTO.getDescription();
+            fromDescription = transactionDTO.getDescription();
+        }
 
         BigDecimal amount = transactionDTO.getAmount();
         ExchangeCurrency fromTransactionCurrency = getOrCreateExchangeCurrency(accountId, transactionDTO.getCurrencyCode());
