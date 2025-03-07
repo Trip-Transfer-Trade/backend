@@ -12,6 +12,7 @@ import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepos
 import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
+import com.example.module_trip.tripGoal.TripGoal;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
@@ -19,8 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -169,6 +172,62 @@ public class ExchangeService {
                 .map(TransactionHistoryResponseDTO::toDTO)
                 .collect(Collectors.toList());
     }
+
+    // 전체 계좌 조회 - 국내/미국 구분, basic 계좌
+    public List<AccountListDTO> getAccountList(@RequestHeader(value = "X-Authenticated-User", required = false) int userid, String currencyCode) {
+        // user id로 account
+        System.out.println("userid: " + userid);
+
+        ResponseEntity<Response<List<AccountResponseDTO>>> response = accountClient.getAllAccount(userid);
+        List<AccountResponseDTO> accounts = response.getBody().getData();
+
+        System.out.println("Response Body: " + response.getBody());
+        System.out.println("Accounts: " + accounts);
+
+        Map<Integer, AccountType> accountMap = accounts.stream()
+                .collect(Collectors.toMap(AccountResponseDTO::getAccountId, AccountResponseDTO::getAccountType));
+
+        List<Integer> accountIds = new ArrayList<>(accountMap.keySet());
+        ResponseEntity<Response<List<TripGoalResponseDTO>>> responseTrip = tripClient.getAllTripsByAccountIdIn(accountIds);
+        List<TripGoalResponseDTO> tripGoals = responseTrip.getBody().getData();
+
+        System.out.println("Account IDs: " + accountIds);
+
+        // account id로 trip name
+        List<TripGoalDTO> trips = tripGoals.stream()
+                .map(tripGoal -> TripGoalDTO.builder()
+                        .name(tripGoal.getName())
+                        .build())
+                .collect(Collectors.toList());
+
+        System.out.println("Trip Name: " + trips);
+        Map<Integer, String> tripGoalMap = tripGoals.stream()
+                .collect(Collectors.toMap(TripGoalResponseDTO::getAccountId, TripGoalResponseDTO::getName));
+
+        // account id로 exchange_currency
+        List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountIdIn(accountIds);
+
+        for (ExchangeCurrency ec : exchangeCurrency) {
+            System.out.println("Account ID: " + ec.getAccountId() + ", Currency Code: " + ec.getCurrencyCode() + ", Amount: " + ec.getAmount());
+        }
+        System.out.println("Expected Currency Code: " + currencyCode);
+
+        System.out.println("Exchange Currency List: " + exchangeCurrency);
+
+        // currencyCode 필터링
+        List<ExchangeCurrency> filteredExchangeCurrency = exchangeCurrencyRepository.findByAccountIdInAndCurrencyCode(accountIds, currencyCode);
+
+        System.out.println("Filtered Exchange Currency List: " + filteredExchangeCurrency);
+
+        return filteredExchangeCurrency.stream()
+                .map(ec -> new AccountListDTO(
+                        accountMap.getOrDefault(ec.getAccountId(), null),
+                        ec.getAmount(),
+                        tripGoalMap != null ? tripGoalMap.getOrDefault(ec.getAccountId(), "Unknown") : "Unknown"
+                ))
+                .collect(Collectors.toList());
+    }
+
 
     public List<WalletResponseDTO> findExchangeCurrecyByUsernameAndCurrencyCode(String username, String currencyCode) {
         Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();

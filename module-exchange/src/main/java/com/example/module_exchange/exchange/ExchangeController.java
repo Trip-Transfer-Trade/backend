@@ -6,6 +6,7 @@ import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryRespon
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
+import com.example.module_exchange.exchange.transactionHistory.AccountListDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
@@ -84,4 +85,10 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.success(walletSummary));
     }
 
+
+    @GetMapping("/account/all")
+    public ResponseEntity<Response<List<AccountListDTO>>> getUserAccount(@RequestHeader(value = "X-Authenticated-User", required = false) int userid, @RequestParam String currencyCode){
+        List<AccountListDTO> response = exchangeService.getAccountList(userid, currencyCode);
+        return ResponseEntity.ok(Response.success(response));
+    }
 }
