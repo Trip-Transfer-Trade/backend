@@ -22,6 +22,7 @@ public class ExchangeCurrency extends BaseEntity {
 
     private String currencyCode;
     private BigDecimal amount;
+    private BigDecimal availableAmount;
     private Integer accountId;
 
     public void changeAmount(BigDecimal amount) {

@@ -19,7 +19,7 @@ public class ProfitScheduler {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(cron = "0 32 11 * * *")
+    @Scheduled(cron = "0 13 15 * * *")
     public void schedule() {
         logger.info("ProfitScheduler 실행됨");
         stockTradeService.getAllUserRealisedProfit();

@@ -57,6 +57,12 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.successWithoutData());
     }
 
+    @PostMapping("/stocks/bulksell")
+    public ResponseEntity<Response<Void>> getStockTrades(@RequestBody StockTradeDTO stockTradeDTO) {
+        stockTradeService.orderBulkSell(stockTradeDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
+
     @GetMapping("/stocks/holding")
     public ResponseEntity<Response<StockHoldingsDTO>> getHoldingStock(@RequestParam int tripId) {
         StockHoldingsDTO response= stockTradeService.getStockInfoFromRedis(tripId);

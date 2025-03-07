@@ -30,12 +30,24 @@ public class StockTradeDTO {
                 .build();
     }
 
+    public StockTradeHistory toStockTradeHistory(ExchangeCurrency exchangeCurrency, TradeType tradeType,
+                                                 String stockCode, Integer quantity, BigDecimal pricePerUnit, BigDecimal totalPrice) {
+        return StockTradeHistory.builder()
+                .tradeType(tradeType)
+                .stockCode(stockCode)
+                .quantity(quantity)
+                .pricePerUnit(pricePerUnit)
+                .totalPrice(totalPrice)
+                .exchangeCurrency(exchangeCurrency)
+                .build();
+    }
+
+
     public TransactionHistory toTransactionHistory(ExchangeCurrency exchangeCurrency, TransactionType transactionType, BigDecimal TransactionAmount) {
         return TransactionHistory.builder()
                 .transactionType(transactionType)
                 .transactionCategory(TransactionCategory.STOCK_TRADE)
                 .transactionAmount(TransactionAmount)
-//                .targetAccountNumber(accountNumber)
                 .exchangeCurrency(exchangeCurrency)
                 .build();
     }

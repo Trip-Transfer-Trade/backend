@@ -6,8 +6,6 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRep
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
-import com.example.module_trip.tripGoal.TripGoal;
-import com.example.module_trip.tripGoal.TripGoalRepository;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalUpdateDTO;
 import com.example.module_utility.response.Response;
@@ -31,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class StockTradeService {
@@ -111,6 +110,65 @@ public class StockTradeService {
 
         exchangeCurrency.changeAmount(amount);
     }
+
+    @Transactional
+    public void orderBulkSell(StockTradeDTO stockTradeDTO) {
+        TradeType tradeType = TradeType.SELL;
+        String pattern = "trip:" + stockTradeDTO.getTripId() + ":stock:*";
+        Set<String> keys = redisTemplate.keys(pattern);
+        String field = "total_quantity";
+
+        Map<String, Integer> totalQuantity = keys.stream()
+                .collect(Collectors.toMap(
+                        key -> key.split(":")[key.split(":").length - 1], // 주식 코드 추출
+                        key -> {
+                            String quantityStr = (String) redisTemplate.opsForHash().get(key, field);
+                            return (quantityStr != null) ? Integer.parseInt(quantityStr) : 0;
+                        }
+                ));
+
+        System.out.println("Stock Keys: " + keys);
+        System.out.println("Total Quantities: " + totalQuantity);
+
+        Map<String, BigDecimal> stockPrices = totalQuantity.keySet().stream()
+                .collect(Collectors.toMap(
+                        stockCode -> stockCode,
+                        stockCode -> {
+                            String priceStr = getStockPrice(stockCode);
+                            return (priceStr != null && !priceStr.isEmpty()) ? new BigDecimal(priceStr) : BigDecimal.ZERO;
+                        }
+                ));
+
+        Map<String, BigDecimal> stockTotalAmounts = totalQuantity.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> stockPrices.get(entry.getKey()).multiply(BigDecimal.valueOf(entry.getValue()))
+                ));
+
+        BigDecimal totalSellAmount = stockTotalAmounts.values().stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        redisTemplate.delete(keys);
+
+        Integer accountId = getAccountIdFromTripId(stockTradeDTO.getTripId());
+        ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, stockTradeDTO.getCurrencyCode());
+
+        for (Map.Entry<String, Integer> entry : totalQuantity.entrySet()) {
+            String stockCode = entry.getKey();
+            int quantity = entry.getValue();
+            BigDecimal pricePerUnit = stockPrices.get(stockCode);
+            BigDecimal totalPrice = stockTotalAmounts.get(stockCode);
+
+            StockTradeHistory stockTradeHistory = stockTradeDTO.toStockTradeHistory(exchangeCurrency, tradeType, stockCode, quantity, pricePerUnit, totalPrice);
+            stockTradeHistoryRepository.save(stockTradeHistory);
+
+            TransactionHistory transactionHistory = stockTradeDTO.toTransactionHistory(exchangeCurrency, TransactionType.DEPOSIT, totalPrice);
+            transactionHistoryRepository.save(transactionHistory);
+        }
+
+        exchangeCurrency.changeAmount(totalSellAmount);
+    }
+
 
     public StockHoldingsDTO getStockInfoFromRedis(int tripId) {
         String pattern = "trip:" + tripId + ":stock:*";
@@ -344,7 +402,6 @@ public class StockTradeService {
     private void realisedCalc(int tripId, String stockCode, int quantity){
         String pattern = "trip:" + tripId + "realisedProfit:*";
         Set<String> keys = redisTemplate.keys(pattern);
-
         String key = keys.iterator().next();
         String value = key.split("realisedProfit:")[1];
         BigDecimal currencyPrice = new BigDecimal(getStockPrice(stockCode));
