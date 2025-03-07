@@ -9,10 +9,9 @@ import lombok.*;
 @Builder
 public class AccountCreateRequestDTO {
 
-    private Integer userId;
     private AccountType accountType;
 
-    public Account toEntity(String accountNumber) {
+    public Account toEntity(Integer userId, String accountNumber) {
         return Account.builder()
                 .userId(userId)
                 .accountType(accountType)
