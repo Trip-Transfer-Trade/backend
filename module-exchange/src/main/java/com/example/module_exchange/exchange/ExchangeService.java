@@ -3,32 +3,26 @@ package com.example.module_exchange.exchange;
 import com.example.module_exchange.clients.AccountClient;
 import com.example.module_exchange.clients.MemberClient;
 import com.example.module_exchange.clients.TripClient;
-import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
-import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRepository;
-import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
-import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.*;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeType;
 import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
-import com.example.module_trip.tripGoal.TripGoal;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Map;
 
 
 @Slf4j
@@ -352,6 +346,80 @@ public class ExchangeService {
 
         return currencyBalances.entrySet().stream()
                 .map(entry -> new WalletSummaryResponseDTO(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    public List<MyWalletDTO> findExchangeCurrencyByUserId(int userId) {
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        List<Object[]> amounts = exchangeCurrencyRepository.findTotalAmountByCurrencyCode(accountIds);
+
+        return amounts.stream()
+                .map(row -> MyWalletDTO.builder()
+                        .currencyCode((String) row[0])
+                        .totalAmount((BigDecimal) row[1])
+                        .build()
+                )
+                .collect(Collectors.toList());
+    }
+
+    public List<WalletResponseDTO> findExchangeCurrencyByUserIdAndCurrencyCode(int userId, String currencyCode) {
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        return exchangeCurrencyRepository.findByCurrencyCodeAndAccountIdIn(currencyCode, accountIds)
+                .stream()
+                .map(WalletResponseDTO::toDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<AvailableDTO> findExchangeCurrencyTripByUserId(int userId) {
+        final BigDecimal USD_TO_KRW = BigDecimal.valueOf(1400);
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+
+        List<TripGoalResponseDTO> tripGoals = tripClient.getAllTripsByAccountIdIn(accountIds).getBody().getData();
+        List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountIdIn(accountIds);
+
+        Map<Pair<Integer, String>, BigDecimal> currencyAmountMap = exchangeCurrency.stream()
+                .filter(ec -> "USD".equals(ec.getCurrencyCode()) || "KRW".equals(ec.getCurrencyCode()))
+                .collect(Collectors.groupingBy(
+                        ec -> Pair.of(ec.getAccountId(), ec.getCurrencyCode()),
+                        Collectors.reducing(BigDecimal.ZERO, ec -> {
+                            if("USD".equals(ec.getCurrencyCode())){
+                                return ec.getAvailableAmount().multiply(USD_TO_KRW);
+                            } else {
+                                return ec.getAvailableAmount();
+                            }
+                        }, BigDecimal::add)
+                ));
+
+        return tripGoals.stream()
+                .map(trip -> {
+                    BigDecimal totalAmount = currencyAmountMap.entrySet().stream()
+                            .filter(entry -> entry.getKey().getLeft().equals(trip.getAccountId()))
+                            .map(Map.Entry::getValue)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    return AvailableDTO.builder()
+                            .tripId(trip.getId())
+                            .tripName(trip.getName())
+                            .availableAmount(totalAmount)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<AvailableAllDTO> findAllExchangeCurrencyTripByUserId(int accountId) {
+        List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountId(accountId);
+
+        return exchangeCurrency.stream()
+                .map(ec -> AvailableAllDTO.builder()
+                        .currencyCode(ec.getCurrencyCode())
+                        .availableAmount(ec.getAvailableAmount())
+                        .build()
+                )
                 .collect(Collectors.toList());
     }
 

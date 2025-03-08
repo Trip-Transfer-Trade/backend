@@ -1,7 +1,6 @@
 package com.example.module_exchange.exchange;
 
-import com.example.module_exchange.exchange.exchangeCurrency.WalletResponseDTO;
-import com.example.module_exchange.exchange.exchangeCurrency.WalletSummaryResponseDTO;
+import com.example.module_exchange.exchange.exchangeCurrency.*;
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
@@ -100,4 +99,29 @@ public class ExchangeController {
         List<AccountListDTO> response = exchangeService.getAccountList(userid, currencyCode);
         return ResponseEntity.ok(Response.success(response));
     }
+
+    @GetMapping("/myWallet")
+    public ResponseEntity<Response<List<MyWalletDTO>>> findExchangeCurrencyByUserId(@RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
+        List<MyWalletDTO> response = exchangeService.findExchangeCurrencyByUserId(userId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/myWallet/detail")
+    public ResponseEntity<Response<List<WalletResponseDTO>>> findExchangeCurrencyByUserIdAndCurrencyCode(@RequestHeader(value = "X-Authenticated-User", required = false) int userId, @RequestParam String currencyCode) {
+        List<WalletResponseDTO> response = exchangeService.findExchangeCurrencyByUserIdAndCurrencyCode(userId, currencyCode);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/myWallet/trip")
+    public ResponseEntity<Response<List<AvailableDTO>>> findExchangeTrip(@RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
+        List<AvailableDTO> response = exchangeService.findExchangeCurrencyTripByUserId(userId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/myWallet/trip/all")
+    public ResponseEntity<Response<List<AvailableAllDTO>>> findExchangeAllTrip(@RequestParam int accountId) {
+        List<AvailableAllDTO> response = exchangeService.findAllExchangeCurrencyTripByUserId(accountId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
 }
