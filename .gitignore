@@ -40,3 +40,4 @@ out/
 
 ### firebase
 !**/src/main/resources/serviceAccountKey.json
+**/.env
