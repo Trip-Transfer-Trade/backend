@@ -44,6 +44,15 @@ public class UserController {
         return ResponseEntity.ok(loginResponse);
     }
 
+
+    @GetMapping("/status")
+    public ResponseEntity<Boolean> LoginStatus(@CookieValue(value = "token", required = false) String token){
+        if (token == null) {
+            return ResponseEntity.ok(false);
+        }
+        return ResponseEntity.ok(true);
+    }
+
     private void setJwtCookie(HttpServletResponse response, String token) {
         Cookie cookie = new Cookie("token", token);
         cookie.setHttpOnly(true);
