@@ -101,6 +101,8 @@ project(':module-member') {
 		implementation project(':module-utility')
 		implementation 'org.springframework.security:spring-security-crypto'
 		implementation 'net.nurigo:sdk:4.2.7'
+		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 	}
 }
 
