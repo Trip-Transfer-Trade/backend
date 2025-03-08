@@ -19,7 +19,7 @@ public class StockUSController {
 
     private static final Set<String> VALID_TYPES = Set.of("top", "low", "popular", "volume");
 
-    @GetMapping
+    @GetMapping("/ranking")
     public StockUSRankingDTO getStockUSRanking(@RequestParam String type) {
         if (VALID_TYPES.contains(type)) {
             return stockUSRankingService.getStockUSRanking(type);

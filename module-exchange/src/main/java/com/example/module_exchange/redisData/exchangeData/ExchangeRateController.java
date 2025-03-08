@@ -33,8 +33,8 @@ public class ExchangeRateController {
     }
 
     @GetMapping("/rate/us")
-    public ResponseEntity<Response<ExchangeRateChartDTO.ExchangeRateData>> getUSExchangeRate(){
-        return ResponseEntity.ok(Response.success(exchangeRateChartService.getUSExchangeRate()));
+    public ExchangeRateChartDTO.ExchangeRateData getUSExchangeRate(){
+        return exchangeRateChartService.getUSExchangeRate();
     }
 
     // 환율 차트 데이터 조회
