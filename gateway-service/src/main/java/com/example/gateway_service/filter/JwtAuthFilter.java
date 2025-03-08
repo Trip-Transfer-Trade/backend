@@ -56,7 +56,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     private boolean isPublicEndpoint(ServerHttpRequest request) {
         String path = request.getURI().getPath();
-        return path.contains("/api/members/signup") || path.contains("/api/members/login");
+        return path.contains("/api/members/signup") || path.contains("/api/members/login") || path.contains("/api/members/send") || path.contains("/api/members/check");
     }
 
     private String resolveToken(ServerHttpRequest request) {
