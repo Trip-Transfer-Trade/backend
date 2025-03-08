@@ -15,4 +15,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<Response<Void>> handleInvalidVerificationCodeException(InvalidVerificationCodeException e) {
+        Response<Void> response =Response.error(400, e.getMessage());
+        return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+    }
+
 }
