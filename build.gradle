@@ -100,6 +100,7 @@ project(':module-member') {
 	dependencies {
 		implementation project(':module-utility')
 		implementation 'org.springframework.security:spring-security-crypto'
+		implementation 'net.nurigo:sdk:4.2.7'
 	}
 }
 
