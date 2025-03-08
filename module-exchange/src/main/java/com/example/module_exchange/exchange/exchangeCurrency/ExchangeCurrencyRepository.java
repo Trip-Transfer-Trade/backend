@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Repository
@@ -26,14 +27,10 @@ public interface ExchangeCurrencyRepository extends JpaRepository<ExchangeCurren
 
     List<ExchangeCurrency> findByAccountIdInAndCurrencyCode(List<Integer> accountIds, String currencyCode);
 
-//    @Query("SELECT e FROM ExchangeCurrency e WHERE e.accountId IN :accountIds AND e.currencyCode = :currencyCode")
-//    List<ExchangeCurrency> findByAccountIdInAndCurrencyCode(
-//            @Param("accountIds") List<Integer> accountIds,
-//            @Param("currencyCode") String currencyCode
-//    );
-
-    
-
-
+    @Query("SELECT e.currencyCode, SUM(e.availableAmount) " +
+            "FROM ExchangeCurrency e " +
+            "WHERE e.accountId IN :accountIds " +
+            "GROUP BY e.currencyCode")
+    List<Object[]> findTotalAmountByCurrencyCode(List<Integer> accountIds);
 
 }
