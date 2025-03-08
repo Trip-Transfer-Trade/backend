@@ -21,18 +21,19 @@ public class TripGoalController {
         this.tripGoalService = tripGoalService;
     }
 
-    @PostMapping("/goal")
-    public ResponseEntity<String> saveTripGoal(
+    @PostMapping("/goal") // 여행 생성
+    public ResponseEntity<Response<Void>> saveTripGoal(
             @RequestHeader("X-Authenticated-User") int userId,
             @RequestBody TripGoalRequestDTO dto) {
         tripGoalService.saveTripGoal(userId, dto);
-        System.out.println("🔥 받은 JSON: " + dto);
-        return ResponseEntity.ok("여행 목표와 연결된 계좌가 생성되었습니다.");
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
+
     @GetMapping("/test-auth")
-    public ResponseEntity<String> testAuth(@RequestHeader(value = "X-Authenticated-User", required = false) int userid) {
-        return ResponseEntity.ok(" 사용자 ID: " + userid);
+    public ResponseEntity<Response<String>> testAuth(
+            @RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
+        return ResponseEntity.ok(Response.success("사용자 ID: " + userId));
     }
 
     @GetMapping("/{tripId}")
