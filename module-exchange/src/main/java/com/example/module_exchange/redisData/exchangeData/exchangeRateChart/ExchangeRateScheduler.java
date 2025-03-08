@@ -12,7 +12,7 @@ public class ExchangeRateScheduler {
         this.exchangeRateChartService = exchangeRateChartService;
     }
 
-    @Scheduled(cron = "0 3 10 * * *")
+    @Scheduled(cron = "0 29 19 * * *")
     public void schedule() {
         exchangeRateChartService.saveExchangeRateChart();
     }
