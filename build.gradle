@@ -74,6 +74,7 @@ project(':module-exchange') {
 		implementation project(':module-member')
 		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+		implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	}
 
 	dependencyManagement {
@@ -93,6 +94,7 @@ project(':module-trip') {
 project(':module-alarm'){
 	dependencies {
 		implementation project(':module-utility')
+		implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	}
 }
 

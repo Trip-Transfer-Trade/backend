@@ -330,16 +330,34 @@ public class StockTradeService {
             }
         }
 
+        boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+        String url;
+        String queryParam;
+        String trId = "";
+        String custType = "";
+        String stockName = "";
+
         // 한투 API 호출
-        String url = apiUrl + "/uapi/domestic-stock/v1/quotations/search-info";
-        String queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=300";
+        if(isUs){
+            url = apiUrl + "/uapi/overseas-price/v1/quotations/search-info";
+            queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=512";
+            trId = "CTPF1702R";
+            custType = "P";
+        } else {
+            url = apiUrl + "/uapi/domestic-stock/v1/quotations/search-info";
+            queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=300";
+            trId = "CTPF1604R";
+            custType = "";
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("authorization", "Bearer " + accessToken);
         headers.set("content-type", "application/json");
         headers.set("appkey", appKey);
         headers.set("appsecret", appSecret);
-        headers.set("tr_id", "CTPF1604R");
+        headers.set("tr_id", trId);
+        headers.set("custtype", custType);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(url + queryParam, HttpMethod.GET, entity, String.class);
@@ -348,7 +366,11 @@ public class StockTradeService {
 
         try{
             JsonNode rootNode = objectMapper.readTree(response.getBody());
-            String stockName = rootNode.path("output").path("prdt_abrv_name").asText();
+            if(isUs){
+                stockName = rootNode.path("output").path("prdt_eng_name").asText();
+            } else {
+                stockName = rootNode.path("output").path("prdt_abrv_name").asText();
+            }
             ops.set(cacheKey, stockName, 1000, TimeUnit.SECONDS);
             return stockName;
         }catch (Exception e){
@@ -370,16 +392,30 @@ public class StockTradeService {
             }
         }
 
+        boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+        String url;
+        String queryParam;
+        String trId = "";
+        String currencyPrice = "";
+
         // 한투 API 호출
-        String url = apiUrl + "/uapi/domestic-stock/v1/quotations/inquire-price";
-        String queryParam = "?fid_cond_mrkt_div_code=J" + "&fid_input_iscd=" + stockCode;
+        if(isUs){
+            url = apiUrl + "/uapi/overseas-price/v1/quotations/price-detail";
+            queryParam = "?AUTH=&EXCD=NAS" + "&SYMB=" + stockCode;
+            trId = "HHDFS76200200";
+        } else {
+            url = apiUrl + "/uapi/domestic-stock/v1/quotations/inquire-price";
+            queryParam = "?fid_cond_mrkt_div_code=J" + "&fid_input_iscd=" + stockCode;
+            trId = "FHKST01010100";
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("authorization", "Bearer " + accessToken);
         headers.set("content-type", "application/json");
         headers.set("appkey", appKey);
         headers.set("appsecret", appSecret);
-        headers.set("tr_id", "FHKST01010100");
+        headers.set("tr_id", trId);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(url + queryParam, HttpMethod.GET, entity, String.class);
@@ -388,7 +424,11 @@ public class StockTradeService {
 
         try{
             JsonNode rootNode = objectMapper.readTree(response.getBody());
-            String currencyPrice = rootNode.path("output").path("stck_prpr").asText();
+            if(isUs){
+                currencyPrice = rootNode.path("output").path("last").asText();
+            } else {
+                currencyPrice = rootNode.path("output").path("stck_prpr").asText();
+            }
             ops.set(cacheKey, currencyPrice, 1000, TimeUnit.SECONDS);
             return currencyPrice;
         }catch (Exception e){

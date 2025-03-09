@@ -1,9 +1,6 @@
 package com.example.module_member.user;
 
-import com.example.module_member.dto.LoginRequestDto;
-import com.example.module_member.dto.LoginResponseDto;
-import com.example.module_member.dto.SignUpRequestDto;
-import com.example.module_member.dto.UserResponseDto;
+import com.example.module_member.dto.*;
 import com.example.module_utility.response.Response;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,9 +17,13 @@ public class UserController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-User", required = false) String username) {
+    public ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-Username", required = false) String username) {
         UserResponseDto response = userService.findUserByUsername(username);
         return ResponseEntity.ok(Response.success(response));
+    }
+    @GetMapping("info")
+    public ResponseEntity<Response<UserInfoResponseDTO>> info(@RequestHeader(value = "X-Authenticated-User", required = false) Integer userId) {
+        return ResponseEntity.ok(userService.getUserInfo(userId));
     }
 
     @PostMapping("/signup")
@@ -43,7 +44,11 @@ public class UserController {
 
         return ResponseEntity.ok(loginResponse);
     }
-
+    @PostMapping("/logout")
+    public ResponseEntity<Response<Void>> logout(HttpServletResponse response) {
+        removeJwtCookie(response);
+        return ResponseEntity.ok(Response.success(null));
+    }
 
     @GetMapping("/status")
     public ResponseEntity<Boolean> LoginStatus(@CookieValue(value = "token", required = false) String token){
@@ -59,6 +64,15 @@ public class UserController {
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(60 * 60 * 10);
+        response.addCookie(cookie);
+    }
+
+    private void removeJwtCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
 

@@ -13,7 +13,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -28,23 +30,34 @@ public class ExchangeRateChartService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${AUTH_KEY}")
     private String authKey;
 
-    public ExchangeRateChartService(RestTemplate restTemplate, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate) {
+    public ExchangeRateChartService(RestTemplate restTemplate, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate, RabbitTemplate rabbitTemplate) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.redisTemplate = redisTemplate;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     public void saveExchangeRateChart() {
         String today = getDate(0);
         String lastDay = getDate(365);
 
+        String referenceDate = today;
+        LocalDate now = LocalDate.now();
+
+        if (now.getDayOfWeek() == DayOfWeek.SATURDAY) {
+            referenceDate = getDate(1);
+        } else if (now.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            referenceDate = getDate(2);
+        }
+
         String url = "https://www.koreaexim.go.kr/site/program/financial/exchangeJSON";
         String queryParam = "?authkey=" + authKey
-                + "&searchdate=" + today
+                + "&searchdate=" + referenceDate
                 + "&data=AP01";
 
         HttpHeaders headers = new HttpHeaders();
@@ -74,6 +87,51 @@ public class ExchangeRateChartService {
         } catch (Exception e) {
             logger.error("환율 데이터 저장 오류");
         }
+    }
+
+    public void sendForexAlert(){
+        Double todayRate = Double.valueOf(getUSExchangeRate().getRate());
+        Double minRate = getMinExchangeRate("USD");
+        if(minRate == null || todayRate>minRate){
+            logger.info("오늘 환율 {} 은 최저 환율 {} 아님",todayRate, minRate);
+            return;
+        }
+
+        logger.info("최저 환율 : MQ 전송");
+        rabbitTemplate.convertAndSend("exchange.forex", "forex.alert",String.valueOf(minRate));
+    }
+
+    public void sendForexAlertTest(){
+        Double todayRate = Double.valueOf(getUSExchangeRate().getRate().replace(",",""));
+        Double minRate = getMinExchangeRate("USD");
+        logger.info("today rate : "+todayRate + ", minRate : "+minRate);
+
+        if(minRate == null || todayRate>minRate){
+            logger.info("오늘 환율 {} 은 최저 환율 {} 아님",todayRate, minRate);
+            return;
+        }
+
+        rabbitTemplate.convertAndSend("exchange.forex", "forex.alert",String.valueOf(minRate));
+        logger.info("최저 환율 : MQ 전송");
+    }
+
+    public Double getMinExchangeRate(String code){
+
+        ZSetOperations<String,String> zSetOperations = redisTemplate.opsForZSet();
+        String cacheKey = "exchangeRate:"+code;
+
+        String oneWeekAgo = getDate(7);
+        String today = getDate(0);
+
+        Set<String> rates = zSetOperations.rangeByScore(cacheKey,Double.parseDouble(oneWeekAgo),Double.parseDouble(today));
+        if(rates == null || rates.isEmpty()){
+            return null;
+        }
+        return rates.stream()
+                .map(rate -> Double.parseDouble(rate.split(":")[1].replace(",","")))
+                .min(Double::compare)
+                .orElseThrow(() -> new RuntimeException("최저 환율을 찾지 못했습니다."));
+
     }
 
     public ExchangeRateChartDTO getExchangeRateChart(String code, int days) {
@@ -156,5 +214,18 @@ public class ExchangeRateChartService {
 
     private String getDate(int daysAgo){
         return LocalDate.now().minusDays(daysAgo).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    private String getAdjustedDate(){
+        LocalDate date = LocalDate.now();
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+
+        if(dayOfWeek == DayOfWeek.SATURDAY){
+            date = date.minusDays(1);
+        } else if(dayOfWeek == DayOfWeek.SUNDAY){
+            date = date.minusDays(2);
+        }
+
+        return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 }

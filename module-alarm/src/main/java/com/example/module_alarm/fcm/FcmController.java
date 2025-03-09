@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/fcm")
+@RequestMapping("/api/alarms/fcm")
 public class FcmController {
     private final FcmService fcmService;
 
