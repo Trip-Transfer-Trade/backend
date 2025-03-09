@@ -15,5 +15,11 @@ public class ExchangeRateScheduler {
     @Scheduled(cron = "0 29 19 * * *")
     public void schedule() {
         exchangeRateChartService.saveExchangeRateChart();
+        exchangeRateChartService.sendForexAlert();
     }
+
+//    @Scheduled(cron = "0 */1 * * * *") //알림 test
+//    public void schedule2() {
+//        exchangeRateChartService.sendForexAlertTest();
+//    }
 }
