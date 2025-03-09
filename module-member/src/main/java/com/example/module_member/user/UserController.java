@@ -17,7 +17,7 @@ public class UserController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-User", required = false) String username) {
+    public ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-Username", required = false) String username) {
         UserResponseDto response = userService.findUserByUsername(username);
         return ResponseEntity.ok(Response.success(response));
     }
