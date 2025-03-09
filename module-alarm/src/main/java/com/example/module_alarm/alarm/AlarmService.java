@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 public class AlarmService {
     private final AlarmRepository alarmRepository;
     private final FcmRepository fcmRepository;
+    public static final int GLOBAL_ALARM = 0;
+
 
     public List<AlarmResponseDTO> findAlarmByUserId(Integer userId){
         List<AlarmResponseDTO> alarms = alarmRepository.findByUserIdOrderByIdDesc(userId).stream()
@@ -56,9 +58,14 @@ public class AlarmService {
     public void sendAlarm(AlarmRequestDTO requestDTO) {
         //alarm 내역 저장
         alarmRepository.save(requestDTO.toEntity());
-        //fcm 푸시 알림
-        List<Fcm> fcmList = fcmRepository.findByUserId(requestDTO.getUserId());
-        String msg = getNotificationMessage(requestDTO.getType(), requestDTO.getTripName());
+        List<Fcm> fcmList;
+        if (requestDTO.getUserId() == GLOBAL_ALARM) {
+            log.info("Global alarm send");
+            fcmList=fcmRepository.findAll();
+        } else {
+            fcmList = fcmRepository.findByUserId(requestDTO.getUserId());
+        }
+        String msg = getNotificationMessage(requestDTO.getType(), requestDTO.getTripName(),requestDTO.getRate());
 
         Notification notification = Notification.builder()
                 .setTitle("TTT")
@@ -97,7 +104,7 @@ public class AlarmService {
         }, MoreExecutors.directExecutor());
     }
 
-    private String getNotificationMessage(AlarmType type, String tripName) {
+    private String getNotificationMessage(AlarmType type, String tripName, String rate) {
         switch (type) {
             case GOAL_ACHIEVED:
                 return tripName + " 목표를 달성했어요";
@@ -108,8 +115,8 @@ public class AlarmService {
             case EXCHANGE_AFTER_WEEK:
                 return tripName + " 목표 기간이 만료된 지 일주일이 지났어요, 환전 할까요?";
             case LOWEST_EXCHANGE_RATE:
-                return "최근 일주일 중 환율이 가장 낮아요";
-//                return (rate != null) ? "오늘 환율은 " + rate + " 이에요. 최근 일주일 중 가장 낮아요." : "최근 일주일 중 환율이 가장 낮아요";
+//                return "최근 일주일 중 환율이 가장 낮아요";
+                return (rate != "") ? "오늘 환율은 " + rate + " 이에요. 최근 일주일 중 가장 낮아요." : "최근 일주일 중 환율이 가장 낮아요";
             case SELL_THREE_DAYS_LATER:
                 return tripName + "을/를 매도한 지 3일이 지났어요, 환전 할까요?";
             default:
