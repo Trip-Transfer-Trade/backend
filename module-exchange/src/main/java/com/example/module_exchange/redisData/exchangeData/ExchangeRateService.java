@@ -15,7 +15,9 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +42,23 @@ public class ExchangeRateService {
     }
 
     public ExchangeRateListDTO getExchangeRate() {
-        ExchangeRateListDTO today = getRedisAPI(getDate(0));
-        ExchangeRateListDTO yesterday = getRedisAPI(getDate(1));
+        int todayDate = 0;
+        int yesterdayDate = 1;
+
+        DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+
+        if(dayOfWeek == DayOfWeek.SATURDAY) {
+            todayDate = 1;
+            yesterdayDate = 2;
+        } else if(dayOfWeek == DayOfWeek.SUNDAY) {
+            todayDate = 2;
+            yesterdayDate = 3;
+        } else if(dayOfWeek == DayOfWeek.MONDAY) {
+            yesterdayDate = 3;
+        }
+
+        ExchangeRateListDTO today = getRedisAPI(getDate(todayDate));
+        ExchangeRateListDTO yesterday = getRedisAPI(getDate(yesterdayDate));
 
         logger.info("Today rates: {}", today.getRates());
         logger.info("Yesterday rates: {}", yesterday.getRates());
