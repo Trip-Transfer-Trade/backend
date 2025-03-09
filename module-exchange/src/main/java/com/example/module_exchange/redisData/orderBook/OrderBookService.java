@@ -77,7 +77,7 @@ public class OrderBookService {
 
         try {
             OrderBookDTO result = objectMapper.readValue(response.getBody(), OrderBookDTO.class);
-            ops.set(cacheKey, objectMapper.writeValueAsString(result), 1000, TimeUnit.SECONDS);
+            ops.set(cacheKey, objectMapper.writeValueAsString(result), 10, TimeUnit.SECONDS);
             return result;
         } catch (Exception e) {
             logger.error("API 호출 실패", e);

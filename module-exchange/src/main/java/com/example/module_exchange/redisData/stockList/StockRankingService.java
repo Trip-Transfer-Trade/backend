@@ -86,7 +86,7 @@ public class StockRankingService {
 
         try {
             StockRankingDTO result = objectMapper.readValue(response.getBody(), StockRankingDTO.class);
-            ops.set(cacheKey, objectMapper.writeValueAsString(result), 1000, TimeUnit.SECONDS);
+            ops.set(cacheKey, objectMapper.writeValueAsString(result), 10, TimeUnit.SECONDS);
 
             return result;
         } catch (Exception e) {
