@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -28,7 +28,7 @@ public class User {
     private String name;
 
     private String gender;
-    private Date birthDate;
+    private LocalDate birthDate;
     private String phoneNumber;
     @Column(nullable = true)
     private String riskTolerance;
