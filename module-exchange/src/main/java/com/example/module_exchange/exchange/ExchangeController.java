@@ -74,7 +74,7 @@ public class ExchangeController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Response<List<WalletResponseDTO>>> findExchangeCurrecyByUsernameAndCurrencyCode(@RequestHeader (value = "X-Authenticated-User", required = false) String username, @RequestParam String currencyCode) {
+    public ResponseEntity<Response<List<WalletResponseDTO>>> findExchangeCurrecyByUsernameAndCurrencyCode(@RequestHeader (value = "X-Authenticated-Username", required = false) String username, @RequestParam String currencyCode) {
         System.out.println(username+" "+currencyCode);
         List<WalletResponseDTO> response = exchangeService.findExchangeCurrecyByUsernameAndCurrencyCode(username, currencyCode);
         return ResponseEntity.ok(Response.success(response));
@@ -88,7 +88,7 @@ public class ExchangeController {
 
     @GetMapping("/wallet")
     public ResponseEntity<Response<List<WalletSummaryResponseDTO>>> getUserWallet(
-            @RequestHeader(value = "X-Authenticated-User", required = false) String username) {
+            @RequestHeader(value = "X-Authenticated-Username", required = false) String username) {
         List<WalletSummaryResponseDTO> walletSummary = exchangeService.getUserWalletSummary(username);
         return ResponseEntity.ok(Response.success(walletSummary));
     }
