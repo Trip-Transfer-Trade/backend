@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,6 +43,13 @@ public class TripGoalService {
                 .account(account)
                 .build();
 
+        tripGoalRepository.save(tripGoal);
+    }
+
+    public void updateTripGoal(Integer tripId, TripGoalEditDTO dto){
+        TripGoal tripGoal = tripGoalRepository.findById(tripId)
+                .orElseThrow(()-> new IllegalStateException("해당 여행 목표를 찾을 수 없습니다."));
+        tripGoal.updateFromDTO(dto);
         tripGoalRepository.save(tripGoal);
     }
 

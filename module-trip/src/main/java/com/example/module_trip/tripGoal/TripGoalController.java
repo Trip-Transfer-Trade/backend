@@ -29,6 +29,13 @@ public class TripGoalController {
         return ResponseEntity.ok(Response.successWithoutData());
     }
 
+    @PutMapping("{tripId}")
+    public ResponseEntity<Response<Void>> updateTripGoal(
+            @PathVariable Integer tripId,
+            @RequestBody TripGoalEditDTO tripGoalEditDTO){
+        tripGoalService.updateTripGoal(tripId, tripGoalEditDTO);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
 
     @GetMapping("/test-auth")
     public ResponseEntity<Response<String>> testAuth(
