@@ -1,9 +1,6 @@
 package com.example.module_member.user;
 
-import com.example.module_member.dto.LoginRequestDto;
-import com.example.module_member.dto.LoginResponseDto;
-import com.example.module_member.dto.SignUpRequestDto;
-import com.example.module_member.dto.UserResponseDto;
+import com.example.module_member.dto.*;
 import com.example.module_utility.response.Response;
 import com.example.module_member.security.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -54,5 +53,11 @@ public class UserService {
         User user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
         return UserResponseDto.fromEntity(user);
+    }
+
+    public Response<UserInfoResponseDTO> getUserInfo(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+        return Response.success(UserInfoResponseDTO.basicInfoFromEntity(user));
     }
 }

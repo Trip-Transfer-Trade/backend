@@ -4,8 +4,7 @@ import com.example.module_member.user.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-
-import java.util.Date;
+import java.time.LocalDate;
 
 @Getter
 public class SignUpRequestDto {
@@ -21,11 +20,11 @@ public class SignUpRequestDto {
     private final String name;
 
     private final String gender;
-    private final Date birthDate;
+    private final LocalDate birthDate;
     private final String phoneNumber;
     private final String riskTolerance;
 
-    public SignUpRequestDto(String userName, String password, String name, String gender, Date birthDate, String phoneNumber, String riskTolerance) {
+    public SignUpRequestDto(String userName, String password, String name, String gender, LocalDate birthDate, String phoneNumber, String riskTolerance) {
         this.userName = userName;
         this.password = password;
         this.name = name;
