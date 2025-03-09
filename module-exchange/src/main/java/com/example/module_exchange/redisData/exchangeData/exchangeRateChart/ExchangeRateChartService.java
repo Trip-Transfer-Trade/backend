@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,9 +43,18 @@ public class ExchangeRateChartService {
         String today = getDate(0);
         String lastDay = getDate(365);
 
+        String referenceDate = today;
+        LocalDate now = LocalDate.now();
+
+        if (now.getDayOfWeek() == DayOfWeek.SATURDAY) {
+            referenceDate = getDate(1);
+        } else if (now.getDayOfWeek() == DayOfWeek.SUNDAY) {
+            referenceDate = getDate(2);
+        }
+
         String url = "https://www.koreaexim.go.kr/site/program/financial/exchangeJSON";
         String queryParam = "?authkey=" + authKey
-                + "&searchdate=" + today
+                + "&searchdate=" + referenceDate
                 + "&data=AP01";
 
         HttpHeaders headers = new HttpHeaders();
@@ -156,5 +166,18 @@ public class ExchangeRateChartService {
 
     private String getDate(int daysAgo){
         return LocalDate.now().minusDays(daysAgo).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+    }
+
+    private String getAdjustedDate(){
+        LocalDate date = LocalDate.now();
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+
+        if(dayOfWeek == DayOfWeek.SATURDAY){
+            date = date.minusDays(1);
+        } else if(dayOfWeek == DayOfWeek.SUNDAY){
+            date = date.minusDays(2);
+        }
+
+        return date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 }
