@@ -41,4 +41,19 @@ public class TripGoal extends BaseEntity {
         this.account = account;
     }
 
+    public void updateFromDTO(TripGoalEditDTO dto) {
+        if (dto.getCountry() != null) {
+            this.country = dto.getCountry();
+        }
+        if (dto.getGoalAmount() != null) {
+            this.goalAmount = dto.getGoalAmount();
+        }
+        if (dto.getEndDate() != null) {
+            this.endDate = LocalDate.parse(dto.getEndDate()); // String → LocalDate 변환
+        }
+        if (dto.getName() != null) {
+            this.name = dto.getName();
+        }
+    }
+
 }
