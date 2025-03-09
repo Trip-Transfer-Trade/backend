@@ -297,7 +297,8 @@ public class ExchangeService {
                 .map(ec -> new AccountListDTO(
                         accountMap.getOrDefault(ec.getAccountId(), null),
                         ec.getAmount(),
-                        tripGoalMap != null ? tripGoalMap.getOrDefault(ec.getAccountId(), "Unknown") : "Unknown"
+                        tripGoalMap != null ? tripGoalMap.getOrDefault(ec.getAccountId(), "Unknown") : "Unknown",
+                        ec.getAccountId()
                 ))
                 .collect(Collectors.toList());
     }
