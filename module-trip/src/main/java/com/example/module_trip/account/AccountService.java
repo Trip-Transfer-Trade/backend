@@ -3,11 +3,14 @@ package com.example.module_trip.account;
 import com.google.firebase.remoteconfig.User;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -93,10 +96,11 @@ public class AccountService {
                 .orElseThrow(()-> new IllegalArgumentException("Account not found with user Id & account type"));
     }
 
-    public int findAccountIdByUserId(int userId) {
-        return accountRepository.findFirstByUserId(userId)
-                .map(Account::getId)
-                .orElseThrow(() -> new EntityNotFoundException("Account not found for userId: " + userId));
+    public NormalAccountDTO getNormalAccountByUserId(Integer userId) {
+        Account normalAccount = accountRepository.findByUserIdAndAccountType(userId, AccountType.NORMAL)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No NORMAL account found for user ID: " + userId));
+        return NormalAccountDTO.toDTO(normalAccount);
     }
+
 
 }

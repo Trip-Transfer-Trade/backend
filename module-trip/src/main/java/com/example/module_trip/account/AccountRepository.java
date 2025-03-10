@@ -18,4 +18,6 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     Optional<Account> findFirstByUserId(Integer userId);
 
     boolean existsByUserId(Integer userId);
+
+    List<Account> findAllByUserIdAndAccountType(Integer Id, AccountType accountType);
 }
