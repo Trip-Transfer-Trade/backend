@@ -67,6 +67,12 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.success(response));
     }
 
+    @GetMapping("/stocks/mtmProfit")
+    public ResponseEntity<Response<Void>> getMtmProfit(@RequestParam int tripId) {
+        stockTradeService.calcMtmProfit(tripId);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
+
     @GetMapping("/transactions/{accountId}")
     public ResponseEntity<Response<List<TransactionHistoryResponseDTO>>> getTransactions(@PathVariable Integer accountId) {
         List<TransactionHistoryResponseDTO> response = exchangeService.getTransactionHistory(accountId);

@@ -3,10 +3,18 @@ spring:
     name: module-alarm
 
   datasource:
-    url: jdbc:mysql://localhost:3306/ttt
+    url: jdbc:mysql://localhost:3306/trip_db
     username: root
-    password: root
+    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
 server:
   port: 8084
