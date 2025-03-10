@@ -1,5 +1,6 @@
 package com.example.module_exchange.clients;
 
+import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalUpdateDTO;
 import com.example.module_utility.response.Response;
@@ -26,4 +27,8 @@ public interface TripClient {
 
     @GetMapping("/all/{accountId}")
     ResponseEntity<Response<List<TripGoalResponseDTO>>> getAllTripsByAccountIdIn(@PathVariable List<Integer> accountId);
+
+    @GetMapping("/list")
+    ResponseEntity<Response<List<TripGoalListResponseDTO>>> getListTripGoals(@RequestHeader(value = "X-Authenticated-User", required = false) int userId);
+
 }

@@ -1,5 +1,6 @@
 package com.example.module_exchange.clients;
 
+import com.example.module_trip.account.NormalAccountDTO;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
 import com.example.module_trip.account.AccountUpdateResponseDTO;
@@ -30,4 +31,8 @@ public interface AccountClient {
 
     @GetMapping("/all")
     ResponseEntity<Response<List<AccountResponseDTO>>> getAllAccount(@RequestHeader(value = "X-Authenticated-User", required = false) int userid);
+
+    @GetMapping("/normal")
+    ResponseEntity<NormalAccountDTO> getNormalAccountByUserId(@RequestHeader(value = "X-Authenticated-User", required = false) int userId);
+
 }
