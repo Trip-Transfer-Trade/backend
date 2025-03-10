@@ -19,19 +19,23 @@ public class TripGoalResponseDTO {
     private BigDecimal goalAmount;
     private BigDecimal profit;
     private BigDecimal realisedProfit;
+    private BigDecimal profitUs;
+    private BigDecimal realisedProfitUs;
     private LocalDate endDate;
 
     private int accountId;
 
 
     @Builder
-    public TripGoalResponseDTO(Integer id, String name, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, LocalDate endDate,int accountId) {
+    public TripGoalResponseDTO(Integer id, String name, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, BigDecimal profitUs, BigDecimal realisedProfitUs, LocalDate endDate,int accountId) {
         this.id = id;
         this.name = name;
         this.country = country;
         this.goalAmount = goalAmount;
         this.profit = profit;
         this.realisedProfit = realisedProfit;
+        this.profitUs = profitUs;
+        this.realisedProfitUs = realisedProfitUs;
         this.endDate = endDate;
         this.accountId = accountId;
 
@@ -44,8 +48,10 @@ public class TripGoalResponseDTO {
                 .country(tripGoal.getCountry())
                 .goalAmount(tripGoal.getGoalAmount())
                 .profit(tripGoal.getProfit())
+                .realisedProfit(tripGoal.getRealisedProfit())
                 .accountId(tripGoal.getAccount().getId())
                 .realisedProfit(tripGoal.getRealisedProfit())
+                .realisedProfitUs(tripGoal.getRealisedProfitUs())
                 .endDate(tripGoal.getEndDate())
                 .build();
     }
@@ -56,8 +62,10 @@ public class TripGoalResponseDTO {
                 .country(country)
                 .goalAmount(goalAmount)
                 .profit(profit)
+                .profitUs(profitUs)
                 .account(account)
                 .realisedProfit(realisedProfit)
+                .realisedProfitUs(realisedProfitUs)
                 .endDate(endDate)
                 .build();
     }

@@ -440,18 +440,21 @@ public class StockTradeService {
 
     // 매도 발생 시 실현 손익 계산
     private void realisedCalc(int tripId, String stockCode, int quantity){
-        String pattern = "trip:" + tripId + "realisedProfit:*";
-        Set<String> keys = redisTemplate.keys(pattern);
-        String key = keys.iterator().next();
-        String value = key.split("realisedProfit:")[1];
+        boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+        String currency = isUs ? "USD" : "KRW";
+        String key = "trip:" + tripId + "realisedProfit:" + currency;
+
+        String value = redisTemplate.opsForValue().get(key);
+        BigDecimal realisedProfit = (value != null) ? new BigDecimal(value) : BigDecimal.ZERO;
+
         BigDecimal currencyPrice = new BigDecimal(getStockPrice(stockCode));
         BigDecimal avgPrice = new BigDecimal(getAvgPrice(tripId, stockCode));
 
         BigDecimal profit = currencyPrice.subtract(avgPrice).multiply(new BigDecimal(quantity));
-        BigDecimal update = new BigDecimal(value).add(profit);
+        BigDecimal update = realisedProfit.add(profit);
 
-        String newKey = "trip:" + tripId + "realisedProfit:" + update;
-        redisTemplate.rename(key, newKey);
+        redisTemplate.opsForValue().set(key, update.toString());
 
         System.out.println("✅ realisedProfit 업데이트 완료!");
         System.out.println("기존 realisedProfit: " + value + " → 새로운 realisedProfit: " + update);
@@ -477,13 +480,19 @@ public class StockTradeService {
 
         for(TripGoalResponseDTO tripGoalResponseDTO : allTripGoals){
             Integer tripId = tripGoalResponseDTO.getId();
-            BigDecimal realisedProfit = tripGoalResponseDTO.getRealisedProfit() != null ? tripGoalResponseDTO.getRealisedProfit() : BigDecimal.ZERO;
 
-            String cacheKey = "trip:" + tripId + "realisedProfit:" + realisedProfit;
+            BigDecimal realisedProfitKRW = tripGoalResponseDTO.getRealisedProfit() != null ? tripGoalResponseDTO.getRealisedProfit() : BigDecimal.ZERO;
+            BigDecimal realisedProfitUSD = tripGoalResponseDTO.getRealisedProfitUs() != null ? tripGoalResponseDTO.getRealisedProfitUs() : BigDecimal.ZERO;
+
+            String cacheKeyKRW = "trip:" + tripId + "realisedProfit:KRW";
+            String cacheKeyUSD = "trip:" + tripId + "realisedProfit:USD";
+
             ValueOperations<String, String> ops = redisTemplate.opsForValue();
-            ops.set(cacheKey, realisedProfit.toString());
+            ops.set(cacheKeyKRW, realisedProfitKRW.toString());
+            ops.set(cacheKeyUSD, realisedProfitUSD.toString());
 
-            System.out.println("여행 목표 ID " + tripId + " | realisedProfit: " + realisedProfit + " 저장 완료!");
+            System.out.println("여행 목표 ID " + tripId + " | realisedProfit (USD): " + realisedProfitUSD + " 저장 완료!");
+            System.out.println("여행 목표 ID " + tripId + " | realisedProfit (KRW): " + realisedProfitKRW + " 저장 완료!");
         }
         System.out.println("모든 사용자 실현 손익 저장 완료!");
     }
