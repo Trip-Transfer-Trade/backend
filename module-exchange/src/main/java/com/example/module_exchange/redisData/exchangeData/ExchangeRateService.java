@@ -46,6 +46,10 @@ public class ExchangeRateService {
         int yesterdayDate = 1;
 
         DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+        LocalTime now = LocalTime.now();
+
+        logger.info("Current Day: {}", dayOfWeek);
+        logger.info("Current Time: {}", now);
 
         if(dayOfWeek == DayOfWeek.SATURDAY) {
             todayDate = 1;
@@ -53,8 +57,17 @@ public class ExchangeRateService {
         } else if(dayOfWeek == DayOfWeek.SUNDAY) {
             todayDate = 2;
             yesterdayDate = 3;
-        } else if(dayOfWeek == DayOfWeek.MONDAY) {
-            yesterdayDate = 3;
+        }
+
+        if (dayOfWeek == DayOfWeek.MONDAY && now.isBefore(LocalTime.of(10, 0))) {
+            todayDate = 3;
+            yesterdayDate = 4;
+        } else if (dayOfWeek == DayOfWeek.TUESDAY && now.isBefore(LocalTime.of(10, 0))) {
+            todayDate = 1;
+            yesterdayDate = 4;
+        } else if (now.isBefore(LocalTime.of(10, 0))) {
+            todayDate = 1;
+            yesterdayDate = 2;
         }
 
         ExchangeRateListDTO today = getRedisAPI(getDate(todayDate));
@@ -69,6 +82,7 @@ public class ExchangeRateService {
     }
 
     private String getDate(int daysAgo){
+        logger.info("Current Day: {}", LocalDate.now().minusDays(daysAgo).format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         return LocalDate.now().minusDays(daysAgo).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 
