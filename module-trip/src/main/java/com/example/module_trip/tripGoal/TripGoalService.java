@@ -3,8 +3,11 @@ package com.example.module_trip.tripGoal;
 import com.example.module_trip.account.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
@@ -76,5 +79,25 @@ public class TripGoalService {
         tripGoal.setRealisedProfit(tripGoalUpdateDTO.getRealisedProfit());
         TripGoal updatedTripGoal = tripGoalRepository.save(tripGoal);
         return TripGoalResponseDTO.toDTO(updatedTripGoal);
+    }
+
+    public List<TripGoalListResponseDTO> findTripGoalListByUserId(Integer userId) {
+        //userId를 기반으로 TRAVEL_GOAL 계좌 조회
+        List<Account> travelGoalAccounts = accountRepository.findAllByUserIdAndAccountType(userId, AccountType.TRAVEL_GOAL);
+
+        if (travelGoalAccounts.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No TRAVEL_GOAL accounts found for user ID: " + userId);
+        }
+        // TRAVEL_GOAL 계좌 ID 리스트 추출
+        List<Integer> accountIds = travelGoalAccounts.stream()
+                .map(Account::getId)
+                .collect(Collectors.toList());
+
+        // 계좌 ID에 해당하는 TripGoal 리스트 조회
+        List<TripGoal> tripGoals = tripGoalRepository.findAllByAccountIdIn(accountIds);
+
+        return tripGoals.stream()
+                .map(TripGoalListResponseDTO::toDTO)
+                .collect(Collectors.toList());
     }
 }

@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -65,6 +64,12 @@ public class TripGoalController {
     public ResponseEntity<Response<TripGoalResponseDTO>> updateRealisedProfit(@RequestBody TripGoalUpdateDTO tripGoalUpdateDTO) {
         Response<TripGoalResponseDTO> response = Response.success(tripGoalService.updateRealisedProfit(tripGoalUpdateDTO));
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<Response<List<TripGoalListResponseDTO>>> getListTripGoals(@RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
+        List<TripGoalListResponseDTO> tripGoalList = tripGoalService.findTripGoalListByUserId(userId);
+        return ResponseEntity.ok(new Response<>(200, "success", tripGoalList));
     }
 
 }

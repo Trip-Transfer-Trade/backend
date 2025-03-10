@@ -24,6 +24,8 @@ public class TripGoal extends BaseEntity {
     private BigDecimal goalAmount;
     private BigDecimal profit = BigDecimal.ZERO;
     private BigDecimal realisedProfit = BigDecimal.ZERO;
+    private BigDecimal profitUs = BigDecimal.ZERO;
+    private BigDecimal realisedProfitUs = BigDecimal.ZERO;
     private LocalDate endDate;
 
     @OneToOne
@@ -31,14 +33,17 @@ public class TripGoal extends BaseEntity {
     private Account account;
 
     @Builder
-    public TripGoal(String name, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, LocalDate endDate, Account account){
+    public TripGoal(String name, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, BigDecimal profitUs, BigDecimal realisedProfitUs, LocalDate endDate, Account account){
         this.name = name;
         this.country = country;
         this.goalAmount = goalAmount;
         this.profit = (profit != null) ? profit : BigDecimal.ZERO;
         this.realisedProfit = (realisedProfit != null) ? realisedProfit : BigDecimal.ZERO;
+        this.profitUs = (profitUs != null) ? profitUs : BigDecimal.ZERO;
+        this.realisedProfitUs = (realisedProfitUs != null) ? realisedProfitUs : BigDecimal.ZERO;
         this.endDate = endDate;
         this.account = account;
     }
+
 
 }
