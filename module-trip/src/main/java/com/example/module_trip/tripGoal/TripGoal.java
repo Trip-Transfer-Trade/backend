@@ -60,4 +60,14 @@ public class TripGoal extends BaseEntity {
         }
     }
 
+    public boolean isGoalReached(String rateStr) {
+        if (this.profit == null || this.profitUs == null || this.goalAmount == null) {
+            return false;
+        }
+
+        BigDecimal rate = new BigDecimal(rateStr.replace(",",""));
+        BigDecimal totalProfit = this.profit.add(this.profitUs.multiply(rate));
+        return totalProfit.compareTo(this.goalAmount) >= 0;
+    }
+
 }

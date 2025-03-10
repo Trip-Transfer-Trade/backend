@@ -12,11 +12,9 @@ import java.math.BigDecimal;
 public class TripGoalUpdateDTO {
     private Integer tripGoalId;
     private BigDecimal realisedProfit;
+    private BigDecimal realisedProfitUs;
 
-    public static TripGoalUpdateDTO fromRedisKey(String redisKey){
-        String[] parts = redisKey.split("realisedProfit:");
-        BigDecimal realisedProfit = new BigDecimal(parts[1]);
-        Integer tripId = Integer.parseInt(parts[0].split(":")[1]);
-        return new TripGoalUpdateDTO(tripId, realisedProfit);
+    public static TripGoalUpdateDTO toDTO(Integer tripGoalId, BigDecimal realisedProfit,BigDecimal realisedProfitUs) {
+        return new TripGoalUpdateDTO(tripGoalId, realisedProfit, realisedProfitUs);
     }
 }

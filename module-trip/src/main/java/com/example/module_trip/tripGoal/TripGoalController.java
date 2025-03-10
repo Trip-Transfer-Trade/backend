@@ -74,4 +74,11 @@ public class TripGoalController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/profit")
+    public ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
+        logger.info(">>>> 여기까진 들어오잖아");
+        TripGoalResponseDTO response = tripGoalService.updateProfit(tripGoalProfitUpdateDTO);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
 }

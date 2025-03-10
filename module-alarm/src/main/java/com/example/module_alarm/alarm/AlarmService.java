@@ -57,13 +57,18 @@ public class AlarmService {
     @Transactional
     public void sendAlarm(AlarmRequestDTO requestDTO) {
         //alarm 내역 저장
-        alarmRepository.save(requestDTO.toEntity());
+        alarmRepository.save(requestDTO.toEntity(requestDTO));
         List<Fcm> fcmList;
+        log.info("user ID : ",requestDTO.getUserId());
         if (requestDTO.getUserId() == GLOBAL_ALARM) {
             log.info("Global alarm send");
             fcmList=fcmRepository.findAll();
         } else {
             fcmList = fcmRepository.findByUserId(requestDTO.getUserId());
+        }
+        if (fcmList.isEmpty()) {
+            log.warn("⚠️ 유저 ID {} 에 대한 FCM 토큰이 없습니다. 알림을 전송하지 않습니다.", requestDTO.getUserId());
+            return; // 예외 발생 없이 그냥 리턴
         }
         String msg = getNotificationMessage(requestDTO.getType(), requestDTO.getTripName(),requestDTO.getRate());
 
