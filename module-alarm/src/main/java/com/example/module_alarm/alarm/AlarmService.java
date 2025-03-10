@@ -57,7 +57,7 @@ public class AlarmService {
     @Transactional
     public void sendAlarm(AlarmRequestDTO requestDTO) {
         //alarm 내역 저장
-        alarmRepository.save(requestDTO.toEntity());
+        alarmRepository.save(requestDTO.toEntity(requestDTO));
         List<Fcm> fcmList;
         if (requestDTO.getUserId() == GLOBAL_ALARM) {
             log.info("Global alarm send");
