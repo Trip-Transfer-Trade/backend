@@ -107,8 +107,8 @@ public class ExchangeController {
     }
 
     @GetMapping("/myWallet/detail")
-    public ResponseEntity<Response<List<WalletResponseDTO>>> findExchangeCurrencyByUserIdAndCurrencyCode(@RequestHeader(value = "X-Authenticated-User", required = false) int userId, @RequestParam String currencyCode) {
-        List<WalletResponseDTO> response = exchangeService.findExchangeCurrencyByUserIdAndCurrencyCode(userId, currencyCode);
+    public ResponseEntity<Response<List<WalletDetailDTO>>> findExchangeCurrencyByUserIdAndCurrencyCode(@RequestHeader(value = "X-Authenticated-User", required = false) int userId, @RequestParam String currencyCode) {
+        List<WalletDetailDTO> response = exchangeService.findExchangeCurrencyByUserIdAndCurrencyCode(userId, currencyCode);
         return ResponseEntity.ok(Response.success(response));
     }
 

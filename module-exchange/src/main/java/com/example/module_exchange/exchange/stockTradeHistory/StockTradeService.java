@@ -6,11 +6,17 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrencyRep
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryRepository;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
+import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartDTO;
+import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
+import com.example.module_trip.tripGoal.TripGoalProfitUpdateDTO;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalUpdateDTO;
 import com.example.module_utility.response.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +45,7 @@ public class StockTradeService {
     private final StockTradeHistoryRepository stockTradeHistoryRepository;
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
     private final TransactionHistoryRepository transactionHistoryRepository;
-
+    private final ExchangeRateChartService exchangeRateChartService;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, String> redisTemplate;
@@ -56,7 +62,7 @@ public class StockTradeService {
     @Value("${ACCESS_TOKEN}")
     private String accessToken;
 
-    public StockTradeService(TripClient tripClient, StockTradeHistoryRepository stockTradeHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, TransactionHistoryRepository transactionHistoryRepository, RestTemplate restTemplate, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate) {
+    public StockTradeService(TripClient tripClient, StockTradeHistoryRepository stockTradeHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, TransactionHistoryRepository transactionHistoryRepository, RestTemplate restTemplate, ObjectMapper objectMapper, RedisTemplate<String, String> redisTemplate, ExchangeRateChartService exchangeRateChartService) {
         this.tripClient = tripClient;
         this.stockTradeHistoryRepository = stockTradeHistoryRepository;
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
@@ -64,6 +70,7 @@ public class StockTradeService {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.redisTemplate = redisTemplate;
+        this.exchangeRateChartService= exchangeRateChartService;
     }
 
     @Transactional
@@ -330,16 +337,34 @@ public class StockTradeService {
             }
         }
 
+        boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+        String url;
+        String queryParam;
+        String trId = "";
+        String custType = "";
+        String stockName = "";
+
         // 한투 API 호출
-        String url = apiUrl + "/uapi/domestic-stock/v1/quotations/search-info";
-        String queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=300";
+        if(isUs){
+            url = apiUrl + "/uapi/overseas-price/v1/quotations/search-info";
+            queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=512";
+            trId = "CTPF1702R";
+            custType = "P";
+        } else {
+            url = apiUrl + "/uapi/domestic-stock/v1/quotations/search-info";
+            queryParam = "?PDNO=" + stockCode + "&PRDT_TYPE_CD=300";
+            trId = "CTPF1604R";
+            custType = "";
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("authorization", "Bearer " + accessToken);
         headers.set("content-type", "application/json");
         headers.set("appkey", appKey);
         headers.set("appsecret", appSecret);
-        headers.set("tr_id", "CTPF1604R");
+        headers.set("tr_id", trId);
+        headers.set("custtype", custType);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(url + queryParam, HttpMethod.GET, entity, String.class);
@@ -348,7 +373,11 @@ public class StockTradeService {
 
         try{
             JsonNode rootNode = objectMapper.readTree(response.getBody());
-            String stockName = rootNode.path("output").path("prdt_abrv_name").asText();
+            if(isUs){
+                stockName = rootNode.path("output").path("prdt_eng_name").asText();
+            } else {
+                stockName = rootNode.path("output").path("prdt_abrv_name").asText();
+            }
             ops.set(cacheKey, stockName, 1000, TimeUnit.SECONDS);
             return stockName;
         }catch (Exception e){
@@ -362,7 +391,8 @@ public class StockTradeService {
         ValueOperations<String, String> ops = redisTemplate.opsForValue();
 
         String value = ops.get(cacheKey);
-        if(value != null){
+
+        if(Strings.isNotBlank(value)){
             try{
                 return value;
             } catch (Exception e){
@@ -370,16 +400,30 @@ public class StockTradeService {
             }
         }
 
+        boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+        String url;
+        String queryParam;
+        String trId = "";
+        String currencyPrice = "";
+
         // 한투 API 호출
-        String url = apiUrl + "/uapi/domestic-stock/v1/quotations/inquire-price";
-        String queryParam = "?fid_cond_mrkt_div_code=J" + "&fid_input_iscd=" + stockCode;
+        if(isUs){
+            url = apiUrl + "/uapi/overseas-price/v1/quotations/price-detail";
+            queryParam = "?AUTH=&EXCD=NAS" + "&SYMB=" + stockCode;
+            trId = "HHDFS76200200";
+        } else {
+            url = apiUrl + "/uapi/domestic-stock/v1/quotations/inquire-price";
+            queryParam = "?fid_cond_mrkt_div_code=J" + "&fid_input_iscd=" + stockCode;
+            trId = "FHKST01010100";
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("authorization", "Bearer " + accessToken);
         headers.set("content-type", "application/json");
         headers.set("appkey", appKey);
         headers.set("appsecret", appSecret);
-        headers.set("tr_id", "FHKST01010100");
+        headers.set("tr_id", trId);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         ResponseEntity<String> response = restTemplate.exchange(url + queryParam, HttpMethod.GET, entity, String.class);
@@ -388,7 +432,13 @@ public class StockTradeService {
 
         try{
             JsonNode rootNode = objectMapper.readTree(response.getBody());
-            String currencyPrice = rootNode.path("output").path("stck_prpr").asText();
+            if(isUs){
+                currencyPrice = rootNode.path("output").path("last").asText();
+                logger.info("currencyPrice : "+currencyPrice);
+            } else {
+                currencyPrice = rootNode.path("output").path("stck_prpr").asText();
+                logger.info("KR currencyPrice : "+currencyPrice);
+            }
             ops.set(cacheKey, currencyPrice, 1000, TimeUnit.SECONDS);
             return currencyPrice;
         }catch (Exception e){
@@ -397,21 +447,62 @@ public class StockTradeService {
         }
 
     }
+    public Map<String,BigDecimal> unrealisedCalc(int tripId){
+        Set<String> stockKeys = redisTemplate.keys("trip:"+tripId+":stock:*");
+        BigDecimal profitKRW = BigDecimal.ZERO;
+        BigDecimal profitUSD = BigDecimal.ZERO;
+        logger.info(stockKeys.toString());
+
+        for (String stockKey : stockKeys) {
+            String stockCode = stockKey.split(":stock:")[1];
+
+            Object quantityObj = redisTemplate.opsForHash().get(stockKey, "total_quantity");
+            if (quantityObj == null || Integer.parseInt(quantityObj.toString()) <= 0) {
+                continue;
+            }
+            int quantity = Integer.parseInt(quantityObj.toString());
+            BigDecimal avgPrice = new BigDecimal(getAvgPrice(tripId, stockCode).replace(",",""));
+            logger.info("avgPrice"+avgPrice);
+            BigDecimal currentPrice = new BigDecimal(getStockPrice(stockCode).replace(",",""));
+            logger.info("avgPrice : "+avgPrice +", currentPrice : "+currentPrice);
+
+            boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+            BigDecimal stockProfit = currentPrice.subtract(avgPrice).multiply(new BigDecimal(quantity));
+
+            if(isUs){
+                profitUSD = profitUSD.add(stockProfit);
+            } else{
+                profitKRW = profitKRW.add(stockProfit);
+            }
+
+            logger.info("주식 코드 : " + stockCode + "미국 통화 : "+isUs+ "수량 : " + quantity + "평단가 : " + avgPrice + " 종가 : " + currentPrice + "수익 : " + stockProfit );
+        }
+        logger.info("총 평가 손익 : " + profitKRW + ", "+profitUSD);
+        Map<String,BigDecimal> profitMap = new HashMap<>();
+        profitMap.put("profitKRW", profitKRW);
+        profitMap.put("profitUSD", profitUSD);
+        return profitMap;
+    }
+
 
     // 매도 발생 시 실현 손익 계산
     private void realisedCalc(int tripId, String stockCode, int quantity){
-        String pattern = "trip:" + tripId + "realisedProfit:*";
-        Set<String> keys = redisTemplate.keys(pattern);
-        String key = keys.iterator().next();
-        String value = key.split("realisedProfit:")[1];
+        boolean isUs = stockCode.chars().allMatch(Character::isAlphabetic);
+
+        String currency = isUs ? "USD" : "KRW";
+        String key = "trip:" + tripId + "realisedProfit:" + currency;
+
+        String value = redisTemplate.opsForValue().get(key);
+        BigDecimal realisedProfit = (value != null) ? new BigDecimal(value) : BigDecimal.ZERO;
+
         BigDecimal currencyPrice = new BigDecimal(getStockPrice(stockCode));
         BigDecimal avgPrice = new BigDecimal(getAvgPrice(tripId, stockCode));
 
         BigDecimal profit = currencyPrice.subtract(avgPrice).multiply(new BigDecimal(quantity));
-        BigDecimal update = new BigDecimal(value).add(profit);
+        BigDecimal update = realisedProfit.add(profit);
 
-        String newKey = "trip:" + tripId + "realisedProfit:" + update;
-        redisTemplate.rename(key, newKey);
+        redisTemplate.opsForValue().set(key, update.toString());
 
         System.out.println("✅ realisedProfit 업데이트 완료!");
         System.out.println("기존 realisedProfit: " + value + " → 새로운 realisedProfit: " + update);
@@ -437,36 +528,97 @@ public class StockTradeService {
 
         for(TripGoalResponseDTO tripGoalResponseDTO : allTripGoals){
             Integer tripId = tripGoalResponseDTO.getId();
-            BigDecimal realisedProfit = tripGoalResponseDTO.getRealisedProfit() != null ? tripGoalResponseDTO.getRealisedProfit() : BigDecimal.ZERO;
 
-            String cacheKey = "trip:" + tripId + "realisedProfit:" + realisedProfit;
+            BigDecimal realisedProfitKRW = tripGoalResponseDTO.getRealisedProfit() != null ? tripGoalResponseDTO.getRealisedProfit() : BigDecimal.ZERO;
+            BigDecimal realisedProfitUSD = tripGoalResponseDTO.getRealisedProfitUs() != null ? tripGoalResponseDTO.getRealisedProfitUs() : BigDecimal.ZERO;
+
+            String cacheKeyKRW = "trip:" + tripId + "realisedProfit:KRW";
+            String cacheKeyUSD = "trip:" + tripId + "realisedProfit:USD";
+
             ValueOperations<String, String> ops = redisTemplate.opsForValue();
-            ops.set(cacheKey, realisedProfit.toString());
+            ops.set(cacheKeyKRW, realisedProfitKRW.toString());
+            ops.set(cacheKeyUSD, realisedProfitUSD.toString());
 
-            System.out.println("여행 목표 ID " + tripId + " | realisedProfit: " + realisedProfit + " 저장 완료!");
+            System.out.println("여행 목표 ID " + tripId + " | realisedProfit (USD): " + realisedProfitUSD + " 저장 완료!");
+            System.out.println("여행 목표 ID " + tripId + " | realisedProfit (KRW): " + realisedProfitKRW + " 저장 완료!");
         }
         System.out.println("모든 사용자 실현 손익 저장 완료!");
     }
 
-    // 장 마감 후 realisedProfit 저장
-    public void storeAllUserRealisedProfit() {
+    // 장 마감 후 realisedProfit + Profit저장
+    @Transactional
+    public void storeAllUserProfit() {
         ValueOperations<String, String> ops = redisTemplate.opsForValue();
-
         Set<String> keys = redisTemplate.keys("trip:*realisedProfit:*");
+        logger.info("🔍 Redis keys 조회 결과: {}", keys);
+
+        Map<Integer, BigDecimal> realisedProfitKRWMap = new HashMap<>();
+        Map<Integer, BigDecimal> realisedProfitUSDMap = new HashMap<>();
 
         for (String key : keys) {
-            TripGoalUpdateDTO tripGoalUpdateDTO = TripGoalUpdateDTO.fromRedisKey(key);
-
-            ResponseEntity<Response<TripGoalResponseDTO>> response = tripClient.updateRealisedProfit(tripGoalUpdateDTO);
-
-            if(response.getStatusCode().is2xxSuccessful()){
-                System.out.println("여행 목표 ID " + tripGoalUpdateDTO.getTripGoalId() + " | realisedProfit: " + tripGoalUpdateDTO.getRealisedProfit() + " 저장 완료!");
+            if (key.contains("realisedProfit:KRW")) {
+                String tripIdStr = key.replace("trip:", "").replace("realisedProfit:KRW", "");
+                try {
+                    Integer tripId = Integer.parseInt(tripIdStr);
+                    BigDecimal value = Optional.ofNullable(ops.get(key))
+                            .map(BigDecimal::new)
+                            .orElse(BigDecimal.ZERO);
+                    realisedProfitKRWMap.put(tripId, value);
+                } catch (NumberFormatException e) {
+                    logger.error("TripId 파싱 실패 for key: {}", key, e);
+                }
+            } else if (key.contains("realisedProfit:USD")) {
+                String tripIdStr = key.replace("trip:", "").replace("realisedProfit:USD", "");
+                try {
+                    Integer tripId = Integer.parseInt(tripIdStr);
+                    BigDecimal value = Optional.ofNullable(ops.get(key))
+                            .map(BigDecimal::new)
+                            .orElse(BigDecimal.ZERO);
+                    realisedProfitUSDMap.put(tripId, value);
+                } catch (NumberFormatException e) {
+                    logger.error("TripId 파싱 실패 for key: {}", key, e);
+                }
             }
-            else {
-                System.out.println("여행 목표 ID " + tripGoalUpdateDTO.getTripGoalId() + "찾을 수 없음");
-            }
-            redisTemplate.delete(key);
         }
-        System.out.println("모든 realisedProfit DB 저장 완료!");
+
+        Set<Integer> tripIds = new HashSet<>();
+        tripIds.addAll(realisedProfitKRWMap.keySet());
+        tripIds.addAll(realisedProfitUSDMap.keySet());
+        logger.info("🔍 추출된 여행 목표 IDs: {}", tripIds);
+
+        for (Integer tripId : tripIds) {
+            BigDecimal realisedProfitKRW = realisedProfitKRWMap.getOrDefault(tripId, BigDecimal.ZERO);
+            BigDecimal realisedProfitUSD = realisedProfitUSDMap.getOrDefault(tripId, BigDecimal.ZERO);
+
+            Map<String, BigDecimal> unrealisedProfits = unrealisedCalc(tripId);
+            BigDecimal unrealisedProfitKRW = unrealisedProfits.getOrDefault("profitKRW", BigDecimal.ZERO);
+            BigDecimal unrealisedProfitUSD = unrealisedProfits.getOrDefault("profitUSD", BigDecimal.ZERO);
+
+            BigDecimal totalProfitKRW = unrealisedProfitKRW.add(realisedProfitKRW);
+            BigDecimal totalProfitUSD = unrealisedProfitUSD.add(realisedProfitUSD);
+
+            logger.info("🚀 여행 목표 ID {} | KRW: unrealisedProfit: {}, realisedProfit: {}, totalProfit: {}",
+                    tripId, unrealisedProfitKRW, realisedProfitKRW, totalProfitKRW);
+            logger.info("🚀 여행 목표 ID {} | USD: unrealisedProfit: {}, realisedProfit: {}, totalProfit: {}",
+                    tripId, unrealisedProfitUSD, realisedProfitUSD, totalProfitUSD);
+
+            ResponseEntity<Response<TripGoalResponseDTO>> response1 = tripClient.updateRealisedProfit(
+                    TripGoalUpdateDTO.toDTO(tripId, realisedProfitKRW, realisedProfitUSD));
+
+            ExchangeRateChartDTO.ExchangeRateData rateData = exchangeRateChartService.getUSExchangeRate();
+
+            ResponseEntity<Response<TripGoalResponseDTO>> response2 = tripClient.updateProfit(
+                    TripGoalProfitUpdateDTO.toDTO(tripId, totalProfitKRW, totalProfitUSD,rateData.getRate()));
+
+            if (response1.getStatusCode().is2xxSuccessful() && response2.getStatusCode().is2xxSuccessful()) {
+                logger.info("✅ 여행 목표 ID {} 저장 완료!", tripId);
+                redisTemplate.delete("trip:" + tripId + "realisedProfit:KRW");
+                redisTemplate.delete("trip:" + tripId + "realisedProfit:USD");
+            } else {
+                logger.error("❌ 여행 목표 ID {} 저장 실패. 응답 상태: {}, {}",
+                        tripId, response1.getStatusCode(), response2.getStatusCode());
+            }
+        }
+        logger.info("🎉 모든 realisedProfit DB 저장 완료!");
     }
 }

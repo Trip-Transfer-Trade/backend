@@ -88,12 +88,14 @@ project(':module-exchange') {
 project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
+		implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	}
 }
 
 project(':module-alarm'){
 	dependencies {
 		implementation project(':module-utility')
+		implementation project(':module-trip')
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	}
 }

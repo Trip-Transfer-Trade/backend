@@ -14,4 +14,5 @@ public class AccountListDTO {
     private AccountType accountType;
     private BigDecimal amount;
     private String name;
+    private Integer accountId;
 }

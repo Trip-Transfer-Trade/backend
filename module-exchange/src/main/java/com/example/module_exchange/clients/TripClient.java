@@ -1,6 +1,7 @@
 package com.example.module_exchange.clients;
 
 import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
+import com.example.module_trip.tripGoal.TripGoalProfitUpdateDTO;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalUpdateDTO;
 import com.example.module_utility.response.Response;
@@ -24,6 +25,9 @@ public interface TripClient {
 
     @PutMapping("/realised")
     ResponseEntity<Response<TripGoalResponseDTO>> updateRealisedProfit(@RequestBody TripGoalUpdateDTO tripGoalUpdateDTO);
+
+    @PutMapping("/profit")
+    ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO);
 
     @GetMapping("/all/{accountId}")
     ResponseEntity<Response<List<TripGoalResponseDTO>>> getAllTripsByAccountIdIn(@PathVariable List<Integer> accountId);

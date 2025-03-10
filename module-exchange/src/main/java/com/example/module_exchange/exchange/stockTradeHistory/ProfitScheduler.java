@@ -19,7 +19,7 @@ public class ProfitScheduler {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(cron = "0 13 15 * * *")
+    @Scheduled(cron = "0 32 10 * * *")
     public void schedule() {
         logger.info("ProfitScheduler 실행됨");
         stockTradeService.getAllUserRealisedProfit();
@@ -29,8 +29,18 @@ public class ProfitScheduler {
     public void schedule2() {
         Set<String> keys = redisTemplate.keys("userProfit:*");
         if (keys != null) {
-            stockTradeService.storeAllUserRealisedProfit();
+            stockTradeService.storeAllUserProfit();
             System.out.println("주식 장 마감 : Redis 데이터 삭제");
         }
     }
+
+//    @Scheduled(cron = "10 * * * * *") // 테스트 코드
+//    public void scheduleTest(){
+//        stockTradeService.getAllUserRealisedProfit();
+//        Set<String> keys = redisTemplate.keys("userProfit:*");
+//        if (keys != null) {
+//            stockTradeService.storeAllUserProfit();
+//            System.out.println("주식 장 마감 : Redis 데이터 삭제");
+//        }
+//    }
 }

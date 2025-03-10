@@ -18,11 +18,11 @@ public class AlarmRequestDTO {
     @Builder.Default
     private String rate="";
 
-    public AlarmHistory toEntity(){
+    public static AlarmHistory toEntity(AlarmRequestDTO alarmRequestDTO) {
         return AlarmHistory.builder()
-                .tripName(tripName)
-                .userId(userId)
-                .type(type)
+                .tripName(alarmRequestDTO.getTripName())
+                .userId(alarmRequestDTO.getUserId())
+                .type(alarmRequestDTO.getType())
                 .build();
     }
 }
