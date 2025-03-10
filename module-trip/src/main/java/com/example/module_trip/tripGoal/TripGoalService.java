@@ -1,16 +1,21 @@
 package com.example.module_trip.tripGoal;
 
 import com.example.module_trip.account.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class TripGoalService {
@@ -18,6 +23,8 @@ public class TripGoalService {
     private final TripGoalRepository tripGoalRepository;
     private final AccountService accountService;
     private final AccountRepository accountRepository;
+    private final RabbitTemplate rabbitTemplate;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void saveTripGoal(int userId, TripGoalRequestDTO dto) {
@@ -85,4 +92,29 @@ public class TripGoalService {
         TripGoal updatedTripGoal = tripGoalRepository.save(tripGoal);
         return TripGoalResponseDTO.toDTO(updatedTripGoal);
     }
+
+    public TripGoalResponseDTO updateProfit(TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
+
+        TripGoal tripGoal = tripGoalRepository.findById(tripGoalProfitUpdateDTO.getTripGoalId()).get();
+        boolean before = tripGoal.isGoalReached(tripGoalProfitUpdateDTO.getRate());
+
+        tripGoal.setProfit(tripGoalProfitUpdateDTO.getProfit());
+        tripGoal.setProfitUs(tripGoalProfitUpdateDTO.getProfitUs());
+        TripGoal updatedTripGoal = tripGoalRepository.save(tripGoal);
+        log.info(updatedTripGoal.toString());
+
+        String json = null;
+        try {
+            json = objectMapper.writeValueAsString(TripGoalAlarmDTO.toDTO(updatedTripGoal.getName(), updatedTripGoal.getAccount().getUserId()));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        boolean after = updatedTripGoal.isGoalReached(tripGoalProfitUpdateDTO.getRate());
+        if (!before && after){
+            rabbitTemplate.convertAndSend("exchange.goal","goal.alert", json);
+            System.out.println("알림 전송 ");
+        }
+        return TripGoalResponseDTO.toDTO(updatedTripGoal);
+    }
+
 }
