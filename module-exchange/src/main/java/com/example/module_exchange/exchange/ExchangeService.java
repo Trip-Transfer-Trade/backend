@@ -10,6 +10,8 @@ import com.example.module_exchange.exchange.exchangeHistory.ExchangeType;
 import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
+import com.example.module_trip.tripGoal.TripGoal;
+import com.example.module_trip.tripGoal.TripGoalRepository;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
@@ -365,13 +367,24 @@ public class ExchangeService {
                 .collect(Collectors.toList());
     }
 
-    public List<WalletResponseDTO> findExchangeCurrencyByUserIdAndCurrencyCode(int userId, String currencyCode) {
+    public List<WalletDetailDTO> findExchangeCurrencyByUserIdAndCurrencyCode(int userId, String currencyCode) {
         List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
-        return exchangeCurrencyRepository.findByCurrencyCodeAndAccountIdIn(currencyCode, accountIds)
+        List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountIdIn(accountIds);
+
+        Map<Integer, TripGoalResponseDTO> tripGoalMap = Optional.ofNullable(tripClient.getAllTripsByAccountIdIn(accountIds))
+                .map(ResponseEntity::getBody)
+                .map(Response::getData)
+                .orElse(Collections.emptyList())
                 .stream()
-                .map(WalletResponseDTO::toDto)
+                .collect(Collectors.toMap(TripGoalResponseDTO::getAccountId, tripGoal -> tripGoal));
+
+        return exchangeCurrency.stream()
+                .map(ec -> {
+                    TripGoalResponseDTO tripGoal = tripGoalMap.getOrDefault(ec.getAccountId(), null);
+                    return WalletDetailDTO.toDto(ec, tripGoal);
+                })
                 .collect(Collectors.toList());
     }
 
