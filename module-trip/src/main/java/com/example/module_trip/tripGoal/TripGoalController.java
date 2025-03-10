@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -74,11 +73,17 @@ public class TripGoalController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/list")
+    public ResponseEntity<Response<List<TripGoalListResponseDTO>>> getListTripGoals(@RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
+        List<TripGoalListResponseDTO> tripGoalList = tripGoalService.findTripGoalListByUserId(userId);
+        return ResponseEntity.ok(new Response<>(200, "success", tripGoalList));
+
     @PutMapping("/profit")
     public ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
         logger.info(">>>> 여기까진 들어오잖아");
         TripGoalResponseDTO response = tripGoalService.updateProfit(tripGoalProfitUpdateDTO);
         return ResponseEntity.ok(Response.success(response));
+
     }
 
 }

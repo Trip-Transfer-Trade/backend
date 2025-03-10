@@ -5,9 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/accounts")
@@ -68,4 +66,11 @@ public class AccountController {
         List<AccountResponseDTO> response = accountService.getAllAccountByUserId(userid);
         return ResponseEntity.ok(Response.success(response));
     }
+
+    @GetMapping("/normal")
+    public ResponseEntity<NormalAccountDTO> getAccountNumberById(@RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
+        NormalAccountDTO normalAccountDTO = accountService.getNormalAccountByUserId(userId);
+        return ResponseEntity.ok(normalAccountDTO);
+    }
+
 }

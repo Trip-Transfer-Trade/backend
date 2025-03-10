@@ -13,4 +13,5 @@ public interface TripGoalRepository extends JpaRepository<TripGoal, Integer> {
     Integer account(Account account);
 
     List<TripGoal> findAllByAccountIdIn(List<Integer> accountId);
+
 }

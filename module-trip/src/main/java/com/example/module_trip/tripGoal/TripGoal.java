@@ -71,3 +71,4 @@ public class TripGoal extends BaseEntity {
     }
 
 }
+

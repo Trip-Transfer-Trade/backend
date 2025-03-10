@@ -21,7 +21,7 @@ public class ExchangeCurrency extends BaseEntity {
     private Integer id;
 
     private String currencyCode;
-    private BigDecimal amount;
+    private BigDecimal amount; //예수금 계산할 때 사용
     private BigDecimal availableAmount;
     private Integer accountId;
 
