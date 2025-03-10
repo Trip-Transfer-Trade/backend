@@ -33,4 +33,6 @@ public interface ExchangeCurrencyRepository extends JpaRepository<ExchangeCurren
             "GROUP BY e.currencyCode")
     List<Object[]> findTotalAmountByCurrencyCode(List<Integer> accountIds);
 
+    List<ExchangeCurrency> findByAccountIdAndCurrencyCodeIn(Integer accountId, List<String> currencyCodes);
+
 }
