@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @Builder
 public class AvailableDTO {
     private Integer tripId;
+    private String country;
     private String tripName;
     private BigDecimal availableAmount;
 }
