@@ -119,61 +119,58 @@ public class StockTradeService {
     }
 
     @Transactional
-    public void orderBulkSell(StockTradeDTO stockTradeDTO) {
-        TradeType tradeType = TradeType.SELL;
-        String pattern = "trip:" + stockTradeDTO.getTripId() + ":stock:*";
+    public void orderBulkSell(int tripId) {TradeType tradeType = TradeType.SELL;
+        String pattern = "trip:" + tripId + ":stock:*";
         Set<String> keys = redisTemplate.keys(pattern);
-        String field = "total_quantity";
 
-        Map<String, Integer> totalQuantity = keys.stream()
-                .collect(Collectors.toMap(
-                        key -> key.split(":")[key.split(":").length - 1], // 주식 코드 추출
-                        key -> {
-                            String quantityStr = (String) redisTemplate.opsForHash().get(key, field);
-                            return (quantityStr != null) ? Integer.parseInt(quantityStr) : 0;
-                        }
-                ));
+        logger.info("trip id: " + tripId + " 조회된 redis 키 목록 : " + keys);
 
-        System.out.println("Stock Keys: " + keys);
-        System.out.println("Total Quantities: " + totalQuantity);
+        Integer accountId = getAccountIdFromTripId(tripId);
+        ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, "KRW");
+        ExchangeCurrency exchangeCurrencyUs = getExchangeCurrencyFromAccountId(accountId, "USD");
 
-        Map<String, BigDecimal> stockPrices = totalQuantity.keySet().stream()
-                .collect(Collectors.toMap(
-                        stockCode -> stockCode,
-                        stockCode -> {
-                            String priceStr = getStockPrice(stockCode);
-                            return (priceStr != null && !priceStr.isEmpty()) ? new BigDecimal(priceStr) : BigDecimal.ZERO;
-                        }
-                ));
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal totalAmountUS = BigDecimal.ZERO;
 
-        Map<String, BigDecimal> stockTotalAmounts = totalQuantity.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> stockPrices.get(entry.getKey()).multiply(BigDecimal.valueOf(entry.getValue()))
-                ));
+        for(String key : keys) {
+            String stockCode = key.substring(key.lastIndexOf(":") + 1);
+            Map<Object, Object> stockMap = redisTemplate.opsForHash().entries(key);
 
-        BigDecimal totalSellAmount = stockTotalAmounts.values().stream()
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            int quantity = Integer.parseInt(stockMap.get("total_quantity").toString());
+            BigDecimal pricePerUnit = new BigDecimal(getStockPrice(stockCode));
+            BigDecimal totalPrice = pricePerUnit.multiply(new BigDecimal(quantity));
 
-        redisTemplate.delete(keys);
+            logger.info("quantity: " + quantity + " currentPrice : " + pricePerUnit);
 
-        Integer accountId = getAccountIdFromTripId(stockTradeDTO.getTripId());
-        ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, stockTradeDTO.getCurrencyCode());
+            ExchangeCurrency targetCurrency = null;
+            if(Character.isAlphabetic(stockCode.charAt(0))){
+                totalAmountUS = totalAmountUS.add(totalPrice);
+                targetCurrency = exchangeCurrencyUs;
+            } else if (Character.isDigit(stockCode.charAt(0))) {
+                totalAmount = totalAmount.add(totalPrice);
+                targetCurrency = exchangeCurrency;
+            }
 
-        for (Map.Entry<String, Integer> entry : totalQuantity.entrySet()) {
-            String stockCode = entry.getKey();
-            int quantity = entry.getValue();
-            BigDecimal pricePerUnit = stockPrices.get(stockCode);
-            BigDecimal totalPrice = stockTotalAmounts.get(stockCode);
-
-            StockTradeHistory stockTradeHistory = stockTradeDTO.toStockTradeHistory(exchangeCurrency, tradeType, stockCode, quantity, pricePerUnit, totalPrice);
+            StockTradeHistory stockTradeHistory = StockTradeHistory.builder()
+                    .exchangeCurrency(targetCurrency)
+                    .tradeType(tradeType)
+                    .stockCode(stockCode)
+                    .quantity(quantity)
+                    .pricePerUnit(pricePerUnit)
+                    .totalPrice(totalPrice)
+                    .build();
             stockTradeHistoryRepository.save(stockTradeHistory);
 
-            TransactionHistory transactionHistory = stockTradeDTO.toTransactionHistory(exchangeCurrency, TransactionType.DEPOSIT, totalPrice);
+            TransactionHistory transactionHistory = TransactionHistory.builder()
+                    .exchangeCurrency(targetCurrency)
+                    .transactionType(TransactionType.DEPOSIT)
+                    .transactionAmount(totalPrice)
+                    .build();
             transactionHistoryRepository.save(transactionHistory);
         }
 
-        exchangeCurrency.changeAmount(totalSellAmount);
+        exchangeCurrency.changeAmount(totalAmount);
+        exchangeCurrencyUs.changeAmount(totalAmountUS);
     }
 
 
@@ -630,7 +627,6 @@ public class StockTradeService {
 
     // 평가 금액 계산
     public BigDecimal calcAssessmentAmount(int tripId, String currencyCode) {
-        // 국내 종목의 총 평가 금액 / 해외 종목의 총 평가 금액
         BigDecimal assessmentAmountSum = BigDecimal.ZERO;
 
         String pattern = "trip:" + tripId + ":stock:*";
