@@ -71,8 +71,10 @@ public class ExchangeCurrencyService {
                     BigDecimal totalProfit = profit.add(profitUs.multiply(usdExchangeRate));
 
                     return new TripExchangeCurrencyDTO(
+                            goal.getId(),
                             goal.getName(),
                             goal.getCountry(),
+                            goal.getGoalAmount(),
                             goal.getEndDate(),
                             exchangeTotal.getTotalAmountInKRW(), // 사용자의 총 원화 금액
                             totalProfit // 목표별 총 수익

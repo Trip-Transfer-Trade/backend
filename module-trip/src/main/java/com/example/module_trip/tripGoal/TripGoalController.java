@@ -77,6 +77,7 @@ public class TripGoalController {
     public ResponseEntity<Response<List<TripGoalListResponseDTO>>> getListTripGoals(@RequestHeader(value = "X-Authenticated-User", required = false) int userId) {
         List<TripGoalListResponseDTO> tripGoalList = tripGoalService.findTripGoalListByUserId(userId);
         return ResponseEntity.ok(new Response<>(200, "success", tripGoalList));
+    }
 
     @PutMapping("/profit")
     public ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
