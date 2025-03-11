@@ -31,27 +31,27 @@ pipeline {
                     def affectedModules = []
 
                     if (params.FULL_BUILD) {
-                        affectedModules = ["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"]
+                        affectedModules = ["gateway-service", "alarm-serivce", "exchange-service", "member-service", "trip-service"]
                     } else {
                         def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD", returnStdout: true).trim().split("\n")
 
                         if (changedFiles.any { it.startsWith("module-utility/") }) {
-                            affectedModules.addAll(["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"])
+                            affectedModules.addAll(["gateway-service", "alarm-serivce", "exchange-service", "member-service", "trip-service"])
                         }
                         if (changedFiles.any { it.startsWith("gateway-service/") }) {
                             affectedModules.add("gateway-service")
                         }
                         if (changedFiles.any { it.startsWith("module-alarm/") }) {
-                            affectedModules.add("module-alarm")
+                            affectedModules.add("alarm-service")
                         }
                         if (changedFiles.any { it.startsWith("module-exchange/") }) {
-                            affectedModules.add("module-exchange")
+                            affectedModules.add("exchange-service")
                         }
                         if (changedFiles.any { it.startsWith("module-member/") }) {
-                            affectedModules.add("module-member")
+                            affectedModules.add("member-service")
                         }
                         if (changedFiles.any { it.startsWith("module-trip/") }) {
-                            affectedModules.add("module-trip")
+                            affectedModules.add("trip-service")
                         }
                     }
 
@@ -99,46 +99,46 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to EC2') {
-                when {
-                    expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
-                }
-                steps {
-                    script {
-                        // 모듈과 배포 대상 서버 매핑
-                        def serverMap = [
-                            "gateway-service": "api-gateway",
-                            "module-alarm": "alarm",
-                            "module-exchange": "exchange",
-                            "module-member": "user",
-                            "module-trip": "trip"
-                        ]
-
-                        env.AFFECTED_MODULES.split(" ").each { module ->
-                            def targetServer = ""
-                            if (module == "api-gateway" || module == "eureka-server") {
-                                targetServer = "api-gateway"
-                            } else if (module == "stock-service") {
-                                targetServer = "stock"
-                            } else if (module == "user-service") {
-                                targetServer = "user"
-                            } else if (module == "portfolio-service") {
-                                targetServer = "portfolio"
-                            }
-
-                            sh """
-                            # .env 파일 복사 후 실행
-                            scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
-                            ssh ${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
-                            """
-                            sh """
-                            scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
-                            ssh ubuntu@${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
-                            """
-                        }
-                    }
-                }
-        }
+//         stage('Deploy to EC2') {
+//                 when {
+//                     expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
+//                 }
+//                 steps {
+//                     script {
+//                         // 모듈과 배포 대상 서버 매핑
+//                         def serverMap = [
+//                             "gateway-service": "api-gateway",
+//                             "module-alarm": "alarm",
+//                             "module-exchange": "exchange",
+//                             "module-member": "user",
+//                             "module-trip": "trip"
+//                         ]
+//
+//                         env.AFFECTED_MODULES.split(" ").each { module ->
+//                             def targetServer = ""
+//                             if (module == "api-gateway" || module == "eureka-server") {
+//                                 targetServer = "api-gateway"
+//                             } else if (module == "stock-service") {
+//                                 targetServer = "stock"
+//                             } else if (module == "user-service") {
+//                                 targetServer = "user"
+//                             } else if (module == "portfolio-service") {
+//                                 targetServer = "portfolio"
+//                             }
+//
+//                             sh """
+//                             # .env 파일 복사 후 실행
+//                             scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
+//                             ssh ${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
+//                             """
+//                             sh """
+//                             scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
+//                             ssh ubuntu@${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
+//                             """
+//                         }
+//                     }
+//                 }
+//         }
 
     }
 
