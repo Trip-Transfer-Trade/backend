@@ -42,4 +42,20 @@ public class ForextAlertConsumer {
                 .userId(tripGoalAlarmDTO.getUserId())
                 .type(AlarmType.GOAL_ACHIEVED).build());
     }
+
+    @RabbitListener(queues = "queue.half.alert")
+    public void processHalfAlert(String json) {
+        TripGoalAlarmDTO tripGoalAlarmDTO = null;
+        try{
+            tripGoalAlarmDTO = objectMapper.readValue(json, TripGoalAlarmDTO.class);
+            log.info("user={} 목표 기간 대비 수익 50% 미달 알림 tripGoalAlarm={}",tripGoalAlarmDTO.getUserId(), tripGoalAlarmDTO.getTripName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        alarmService.sendAlarm(AlarmRequestDTO.builder()
+                .tripName(tripGoalAlarmDTO.getTripName())
+                .userId(tripGoalAlarmDTO.getUserId())
+                .type(AlarmType.GOAL_HALF_FAILED).build());
+    }
 }

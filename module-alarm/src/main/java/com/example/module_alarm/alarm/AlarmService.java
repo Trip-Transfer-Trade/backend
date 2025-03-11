@@ -59,7 +59,7 @@ public class AlarmService {
         //alarm 내역 저장
         alarmRepository.save(requestDTO.toEntity(requestDTO));
         List<Fcm> fcmList;
-        log.info("user ID : ",requestDTO.getUserId());
+        log.info("user ID : {}",requestDTO.getUserId());
         if (requestDTO.getUserId() == GLOBAL_ALARM) {
             log.info("Global alarm send");
             fcmList=fcmRepository.findAll();
@@ -115,6 +115,8 @@ public class AlarmService {
                 return tripName + " 목표를 달성했어요";
             case GOAL_FAILED:
                 return tripName + " 목표 기간이 만료됐어요";
+            case GOAL_HALF_FAILED:
+                return tripName + " 목표 기간이 절반 지났어요. 포트폴리오 추천을 받아볼까요?";
             case EXCHANGE_AFTER_GOAL:
                 return tripName + " 목표 기간이 만료됐어요, 환전 할까요?";
             case EXCHANGE_AFTER_WEEK:
