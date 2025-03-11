@@ -11,6 +11,7 @@ import com.example.module_utility.response.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -128,6 +129,12 @@ public class ExchangeController {
     public ResponseEntity<Response<List<AvailableAllDTO>>> findExchangeAllTrip(@RequestParam int accountId) {
         List<AvailableAllDTO> response = exchangeService.findAllExchangeCurrencyTripByUserId(accountId);
         return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/assessmentAmount")
+    public ResponseEntity<Response<BigDecimal>> calcAssessmentAmount(@RequestParam int tripId, String currencyCode) {
+        BigDecimal assessmentAmountSum = stockTradeService.calcAssessmentAmount(tripId, currencyCode);
+        return ResponseEntity.ok(Response.success(assessmentAmountSum));
     }
 
 }
