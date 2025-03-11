@@ -381,6 +381,7 @@ public class ExchangeService {
                 .collect(Collectors.toMap(TripGoalResponseDTO::getAccountId, tripGoal -> tripGoal));
 
         return exchangeCurrency.stream()
+                .filter(ec -> ec.getCurrencyCode().equalsIgnoreCase(currencyCode))
                 .map(ec -> {
                     TripGoalResponseDTO tripGoal = tripGoalMap.getOrDefault(ec.getAccountId(), null);
                     return WalletDetailDTO.toDto(ec, tripGoal);
@@ -418,6 +419,7 @@ public class ExchangeService {
 
                     return AvailableDTO.builder()
                             .tripId(trip.getId())
+                            .country(trip.getCountry())
                             .tripName(trip.getName())
                             .availableAmount(totalAmount)
                             .build();
