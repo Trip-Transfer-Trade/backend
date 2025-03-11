@@ -3,6 +3,7 @@ package com.example.module_exchange.exchange.exchangeCurrency;
 import com.example.module_exchange.clients.AccountClient;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryRepository;
+import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.NormalAccountDTO;
 import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
@@ -25,17 +26,20 @@ public class ExchangeCurrencyService {
     private final StockTradeHistoryRepository stockTradeHistoryRepository;
     private final AccountClient accountClient;
     private final TripClient tripClient;
+    private final StockTradeService stockTradeService;
 
     public ExchangeCurrencyService(ExchangeCurrencyRepository exchangeCurrencyRepository,
                                    ExchangeRateChartService exchangeRateChartService,
                                    StockTradeHistoryRepository stockTradeHistoryRepository,
                                    AccountClient accountClient,
-                                   TripClient tripClient) {
+                                   TripClient tripClient,
+                                   StockTradeService stockTradeService) {
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
         this.exchangeRateChartService = exchangeRateChartService;
         this.stockTradeHistoryRepository = stockTradeHistoryRepository;
         this.accountClient = accountClient;
         this.tripClient = tripClient;
+        this.stockTradeService = stockTradeService;
     }
 
     // 일반 계좌 정보 조회
@@ -132,7 +136,8 @@ public class ExchangeCurrencyService {
         BigDecimal profit;  //누적 수익금
         BigDecimal depositAmount; //예수금
         BigDecimal purchaseAmount; //매입금액
-//        BigDecimal evaluationAmount;  //평가금액
+        BigDecimal evaluationAmount;  //평가금액
+        BigDecimal totalAssets; //총 자산
 
         //누적 수익금 가져오기
         if (currencyCode.contains("KRW")) {
@@ -154,7 +159,14 @@ public class ExchangeCurrencyService {
         BigDecimal totalSellAmount = stockTradeHistoryRepository.findTotalSellAmountByAccountAndCurrency(accountId, currencyCode);
         purchaseAmount = totalBuyAmount.subtract(totalSellAmount);
 
-        return new TripGoalDetailDTO(profit, purchaseAmount,depositAmount);
+        //평가금액 가져오기
+        evaluationAmount = stockTradeService.calcAssessmentAmount(tripId, currencyCode);
+
+        //총 자산 계산
+        totalAssets = depositAmount.add(evaluationAmount);
+
+
+        return new TripGoalDetailDTO(profit,evaluationAmount, purchaseAmount, totalAssets, depositAmount);
 
     }
 }
