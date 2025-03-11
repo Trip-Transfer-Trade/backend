@@ -62,9 +62,15 @@ public class ExchangeController {
     }
 
     @GetMapping("/stocks/holding")
-    public ResponseEntity<Response<StockHoldingsDTO>> getHoldingStock(@RequestParam int tripId) {
-        StockHoldingsDTO response= stockTradeService.getStockInfoFromRedis(tripId);
+    public ResponseEntity<Response<StockHoldingsDTO>> getHoldingStock(@RequestParam int tripId, String country) {
+        StockHoldingsDTO response= stockTradeService.getStockInfoFromRedis(tripId, country);
         return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/stocks/mtmProfit")
+    public ResponseEntity<Response<Void>> getMtmProfit(@RequestParam int tripId) {
+        stockTradeService.calcMtmProfit(tripId);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 
     @GetMapping("/transactions/{accountId}")

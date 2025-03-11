@@ -177,9 +177,8 @@ public class StockTradeService {
     }
 
 
-    public StockHoldingsDTO getStockInfoFromRedis(int tripId) {
+    public StockHoldingsDTO getStockInfoFromRedis(int tripId, String country) {
         String pattern = "trip:" + tripId + ":stock:*";
-
         Set<String> keys = redisTemplate.keys(pattern);
 
         List<StockDetailDTO> stockDetails = new ArrayList<>();
@@ -188,6 +187,12 @@ public class StockTradeService {
             Map<Object, Object> stockData = redisTemplate.opsForHash().entries(key);
             try {
                 String stockCode = key.substring(key.lastIndexOf(":") + 1);
+                boolean isUsStock = stockCode.chars().allMatch(Character::isAlphabetic);
+                boolean isKoreaStock = stockCode.chars().allMatch(Character::isDigit);
+
+                if (("u".equals(country) && !isUsStock) || ("k".equals(country) && !isKoreaStock)) {
+                    continue;
+                }
                 String quantity = stockData.get("total_quantity").toString();
                 String avgPrice = stockData.get("average_price").toString();
 
@@ -202,6 +207,7 @@ public class StockTradeService {
                         .currencyPrice(currencyPrice)
                         .build();
                 stockDetails.add(stockDetailDTO);
+
             } catch (Exception e) {
                 System.err.println("Error processing stock data for key: " + key);
                 e.printStackTrace();
@@ -620,5 +626,44 @@ public class StockTradeService {
             }
         }
         logger.info("🎉 모든 realisedProfit DB 저장 완료!");
+    }
+
+    // 평가 손익 redis 계산
+    public void getMtmProfit(int tripId) {
+        // 해당 계좌의 모든 주식의 (현재가 - 평단가) * 수량 합
+
+    }
+
+    // 매수 매도 발생 시 평가 손익 계산
+    public void calcMtmProfit(int tripId) {
+        BigDecimal totalMtmProfitUSD = BigDecimal.ZERO;
+        BigDecimal totalMtmProfitKRW = BigDecimal.ZERO;
+
+        String pattern = "trip:" + tripId + ":stock:*";
+        Set<String> keys = redisTemplate.keys(pattern);
+        logger.info("trip id: " + tripId + " 조회된 redis 키 목록 : " + keys);
+
+        for(String key : keys){
+            String stockCode = key.split(":")[3];
+            Map<Object, Object> stockMap = redisTemplate.opsForHash().entries(key);
+
+            BigDecimal avgPrice = new BigDecimal(stockMap.get("average_price").toString());
+            int quantity = Integer.parseInt(stockMap.get("total_quantity").toString());
+            BigDecimal currentPrice = new BigDecimal(getStockPrice(stockCode));
+            logger.info("currentPrice : " + currentPrice);
+
+            BigDecimal mtmProfit = currentPrice.subtract(avgPrice).multiply(new BigDecimal(quantity));
+
+            if(Character.isAlphabetic(stockCode.charAt(0))) {
+                totalMtmProfitUSD = totalMtmProfitUSD.add(mtmProfit);
+            } else {
+                totalMtmProfitKRW = totalMtmProfitKRW.add(mtmProfit);
+            }
+
+            logger.info("✅ Trip ID " + tripId + "의 평가 손익 계산 완료!");
+            logger.info("USD 평가 손익: " + totalMtmProfitUSD);
+            logger.info("KRW 평가 손익: " + totalMtmProfitKRW);
+
+        }
     }
 }

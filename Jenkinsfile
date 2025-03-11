@@ -99,5 +99,47 @@ pipeline {
                 }
             }
         }
+        stage('Deploy to EC2') {
+                when {
+                    expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
+                }
+                steps {
+                    script {
+                        // 모듈과 배포 대상 서버 매핑
+                        def serverMap = [
+                            "gateway-service": "api-gateway",
+                            "module-alarm": "alarm",
+                            "module-exchange": "exchange",
+                            "module-member": "user",
+                            "module-trip": "trip"
+                        ]
+
+                        env.AFFECTED_MODULES.split(" ").each { module ->
+                            def targetServer = ""
+                            if (module == "api-gateway" || module == "eureka-server") {
+                                targetServer = "api-gateway"
+                            } else if (module == "stock-service") {
+                                targetServer = "stock"
+                            } else if (module == "user-service") {
+                                targetServer = "user"
+                            } else if (module == "portfolio-service") {
+                                targetServer = "portfolio"
+                            }
+
+                            sh """
+                            # .env 파일 복사 후 실행
+                            scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
+                            ssh ${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
+                            """
+                            sh """
+                            scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
+                            ssh ubuntu@${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
+                            """
+                        }
+                    }
+                }
+        }
+
     }
+
 }
