@@ -62,8 +62,8 @@ public class ExchangeController {
     }
 
     @GetMapping("/stocks/holding")
-    public ResponseEntity<Response<StockHoldingsDTO>> getHoldingStock(@RequestParam int tripId) {
-        StockHoldingsDTO response= stockTradeService.getStockInfoFromRedis(tripId);
+    public ResponseEntity<Response<StockHoldingsDTO>> getHoldingStock(@RequestParam int tripId, String country) {
+        StockHoldingsDTO response= stockTradeService.getStockInfoFromRedis(tripId, country);
         return ResponseEntity.ok(Response.success(response));
     }
 

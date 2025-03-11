@@ -177,9 +177,8 @@ public class StockTradeService {
     }
 
 
-    public StockHoldingsDTO getStockInfoFromRedis(int tripId) {
+    public StockHoldingsDTO getStockInfoFromRedis(int tripId, String country) {
         String pattern = "trip:" + tripId + ":stock:*";
-
         Set<String> keys = redisTemplate.keys(pattern);
 
         List<StockDetailDTO> stockDetails = new ArrayList<>();
@@ -188,6 +187,12 @@ public class StockTradeService {
             Map<Object, Object> stockData = redisTemplate.opsForHash().entries(key);
             try {
                 String stockCode = key.substring(key.lastIndexOf(":") + 1);
+                boolean isUsStock = stockCode.chars().allMatch(Character::isAlphabetic);
+                boolean isKoreaStock = stockCode.chars().allMatch(Character::isDigit);
+
+                if (("u".equals(country) && !isUsStock) || ("k".equals(country) && !isKoreaStock)) {
+                    continue;
+                }
                 String quantity = stockData.get("total_quantity").toString();
                 String avgPrice = stockData.get("average_price").toString();
 
@@ -202,6 +207,7 @@ public class StockTradeService {
                         .currencyPrice(currencyPrice)
                         .build();
                 stockDetails.add(stockDetailDTO);
+
             } catch (Exception e) {
                 System.err.println("Error processing stock data for key: " + key);
                 e.printStackTrace();
