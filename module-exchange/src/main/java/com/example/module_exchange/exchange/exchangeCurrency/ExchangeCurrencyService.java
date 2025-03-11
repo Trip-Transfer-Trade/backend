@@ -2,9 +2,12 @@ package com.example.module_exchange.exchange.exchangeCurrency;
 
 import com.example.module_exchange.clients.AccountClient;
 import com.example.module_exchange.clients.TripClient;
+import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryRepository;
+import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.NormalAccountDTO;
 import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
+import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,17 +23,23 @@ public class ExchangeCurrencyService {
 
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
     private final ExchangeRateChartService exchangeRateChartService;
+    private final StockTradeHistoryRepository stockTradeHistoryRepository;
     private final AccountClient accountClient;
     private final TripClient tripClient;
+    private final StockTradeService stockTradeService;
 
     public ExchangeCurrencyService(ExchangeCurrencyRepository exchangeCurrencyRepository,
                                    ExchangeRateChartService exchangeRateChartService,
+                                   StockTradeHistoryRepository stockTradeHistoryRepository,
                                    AccountClient accountClient,
-                                   TripClient tripClient) {
+                                   TripClient tripClient,
+                                   StockTradeService stockTradeService) {
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
         this.exchangeRateChartService = exchangeRateChartService;
+        this.stockTradeHistoryRepository = stockTradeHistoryRepository;
         this.accountClient = accountClient;
         this.tripClient = tripClient;
+        this.stockTradeService = stockTradeService;
     }
 
     // 일반 계좌 정보 조회
@@ -83,6 +92,8 @@ public class ExchangeCurrencyService {
                             exchangeTotal.getAmount(),
                             exchangeTotal.getAmountUS(),
                             exchangeTotal.getTotalAmountInKRW(), // 사용자의 총 원화 금액
+                            goal.getProfit(),
+                            goal.getProfitUs(),
                             totalProfit // 목표별 총 수익
                     );
                 })
@@ -114,5 +125,48 @@ public class ExchangeCurrencyService {
     private BigDecimal getUsdExchangeRate() {
         String usdRateStr = exchangeRateChartService.getUSExchangeRate().getRate().replace(",", "");
         return new BigDecimal(usdRateStr);
+    }
+
+    public TripGoalDetailDTO getTripGoalDetail(Integer tripId, String currencyCode) {
+        ResponseEntity<Response<TripGoalResponseDTO>>  tripGoalResponse = tripClient.getTripGoal(tripId);
+
+        TripGoalResponseDTO responseDTO = tripGoalResponse.getBody().getData();
+
+        Integer accountId = responseDTO.getAccountId(); //tripId에 해당하는 accountId
+        BigDecimal profit;  //누적 수익금
+        BigDecimal depositAmount; //예수금
+        BigDecimal purchaseAmount; //매입금액
+        BigDecimal evaluationAmount;  //평가금액
+        BigDecimal totalAssets; //총 자산
+
+        //누적 수익금 가져오기
+        if (currencyCode.contains("KRW")) {
+            profit = responseDTO.getProfit();
+        } else if (currencyCode.contains("USD")) {
+            profit = responseDTO.getProfitUs();
+        } else {
+            profit = BigDecimal.ZERO;
+        }
+
+        // 계좌에 있는 모든 통화 정보 가져오기
+        List<ExchangeCurrency> currencies = exchangeCurrencyRepository.findByAccountIdAndCurrencyCodeIn(accountId, List.of(currencyCode));
+
+        // 특정 통화(KRW, USD 등)의 예수금 가져오기
+        depositAmount = getAmountByCurrency(currencies, currencyCode);
+
+        //매입금액 가져오기
+        BigDecimal totalBuyAmount = stockTradeHistoryRepository.findTotalBuyAmountByAccountAndCurrency(accountId, currencyCode);
+        BigDecimal totalSellAmount = stockTradeHistoryRepository.findTotalSellAmountByAccountAndCurrency(accountId, currencyCode);
+        purchaseAmount = totalBuyAmount.subtract(totalSellAmount);
+
+        //평가금액 가져오기
+        evaluationAmount = stockTradeService.calcAssessmentAmount(tripId, currencyCode);
+
+        //총 자산 계산
+        totalAssets = depositAmount.add(evaluationAmount);
+
+
+        return new TripGoalDetailDTO(profit,evaluationAmount, purchaseAmount, totalAssets, depositAmount);
+
     }
 }

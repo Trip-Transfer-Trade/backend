@@ -5,10 +5,12 @@ import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Getter
+@NoArgsConstructor
 public class StockTradeDTO {
     private Integer tripId;
     private BigDecimal amount;
@@ -18,6 +20,9 @@ public class StockTradeDTO {
     private BigDecimal pricePerUnit;
     private BigDecimal totalPrice;
 
+    public StockTradeDTO(Integer tripId) {
+        this.tripId = tripId;
+    }
 
     public StockTradeHistory toStockTradeHistory(ExchangeCurrency exchangeCurrency, TradeType tradeType) {
         return StockTradeHistory.builder()

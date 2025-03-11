@@ -8,10 +8,12 @@ import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistoryRepository;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeType;
 import com.example.module_exchange.exchange.transactionHistory.*;
+import com.example.module_exchange.redisData.exchangeData.ExchangeRateDTO;
+import com.example.module_exchange.redisData.exchangeData.ExchangeRateListDTO;
+import com.example.module_exchange.redisData.exchangeData.ExchangeRateService;
+import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
-import com.example.module_trip.tripGoal.TripGoal;
-import com.example.module_trip.tripGoal.TripGoalRepository;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,14 +40,20 @@ public class ExchangeService {
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
     private final MemberClient memberClient;
+    private final ExchangeCurrencyService exchangeCurrencyService;
+    private final ExchangeRateService exchangeRateService;
+    private final ExchangeRateChartService exchangeRateChartService;
 
-    public ExchangeService(AccountClient accountClient, TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository) {
+    public ExchangeService(AccountClient accountClient, TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, ExchangeCurrencyService exchangeCurrencyService, ExchangeRateService exchangeRateService, ExchangeRateChartService exchangeRateChartService) {
         this.accountClient = accountClient;
         this.tripClient = tripClient;
         this.memberClient = memberClient;
         this.exchangeHistoryRepository = exchangeHistoryRepository;
         this.transactionHistoryRepository = transactionHistoryRepository;
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
+        this.exchangeCurrencyService = exchangeCurrencyService;
+        this.exchangeRateService = exchangeRateService;
+        this.exchangeRateChartService = exchangeRateChartService;
     }
 
     public void executeExchangeProcess(ExchangeDTO exchangeDTO) {
@@ -153,6 +162,120 @@ public class ExchangeService {
         exchangeCurrencyRepository.saveAll(exchangeCurrencies);
         toExchangeCurrency.changeAmount(toAmount);
         exchangeCurrencyRepository.save(toExchangeCurrency);
+    }
+
+    public ExchangeGoalListDTO executeExchangeGoal(ExchangeGoalDTO exchangeGoalDTO) {
+        Integer accountId = getAccountIdFromTripId(exchangeGoalDTO.getTripId());
+        TripGoalResponseDTO tripGoal = tripClient.getTripGoal(exchangeGoalDTO.getTripId()).getBody().getData();
+        String country = tripGoal.getCountry();
+
+        // accountId로 exchangeCurrency 가져옴
+        List<ExchangeCurrency> exchangeCurrencies = exchangeCurrencyRepository.findByAccountIdAndCurrencyCodeIn(accountId, Arrays.asList("KRW", "USD"));
+
+        //환율 목록 불러오기
+        ExchangeRateListDTO exchangeRates = exchangeRateService.getExchangeRate();
+        // country 환율 불러오기
+        String rateStr = findRate(exchangeRates, country);
+        BigDecimal rate = new BigDecimal(rateStr.replace(",",""));
+        if (country.contains("일본")) {
+            rate = rate.divide(new BigDecimal("100"), RoundingMode.HALF_UP);
+        }
+        // country로 통화코드 받아오기
+        String toCurrency = exchangeGoalDTO.getToCurrency();
+        ExchangeCurrency toExchangeCurrency = getOrCreateExchangeCurrency(accountId,toCurrency);
+        List<ExchangeHistory> exchangeHistories = new ArrayList<>();
+        List<TransactionHistory> transactionHistories = new ArrayList<>();
+        Map<String, ExchangeGoalListDTO.ExchangeGoalResult> exchangeResultMap = new HashMap<>();
+
+        for (ExchangeCurrency fromExchangeCurrency : exchangeCurrencies) {
+            String fromCurrency = fromExchangeCurrency.getCurrencyCode();
+
+            if (fromCurrency.equals(toCurrency)){
+                continue;
+            }
+
+            BigDecimal amount = fromExchangeCurrency.getAmount();
+            BigDecimal toRate = rate;
+            // 해당 통화 코드에 대한 환율 찾기
+
+            if (!fromCurrency.equals("KRW")){
+                // 환율 계산 한 번 더
+                String fromRateStr= exchangeRateChartService.getUSExchangeRate().getRate();
+                BigDecimal fromRate = new BigDecimal(fromRateStr.replace(",",""));
+                toRate = fromRate.divide(rate, RoundingMode.HALF_UP);
+            }
+
+            BigDecimal toAmount=amount.multiply(toRate);
+            // 환전 내역 추가
+            exchangeHistories.add(ExchangeHistory.builder()
+                    .exchangeType(ExchangeType.WITHDRAWAL)
+                    .amount(amount).exchangeRate(toRate).exchangeCurrency(fromExchangeCurrency)
+                    .build());
+            exchangeHistories.add(ExchangeHistory.builder()
+                    .exchangeType(ExchangeType.DEPOSIT)
+                    .amount(toAmount).exchangeRate(toRate)
+                    .exchangeCurrency(toExchangeCurrency)
+                    .build());
+
+            // transaction history 추가
+            transactionHistories.add(TransactionHistory.builder()
+                    .transactionType(TransactionType.WITHDRAWAL)
+                    .transactionCategory(TransactionCategory.EXCHANGE)
+                    .transactionAmount(amount)
+                    .description("환전 출금")
+                    .exchangeCurrency(fromExchangeCurrency)
+                    .build());
+            transactionHistories.add(TransactionHistory.builder()
+                    .transactionType(TransactionType.DEPOSIT)
+                    .transactionCategory(TransactionCategory.EXCHANGE)
+                    .transactionAmount(toAmount)
+                    .description("환전 입금")
+                    .exchangeCurrency(toExchangeCurrency)
+                    .build());
+            // exchange currency update
+            fromExchangeCurrency.changeAmount(amount.negate());
+            toExchangeCurrency.changeAmount(toAmount);
+
+            ExchangeGoalListDTO.ExchangeGoalResult goalResult = new ExchangeGoalListDTO.ExchangeGoalResult();
+            goalResult.setAmount(amount);
+            goalResult.setRate(toRate.toString());
+            goalResult.setToAmount(toAmount);
+            exchangeResultMap.put(fromCurrency, goalResult);
+        }
+        executeExchangeGoalBatchOperations(exchangeHistories, transactionHistories, exchangeCurrencies, toExchangeCurrency);
+
+        ExchangeGoalListDTO resultDTO = new ExchangeGoalListDTO();
+        resultDTO.setExchanges(exchangeResultMap);
+        return resultDTO;
+    }
+
+    @Transactional
+    protected void executeExchangeGoalBatchOperations(List<ExchangeHistory> exchangeHistories, List<TransactionHistory> transactionHistories, List<ExchangeCurrency> exchangeCurrencies, ExchangeCurrency toExchangeCurrency){
+        exchangeHistoryRepository.saveAll(exchangeHistories);
+        transactionHistoryRepository.saveAll(transactionHistories);
+        exchangeCurrencyRepository.saveAll(exchangeCurrencies);
+        exchangeCurrencyRepository.save(toExchangeCurrency);
+    }
+
+    private String findRate(ExchangeRateListDTO exchangeRates, String country){
+        String rateStr;
+        // 목표 나라에 대한 환율 찾기
+        List<ExchangeRateDTO> rates = exchangeRates.getRates();
+        log.info("rates : {}", rates);
+        log.info("country : {}",country);
+
+        Optional<ExchangeRateDTO> filteredRate = exchangeRates.getRates().stream()
+                .filter(rate -> {
+                    String[] nameParts = rate.getName().split(" ");
+                    return nameParts.length > 0 && country.equals(nameParts[0]);
+                })
+                .findFirst();
+        if(filteredRate.isPresent()){
+            rateStr=filteredRate.get().getExchangeRate();
+        } else {
+            throw new RuntimeException("목표 환율을 찾을 수 없습니다.");
+        }
+        return rateStr;
     }
 
     public void executeTransactionProcess(TransactionDTO transactionDTO, String username) {
