@@ -28,4 +28,9 @@ public class ExchangeCurrencyController {
         return exchangeCurrencyService.getTripExchangeCurrencies(userId, currencyCodes);
     }
 
+    @GetMapping("/detail/{tripId}/{currencyCode}")
+    public TripGoalDetailDTO getTripGoalDetail(@PathVariable Integer tripId, @PathVariable String currencyCode) {
+        return exchangeCurrencyService.getTripGoalDetail(tripId, currencyCode);
+    }
+
 }

@@ -18,4 +18,20 @@ public interface StockTradeHistoryRepository extends JpaRepository<StockTradeHis
             "FROM StockTradeHistory s " +
             "WHERE s.tradeType = 'SELL' AND s.stockCode = :stockCode")
     BigDecimal findTotalSellQuantityByStockCode(@Param("stockCode") String stockCode);
+
+    //통화에 해당하는 Buy 한 것들 다 더함.
+    @Query("SELECT COALESCE(SUM(s.totalPrice), 0) " +
+            "FROM StockTradeHistory s " +
+            "WHERE s.tradeType = 'BUY' AND s.exchangeCurrency.currencyCode = :currencyCode " +
+            "AND s.exchangeCurrency.accountId = :accountId")
+    BigDecimal findTotalBuyAmountByAccountAndCurrency(@Param("accountId") Integer accountId,
+                                                      @Param("currencyCode") String currencyCode);
+    //통화에 해당하는 SELL 한 것들 다 더함.
+    @Query("SELECT COALESCE(SUM(s.totalPrice), 0) " +
+            "FROM StockTradeHistory s " +
+            "WHERE s.tradeType = 'SELL' AND s.exchangeCurrency.currencyCode = :currencyCode " +
+            "AND s.exchangeCurrency.accountId = :accountId")
+    BigDecimal findTotalSellAmountByAccountAndCurrency(@Param("accountId") Integer accountId,
+                                                       @Param("currencyCode") String currencyCode);
+
 }

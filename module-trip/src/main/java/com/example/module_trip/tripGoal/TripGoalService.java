@@ -120,6 +120,10 @@ public class TripGoalService {
                 .collect(Collectors.toList());
     }
 
+//    public TripGoalDetailDTO getTripGoalDetail(Integer tripGoalId) {
+//        TripGoal tripGoal = tripGoalRepository.findById(tripGoalId).get();
+//    }
+
     public TripGoalResponseDTO updateProfit(TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
 
         TripGoal tripGoal = tripGoalRepository.findById(tripGoalProfitUpdateDTO.getTripGoalId()).get();

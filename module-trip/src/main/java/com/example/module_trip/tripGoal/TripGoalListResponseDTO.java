@@ -16,8 +16,8 @@ public class TripGoalListResponseDTO {
     private String country;
     private BigDecimal goalAmount;
     private LocalDate endDate;
-    private BigDecimal profit;
-    private BigDecimal profitUs;
+    private BigDecimal profit; //원화 누적 수익금
+    private BigDecimal profitUs; //달러 누적 수익금
 
     @Builder
     public TripGoalListResponseDTO(Integer id, String name, String country, BigDecimal goalAmount, LocalDate endDate, BigDecimal profit, BigDecimal profitUs) {

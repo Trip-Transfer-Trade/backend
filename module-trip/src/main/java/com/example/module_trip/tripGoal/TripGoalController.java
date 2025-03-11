@@ -83,7 +83,9 @@ public class TripGoalController {
     public ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
         TripGoalResponseDTO response = tripGoalService.updateProfit(tripGoalProfitUpdateDTO);
         return ResponseEntity.ok(Response.success(response));
-
     }
+
+
+
 
 }
