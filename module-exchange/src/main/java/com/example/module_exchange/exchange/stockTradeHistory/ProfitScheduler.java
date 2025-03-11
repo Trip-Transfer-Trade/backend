@@ -34,13 +34,13 @@ public class ProfitScheduler {
         }
     }
 
-    @Scheduled(cron = "* 36 17 * * *") // 테스트 코드
-    public void scheduleTest(){
-        stockTradeService.getAllUserRealisedProfit();
-        Set<String> keys = redisTemplate.keys("userProfit:*");
-        if (keys != null) {
-            stockTradeService.storeAllUserProfit();
-            System.out.println("주식 장 마감 : Redis 데이터 삭제");
-        }
-    }
+//    @Scheduled(cron = "0 * * * * *") // 테스트 코드
+//    public void scheduleTest(){
+//        stockTradeService.getAllUserRealisedProfit();
+//        Set<String> keys = redisTemplate.keys("userProfit:*");
+//        if (keys != null) {
+//            stockTradeService.storeAllUserProfit();
+//            System.out.println("주식 장 마감 : Redis 데이터 삭제");
+//        }
+//    }
 }

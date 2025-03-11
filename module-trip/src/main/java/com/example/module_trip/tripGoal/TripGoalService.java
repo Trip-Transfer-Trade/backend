@@ -13,7 +13,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import java.util.List;
@@ -116,6 +119,7 @@ public class TripGoalService {
                 .map(TripGoalListResponseDTO::toDTO)
                 .collect(Collectors.toList());
     }
+
     public TripGoalResponseDTO updateProfit(TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
 
         TripGoal tripGoal = tripGoalRepository.findById(tripGoalProfitUpdateDTO.getTripGoalId()).get();
@@ -126,18 +130,67 @@ public class TripGoalService {
         TripGoal updatedTripGoal = tripGoalRepository.save(tripGoal);
         log.info(updatedTripGoal.toString());
 
-        String json = null;
-        try {
-            json = objectMapper.writeValueAsString(TripGoalAlarmDTO.toDTO(updatedTripGoal.getName(), updatedTripGoal.getAccount().getUserId()));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        String json = createAlarmJson(updatedTripGoal);
+
         boolean after = updatedTripGoal.isGoalReached(tripGoalProfitUpdateDTO.getRate());
-        if (!before && after){
-            rabbitTemplate.convertAndSend("exchange.goal","goal.alert", json);
-            System.out.println("알림 전송 ");
+        if (!before && after) {
+            sendGoalSuccessAlert(json);
         }
+
+        checkGoalHalf(updatedTripGoal,tripGoalProfitUpdateDTO.getRate(),json);
         return TripGoalResponseDTO.toDTO(updatedTripGoal);
+
     }
 
+    private String createAlarmJson(TripGoal tripGoal) {
+        String json = null;
+        try {
+            json = objectMapper.writeValueAsString(
+                    TripGoalAlarmDTO.toDTO(tripGoal.getName(), tripGoal.getAccount().getUserId())
+            );
+            log.info("json :" +json);
+        } catch (JsonProcessingException e) {
+            log.error("JSON 변환 실패", e);
+        }
+        return json;
+    }
+
+    private void sendGoalSuccessAlert(String json){
+        rabbitTemplate.convertAndSend("exchange.goal", "goal.alert", json);
+        log.info("목표 도달 알림 전송");
+    }
+
+    private void sendHalfAlert(String json) {
+        rabbitTemplate.convertAndSend("exchange.halfGoal", "half.alert", json);
+        log.info("목표 절반 미달 알림 전송");
+    }
+
+    private boolean hasReachedHalfPeriod(TripGoal tripGoal) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startDate = tripGoal.getCreatedDate();
+        LocalDateTime endDate = tripGoal.getEndDate().atStartOfDay();
+        Duration totalDuration = Duration.between(startDate, endDate);
+        LocalDateTime halfTime = startDate.plusSeconds(totalDuration.getSeconds() / 2);
+        log.info("totalDuration "+totalDuration + "halfTime " +halfTime + "now "+now);
+        return now.isAfter(halfTime);
+    }
+
+    private void checkGoalHalf(TripGoal tripGoal, String rateStr,String json) {
+        if(hasReachedHalfPeriod(tripGoal)){
+            BigDecimal goalAmount = tripGoal.getGoalAmount();
+            BigDecimal halfGoalAmount = goalAmount.divide(BigDecimal.valueOf(2), RoundingMode.HALF_UP);
+
+            BigDecimal profit = tripGoal.getProfit();
+            BigDecimal profitUs = tripGoal.getProfitUs();
+
+            BigDecimal rate = new BigDecimal(rateStr.replace(",", ""));
+
+            BigDecimal convertedProfitUs = profitUs.multiply(rate);
+            BigDecimal nowProfit = profit.add(convertedProfitUs);
+            log.info("nowProfit" +nowProfit + "halfgoal" +halfGoalAmount);
+            if (nowProfit.compareTo(halfGoalAmount) < 0){
+                sendHalfAlert(json);
+            };
+        }
+    }
 }
