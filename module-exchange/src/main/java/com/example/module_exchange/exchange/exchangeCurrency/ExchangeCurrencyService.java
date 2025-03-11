@@ -32,7 +32,8 @@ public class ExchangeCurrencyService {
         this.accountClient = accountClient;
         this.tripClient = tripClient;
     }
-    //일반 계좌 정보
+
+    // 일반 계좌 정보 조회
     public ExchangeCurrencyTotalDTO getCurrenciesByAccountId(Integer userId, List<String> currencyCodes) {
         NormalAccountDTO normalAccountDTO = accountClient.getNormalAccountByUserId(userId).getBody();
         if (normalAccountDTO == null) {
@@ -45,12 +46,14 @@ public class ExchangeCurrencyService {
         // 사용자의 특정 통화 보유량 조회
         List<ExchangeCurrency> currencies = exchangeCurrencyRepository.findByAccountIdAndCurrencyCodeIn(accountId, currencyCodes);
 
-        // 전체 원화 합계 계산 (USD 변환 포함)
         BigDecimal totalAmountInKRW = calculateTotalAmountInKRW(currencies);
+        BigDecimal amountKRW = getAmountByCurrency(currencies, "KRW");
+        BigDecimal amountUSD = getAmountByCurrency(currencies, "USD");
 
-        return new ExchangeCurrencyTotalDTO(accountNumber, totalAmountInKRW);
+        return new ExchangeCurrencyTotalDTO(accountNumber, amountKRW, amountUSD, totalAmountInKRW);
     }
-    //여행 목표 계좌 정보
+
+    // 여행 목표 계좌 정보 조회
     public List<TripExchangeCurrencyDTO> getTripExchangeCurrencies(int userId, List<String> currencyCodes) {
         // 1. 여행 목표 리스트 조회
         ResponseEntity<Response<List<TripGoalListResponseDTO>>> tripGoalListResponse = tripClient.getListTripGoals(userId);
@@ -59,6 +62,7 @@ public class ExchangeCurrencyService {
         }
         List<TripGoalListResponseDTO> tripGoals = tripGoalListResponse.getBody().getData();
 
+        // 2. 사용자 통화 보유량 조회
         ExchangeCurrencyTotalDTO exchangeTotal = getCurrenciesByAccountId(userId, currencyCodes);
 
         BigDecimal usdExchangeRate = getUsdExchangeRate();
@@ -76,6 +80,8 @@ public class ExchangeCurrencyService {
                             goal.getCountry(),
                             goal.getGoalAmount(),
                             goal.getEndDate(),
+                            exchangeTotal.getAmount(),
+                            exchangeTotal.getAmountUS(),
                             exchangeTotal.getTotalAmountInKRW(), // 사용자의 총 원화 금액
                             totalProfit // 목표별 총 수익
                     );
@@ -83,7 +89,16 @@ public class ExchangeCurrencyService {
                 .collect(Collectors.toList());
     }
 
+    // 특정 통화(KRW, USD)의 금액 가져오기 (단일 값)
+    private BigDecimal getAmountByCurrency(List<ExchangeCurrency> currencies, String currencyCode) {
+        return currencies.stream()
+                .filter(currency -> currencyCode.equals(currency.getCurrencyCode()))
+                .map(ExchangeCurrency::getAmount)
+                .findFirst()  // 단일 값이므로 첫 번째 값만 가져옴
+                .orElse(BigDecimal.ZERO);
+    }
 
+    // 전체 금액을 KRW 기준으로 변환하여 합산
     private BigDecimal calculateTotalAmountInKRW(List<ExchangeCurrency> currencies) {
         BigDecimal usdToKrwRate = getUsdExchangeRate(); // USD 환율 가져오기
 
@@ -95,6 +110,7 @@ public class ExchangeCurrencyService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    // USD 환율 조회
     private BigDecimal getUsdExchangeRate() {
         String usdRateStr = exchangeRateChartService.getUSExchangeRate().getRate().replace(",", "");
         return new BigDecimal(usdRateStr);

@@ -11,10 +11,14 @@ import java.math.BigDecimal;
 public class ExchangeCurrencyTotalDTO {
 
     private String amountNumber;
+    private BigDecimal amount;
+    private BigDecimal amountUS;
     private BigDecimal totalAmountInKRW;
 
-    public ExchangeCurrencyTotalDTO(String amountNumber, BigDecimal totalAmountInKRW) {
+    public ExchangeCurrencyTotalDTO(String amountNumber, BigDecimal amount, BigDecimal amountUS, BigDecimal totalAmountInKRW) {
         this.amountNumber = amountNumber;
+        this.amount = amount;
+        this.amountUS = amountUS;
         this.totalAmountInKRW = totalAmountInKRW;
     }
 
