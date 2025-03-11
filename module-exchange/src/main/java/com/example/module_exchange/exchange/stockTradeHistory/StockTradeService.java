@@ -628,10 +628,32 @@ public class StockTradeService {
         logger.info("🎉 모든 realisedProfit DB 저장 완료!");
     }
 
-    // 평가 손익 redis 계산
-    public void getMtmProfit(int tripId) {
-        // 해당 계좌의 모든 주식의 (현재가 - 평단가) * 수량 합
+    // 평가 금액 계산
+    public BigDecimal calcAssessmentAmount(int tripId, String currencyCode) {
+        // 국내 종목의 총 평가 금액 / 해외 종목의 총 평가 금액
+        BigDecimal assessmentAmountSum = BigDecimal.ZERO;
 
+        String pattern = "trip:" + tripId + ":stock:*";
+        Set<String> keys = redisTemplate.keys(pattern);
+        logger.info("trip id: " + tripId + " 조회된 redis 키 목록 : " + keys);
+
+        for(String key : keys) {
+            String stockCode = key.substring(key.lastIndexOf(":") + 1);
+            Map<Object, Object> stockMap = redisTemplate.opsForHash().entries(key);
+
+            int quantity = Integer.parseInt(stockMap.get("total_quantity").toString());
+            BigDecimal currentPrice = new BigDecimal(getStockPrice(stockCode));
+
+            if(currencyCode.equals("USD") && Character.isAlphabetic(stockCode.charAt(0))){
+                assessmentAmountSum =assessmentAmountSum.add(currentPrice.multiply(new BigDecimal(quantity)));
+            } else if (currencyCode.equals("KRW") && Character.isDigit(stockCode.charAt(0))) {
+
+                assessmentAmountSum = assessmentAmountSum.add(currentPrice.multiply(new BigDecimal(quantity)));
+            }
+        }
+
+        logger.info("trip id: " + tripId + ", Total Assessment Amount ({}): {}", currencyCode, assessmentAmountSum);
+        return assessmentAmountSum;
     }
 
     // 매수 매도 발생 시 평가 손익 계산
