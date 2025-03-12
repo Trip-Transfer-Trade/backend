@@ -18,3 +18,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${ALARM_INSTANCE_IP_ADDRESS:localhost}

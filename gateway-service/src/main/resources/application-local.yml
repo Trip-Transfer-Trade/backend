@@ -31,6 +31,5 @@ spring:
           uri: "http://localhost:8084"
           predicates:
             - Path=/api/alarms/**
-
 jwtKey:
   jwt: ${JWT_SECRET}

@@ -24,38 +24,34 @@ spring:
           lower-case-service-id: true  # 서비스 ID를 소문자로 변환하여 Eureka와 일치시킴
       routes:
         - id: member-service
-          uri: http://triptransfertrade.shop/api/members  # ALB 사용
+          uri: lb://MEMBER-SERVICE  # Eureka에서 검색
           predicates:
             - Path=/api/members/**
         - id: trip-service
-          uri: http://triptransfertrade.shop/api/trips  # ALB 사용
+          uri: lb://TRIP-SERVICE
           predicates:
             - Path=/api/trips/**
         - id: exchange-service
-          uri: http://triptransfertrade.shop/api/exchanges  # ALB 사용
+          uri: lb://EXCHANGE-SERVICE
           predicates:
             - Path=/api/exchanges/**
         - id: alarm-service
-          uri: http://triptransfertrade.shop/api/alarms  # ALB 사용
+          uri: lb://ALARM-SERVICE
           predicates:
             - Path=/api/alarms/**
 
 eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${GATEWAY_INSTANCE_IP_ADDRESS:localhost}
+    # hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+
   client:
-    service-url:
-      defaultZone: http://54.180.235.123:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-  instance:
-    prefer-ip-address: false  # IP가 아닌 도메인 기반으로 Eureka 등록
-    hostname: triptransfertrade.shop  # ALB 도메인 사용
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
 
+jwtKey:
+  jwt: ${JWT_SECRET}

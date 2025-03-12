@@ -86,7 +86,9 @@ public class TripGoalController {
         return ResponseEntity.ok(Response.success(response));
     }
 
-
-
-
+    @GetMapping("/similar/{tripId}")
+    public ResponseEntity<Response<List<Integer>>> getSimilarTrips(@PathVariable Integer tripId) {
+        List<Integer> resposne = tripGoalService.findSimilarTripByTripId(tripId);
+        return ResponseEntity.ok(Response.success(resposne));
+    }
 }
