@@ -133,6 +133,9 @@ pipeline {
                             return
                         }
 
+                        sh """
+                            whoami
+                        """
                         echo "🚀 Deploying ${module} to ${targetServer} (IP: ${moduleIp})..."
 
                         sh """
