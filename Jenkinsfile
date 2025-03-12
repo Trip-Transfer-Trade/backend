@@ -147,11 +147,11 @@ pipeline {
                                 aws s3 cp s3://my-ttt-env/common.env /home/ubuntu/common.env
                                 chmod 600 /home/ubuntu/common.env
 
-                                echo "🔄 Stopping and removing existing ${module} container..."
-                                if sudo docker ps -a --format "{{.Names}}" | grep -q "^${module}$"; then
-                                    sudo docker stop ${module} || true
-                                    sudo docker rm ${module} || true
-                                fi
+                                 echo "🔄 Stopping and removing existing ${module} container..."
+                                    if sudo docker ps -a --format "{{.Names}}" | grep -q "^${module}"; then
+                                        sudo docker stop ${module} || true
+                                        sudo docker rm ${module} || true
+                                    fi
 
                                 echo "📂 Updating ${module} using docker-compose..."
                                 docker-compose --env-file /home/ubuntu/common.env pull
