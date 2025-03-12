@@ -171,7 +171,7 @@ pipeline {
                                 -e DB_USERNAME=\${DB_USERNAME} \\
                                 -e DB_PASSWORD=\${DB_PASSWORD} \\
                                 -e EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=\${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE} \\
-                                -e EUREKA_INSTANCE_IP_ADDRESS=${moduleIp} \\
+                                -e MODULE_INSTANCE_IP_ADDRESS=${moduleIp} \\
                                 -p ${modulePort} \\
                                 leesky0075/${module}:latest
                         '
