@@ -117,18 +117,28 @@ pipeline {
                         "module-trip": "trip"
                     ]
 
+                    // ✅ 각 모듈별 포트 설정
+                    def portMap = [
+                        "gateway-service": "8085:8085",
+                        "module-alarm": "8084:8084",
+                        "module-exchange": "8083:8083",
+                        "module-member": "8081:8081",
+                        "module-trip": "8082:8082"
+                    ]
+
                     env.AFFECTED_MODULES.split(" ").each { module ->
                         def targetServer = serverMap[module]
+                        def modulePort = portMap[module] ?: "8080:8080"  // 포트가 없으면 기본값
 
                         if (!targetServer) {
                             echo "❌ Error: ${module}에 대한 배포 대상 서버가 설정되지 않았습니다."
                             return
                         }
 
-                        echo "🚀 Deploying ${module} to ${targetServer}..."
+                        echo "🚀 Deploying ${module} to ${targetServer} on port ${modulePort}..."
 
                         sh """
-                        ssh ubuntu@${targetServer} '
+                        ssh ${targetServer} '
                             echo "📥 Downloading environment file from S3..."
                             aws s3 cp s3://\${S3_BUCKET}/common.env \${ENV_FILE_PATH}
                             chmod 600 \${ENV_FILE_PATH}
@@ -146,7 +156,7 @@ pipeline {
                                 -e DB_USERNAME=\${DB_USERNAME} \\
                                 -e DB_PASSWORD=\${DB_PASSWORD} \\
                                 -e EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=\${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE} \\
-                                -p 8084:8084 \\
+                                -p ${modulePort} \\
                                 leesky0075/${module}:latest
                         '
                         """
@@ -154,6 +164,7 @@ pipeline {
                 }
             }
         }
+
 
 
    }
