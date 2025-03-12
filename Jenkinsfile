@@ -65,7 +65,40 @@ pipeline {
             }
         }
 
+        stage('Build & Push Docker Images') {
+            when {
+                expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                    script {
+                        sh "echo \${DOCKER_HUB_PASSWORD} | docker login -u \${DOCKER_HUB_USERNAME} --password-stdin"
 
+                        env.AFFECTED_MODULES.split(" ").each { module ->
+                            sh """
+                            echo ">>> Building ${module}"
+                            cd ${module} || exit 1
+
+                            chmod +x ./gradlew
+                            ./gradlew clean build -x test
+
+                            echo "🔍 Checking if Dockerfile exists..."
+                            if [ ! -f Dockerfile ]; then
+                                echo "❌ Error: Dockerfile not found in ${module}"
+                                exit 1
+                            fi
+
+                            echo "✅ Dockerfile found! Starting build..."
+                            docker build -t ${DOCKER_HUB_USERNAME}/${module}:latest -f Dockerfile .
+
+                            echo "🚀 Pushing Docker image to Docker Hub..."
+                            docker push ${DOCKER_HUB_USERNAME}/${module}:latest
+                            """
+                        }
+                    }
+                }
+            }
+        }
 
         stage('Deploy to EC2') {
             when {
@@ -119,11 +152,11 @@ pipeline {
                                 if sudo docker inspect ${module} >/dev/null 2>&1; then
                                     sudo docker stop ${module} || true
                                     sudo docker rm ${module} || true
-                                fi
 
                                 echo "📂 Updating ${module} using docker-compose..."
-                                docker-compose --env-file /home/ubuntu/common.env pull
+                                ssh ${targetServer} "cd /home/ubuntu && docker-compose --env-file /home/ubuntu/common.env pull
                                 docker-compose --env-file /home/ubuntu/common.env up -d ${module}
+                                docker image prune -a -f"
 
                                 echo "🧹 Cleaning up unused Docker images..."
                                 docker image prune -a -f
