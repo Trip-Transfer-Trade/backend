@@ -139,7 +139,7 @@ pipeline {
                         echo "🚀 Deploying ${module} to ${targetServer} (IP: ${moduleIp})..."
 
                         sh """
-                            ssh -o StrictHostKeyChecking=no ubuntu@${moduleIp} "
+                            ssh ${module} "
                                 set -e;
 
                                 echo '📥 Downloading environment file from S3...';
