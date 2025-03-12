@@ -4,6 +4,7 @@ import com.example.module_exchange.exchange.exchangeCurrency.*;
 import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
+import com.example.module_exchange.exchange.stockTradeHistory.TripRankingDTO;
 import com.example.module_exchange.exchange.transactionHistory.AccountListDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
@@ -146,4 +147,21 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.success(assessmentAmountSum));
     }
 
+    @GetMapping("/ranking/{tripId}")
+    public ResponseEntity<Response<List<TripRankingDTO>>> getRanking(@PathVariable Integer tripId, @RequestParam String currencyCode) {
+        List<TripRankingDTO> response = stockTradeService.getRanking(tripId, currencyCode);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/ranking/all")
+    public ResponseEntity<Response<List<TripRankingDTO>>> getRanking(@RequestParam String currencyCode) {
+        List<TripRankingDTO> response = stockTradeService.getOverallRanking(currencyCode);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @PostMapping("/ranking/{tripId}")
+    public ResponseEntity<Response<Void>> updateRanking(@PathVariable Integer tripId, @RequestParam String currencyCode) {
+        stockTradeService.updateRanking(tripId, currencyCode);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
 }
