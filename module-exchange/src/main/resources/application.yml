@@ -29,3 +29,9 @@ spring:
 ACCESS_TOKEN: ${ACCESS_TOKEN:default_access_token}
 APP_KEY: ${APP_KEY:default_app_key}
 APP_SECRET: ${APP_SECRET:default_app_secret}
+
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${EXCHANGE_INSTANCE_IP_ADDRESS:localhost}

@@ -28,3 +28,8 @@ coolsms:
 
 jwtKey:
   jwt: ${JWT_SECRET}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${MEMBER_INSTANCE_IP_ADDRESS:localhost}

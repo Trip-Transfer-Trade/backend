@@ -18,3 +18,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${TRIP_INSTANCE_IP_ADDRESS:localhost}
