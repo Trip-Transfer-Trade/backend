@@ -18,3 +18,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+coolsms:
+  api:
+    key: ${API_KEY}
+    secret: ${API_SECRET_KEY}
+    number: ${NUMBER}
+
+
+jwtKey:
+  jwt: ${JWT_SECRET}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: ${MEMBER_INSTANCE_IP_ADDRESS:localhost}

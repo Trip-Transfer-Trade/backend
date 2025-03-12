@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.http.HttpEntity;
@@ -168,6 +169,8 @@ public class StockTradeService {
                     .build();
             transactionHistoryRepository.save(transactionHistory);
         }
+
+        redisTemplate.delete(keys);
 
         exchangeCurrency.changeAmount(totalAmount);
         exchangeCurrencyUs.changeAmount(totalAmountUS);
@@ -683,5 +686,79 @@ public class StockTradeService {
             logger.info("KRW 평가 손익: " + totalMtmProfitKRW);
 
         }
+    }
+    private String getRankingKey(String currencyCode) {
+        return "ranking:" + currencyCode;
+    }
+
+    //특정 trip 의 특정 주식 계좌 랭킹 업데이트
+    public void updateRanking(int tripId, String currencyCode){
+        BigDecimal assessmentAmountSum = calcAssessmentAmount(tripId, currencyCode);
+        double score = assessmentAmountSum.doubleValue();
+        String rankingKey = getRankingKey(currencyCode);
+        redisTemplate.opsForZSet().add(rankingKey, String.valueOf(tripId), score);
+        redisTemplate.expire(rankingKey, 3600, TimeUnit.SECONDS);
+    }
+
+    //전체 trip의 랭킹 update
+    public void updateRankingBatch(String currencyCode){
+        List<TripGoalResponseDTO> allTrips = tripClient.getAllTrips().getBody().getData();
+        for (TripGoalResponseDTO trip : allTrips) {
+            updateRanking(trip.getId(), currencyCode);
+        }
+        // redis pipeline으로 후에 리팩토링 가능
+    }
+
+    public List<TripRankingDTO> getRanking(int tripId, String currencyCode) {
+        List<Integer> similarTripIds = tripClient.getSimilarTrips(tripId).getBody().getData();
+        String rankingKey = getRankingKey(currencyCode);
+
+        Long size = redisTemplate.opsForZSet().size(rankingKey);
+        if(size == null || size==0){
+            updateRankingBatch(currencyCode);
+        }
+
+        Set<ZSetOperations.TypedTuple<String>> allRankings = redisTemplate.opsForZSet().reverseRangeWithScores(rankingKey, 0, -1);
+        List<TripRankingDTO> result = new ArrayList<>();
+
+        if (allRankings != null) {
+            for (ZSetOperations.TypedTuple<String> tuple : allRankings) {
+                String tripIdStr = tuple.getValue();
+                int trip = Integer.parseInt(tripIdStr);
+                if (similarTripIds.contains(trip)) {
+                    double score = tuple.getScore();
+                    result.add(TripRankingDTO.builder()
+                            .tripId(trip)
+                            .assessmentAmountSum(BigDecimal.valueOf(score)).build());
+                    if (result.size() >= 10) {
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public List<TripRankingDTO> getOverallRanking(String currencyCode) {
+        String rankingKey = getRankingKey(currencyCode);
+        Long size = redisTemplate.opsForZSet().size(rankingKey);
+        if (size == null || size == 0) {
+            updateRankingBatch(currencyCode);
+        }
+        Set<ZSetOperations.TypedTuple<String>> rankingSet = redisTemplate.opsForZSet()
+                .reverseRangeWithScores(rankingKey, 0, 9);
+        List<TripRankingDTO> result = new ArrayList<>();
+        if (rankingSet != null) {
+            for (ZSetOperations.TypedTuple<String> tuple : rankingSet) {
+                int trip = Integer.parseInt(tuple.getValue());
+                double score = tuple.getScore();
+                result.add(TripRankingDTO.builder()
+                        .tripId(trip)
+                        .assessmentAmountSum(BigDecimal.valueOf(score))
+                        .build());
+            }
+        }
+
+        return result;
     }
 }
