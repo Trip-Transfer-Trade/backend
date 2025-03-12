@@ -172,9 +172,8 @@ public class ExchangeService {
         // accountId로 exchangeCurrency 가져옴
         List<ExchangeCurrency> exchangeCurrencies = exchangeCurrencyRepository.findByAccountIdAndCurrencyCodeIn(accountId, Arrays.asList("KRW", "USD"));
 
-        //환율 목록 불러오기
         ExchangeRateListDTO exchangeRates = exchangeRateService.getExchangeRate();
-        // country 환율 불러오기
+
         String rateStr = findRate(exchangeRates, country);
         BigDecimal rate = new BigDecimal(rateStr.replace(",",""));
         if (country.contains("일본")) {
@@ -202,9 +201,9 @@ public class ExchangeService {
                 // 환율 계산 한 번 더
                 String fromRateStr= exchangeRateChartService.getUSExchangeRate().getRate();
                 BigDecimal fromRate = new BigDecimal(fromRateStr.replace(",",""));
-                toRate = fromRate.divide(rate, RoundingMode.HALF_UP);
+                toRate = rate.divide(fromRate,10, RoundingMode.HALF_UP);
             }
-
+            toRate = BigDecimal.ONE.divide(toRate,10, RoundingMode.HALF_UP);
             BigDecimal toAmount=amount.multiply(toRate);
             // 환전 내역 추가
             exchangeHistories.add(ExchangeHistory.builder()
