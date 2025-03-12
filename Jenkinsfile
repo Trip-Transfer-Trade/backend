@@ -10,7 +10,6 @@ pipeline {
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
         S3_BUCKET = 'my-ttt-env'  // S3 버킷 이름
-        ENV_FILE_PATH = "/home/ubuntu/common.env"  // EC2에서 사용할 환경 파일 경로
     }
 
     triggers {
@@ -140,8 +139,8 @@ pipeline {
                         sh """
                         ssh ${targetServer} '
                             echo "📥 Downloading environment file from S3..."
-                            aws s3 cp s3://\${S3_BUCKET}/common.env \${ENV_FILE_PATH}
-                            chmod 600 \${ENV_FILE_PATH}
+                            aws s3 cp s3://\${S3_BUCKET}/common.env /home/ubuntu/common.env;
+                            chmod 600 /home/ubuntu/common.env
 
                             echo "🔄 Stopping and removing existing ${module} container..."
                             docker stop ${module} || true

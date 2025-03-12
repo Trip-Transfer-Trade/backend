@@ -169,6 +169,8 @@ public class StockTradeService {
             transactionHistoryRepository.save(transactionHistory);
         }
 
+        redisTemplate.delete(keys);
+
         exchangeCurrency.changeAmount(totalAmount);
         exchangeCurrencyUs.changeAmount(totalAmountUS);
     }
