@@ -139,31 +139,36 @@ pipeline {
                         echo "🚀 Deploying ${module} to ${targetServer} (IP: ${moduleIp})..."
 
                         sh """
-                            ssh ${module} <<EOF
-                                set -e
+                            ssh -o StrictHostKeyChecking=no ubuntu@${moduleIp} "
+                                set -e;
 
-                                echo "📥 Downloading environment file from S3..."
+                                echo '📥 Downloading environment file from S3...';
                                 aws s3 cp s3://my-ttt-env/common.env /home/ubuntu/common.env || {
-                                    echo "❌ 환경 변수 파일 다운로드 실패"; exit 1;
-                                }
-                                chmod 600 /home/ubuntu/common.env
+                                    echo '❌ 환경 변수 파일 다운로드 실패'; exit 1;
+                                };
+                                chmod 600 /home/ubuntu/common.env;
 
-                                echo "🔄 Stopping and removing existing ${module} container..."
+                                echo '🔄 Stopping and removing existing ${module} container...';
                                 if sudo docker inspect ${module} >/dev/null 2>&1; then
-                                    sudo docker stop ${module} || true
-                                    sudo docker rm ${module} || true
+                                    sudo docker stop ${module} || true;
+                                    sudo docker rm ${module} || true;
+                                fi;
 
-                                echo "📂 Updating ${module} using docker-compose..."
-                                ssh ${targetServer} "cd /home/ubuntu && docker-compose --env-file /home/ubuntu/common.env pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}"
+                                echo '📂 Updating ${module} using docker-compose...';
+                                cd /home/ubuntu;
+                                docker-compose --env-file /home/ubuntu/common.env pull;
+                                docker-compose --env-file /home/ubuntu/common.env up -d ${module};
+                                docker image prune -a -f;
 
-                                echo "🧹 Cleaning up unused Docker images..."
+                                echo '🧹 Cleaning up unused Docker images...';
                                 docker image prune -a -f
-                            EOF
+                            "
                         """
-
                     }
                 }
             }
         }
+
+
     }
 }
