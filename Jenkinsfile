@@ -78,8 +78,6 @@ pipeline {
                             sh """
                             echo ">>> Building ${module}"
                             cd ${module} || exit 1
-                            pwd
-                            ls -al
 
                             chmod +x ./gradlew
                             ./gradlew clean build -x test
@@ -92,6 +90,8 @@ pipeline {
 
                             echo "✅ Dockerfile found! Starting build..."
                             docker build -t ${DOCKER_HUB_USERNAME}/${module}:latest -f Dockerfile .
+
+                            echo "🚀 Pushing Docker image to Docker Hub..."
                             docker push ${DOCKER_HUB_USERNAME}/${module}:latest
                             """
                         }
@@ -115,15 +115,6 @@ pipeline {
                         "module-trip": "trip"
                     ]
 
-                    def portMap = [
-                        "gateway-service": "8085:8085",
-                        "eureka-server": "8761:8761",
-                        "module-alarm": "8084:8084",
-                        "module-exchange": "8083:8083",
-                        "module-member": "8081:8081",
-                        "module-trip": "8082:8082"
-                    ]
-
                     def ipMap = [
                         "gateway-service": "10.0.10.28",
                         "eureka-server": "10.0.10.28",
@@ -145,21 +136,23 @@ pipeline {
                         echo "🚀 Deploying ${module} to ${targetServer} (IP: ${moduleIp})..."
 
                         sh """
-                        # .env 파일 복사 후 실행
-                        scp ${ENV_FILE} ubuntu@${moduleIp}:/home/ubuntu/common.env
-                        ssh ubuntu@${moduleIp} "
-                            cd /home/ubuntu
-                            echo '📥 Pulling latest Docker images...'
-                            docker-compose --env-file /home/ubuntu/common.env pull
+                        ssh ubuntu@${moduleIp} '
+                            echo "📥 Downloading environment file from S3..."
+                            aws s3 cp s3://my-ttt-env/common.env /home/ubuntu/common.env;
+                            chmod 600 /home/ubuntu/common.env
 
-                            echo '🚀 Starting ${module} service...'
-                            docker-compose --env-file /home/ubuntu/common.env up -d ${module}
+                            echo "🔄 Stopping and removing existing ${module} container..."
+                            if sudo docker ps -a --format "{{.Names}}" | grep -q "^${module}$"; then
+                                sudo docker stop ${module} || true
+                                sudo docker rm ${module} || true
+                            fi
 
-                            echo '🧹 Cleaning up old images...'
-                            docker image prune -a -f
-                        "
+                            scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
+                            ssh ${targetServer} "cd /home/ubuntu && docker-compose --env-file /home/ubuntu/common.env pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module} && docker image prune -a -f"
+
                         """
-                }   }
+                    }
+                }
             }
         }
     }
