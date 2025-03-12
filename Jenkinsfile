@@ -9,7 +9,6 @@ pipeline {
     // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
-        S3_BUCKET = 'my-ttt-env'  // S3 버킷 이름
     }
 
     triggers {
@@ -139,15 +138,15 @@ pipeline {
                         sh """
                         ssh ${targetServer} '
                             echo "📥 Downloading environment file from S3..."
-                            aws s3 cp s3://\${S3_BUCKET}/common.env /home/ubuntu/common.env;
+                            aws s3 cp s3://my-ttt-env/common.env /home/ubuntu/common.env;
                             chmod 600 /home/ubuntu/common.env
 
                             echo "🔄 Stopping and removing existing ${module} container..."
-                            docker stop ${module} || true
-                            docker rm ${module} || true
+                            sudo docker stop ${module} || true
+                            sudo docker rm ${module} || true
 
                             echo "🚀 Running ${module} container..."
-                            docker run -d --name ${module} \\
+                            sudo docker run -d --name ${module} \\
                                 --network=bridge \\
                                 -e DB_HOST=\${DB_HOST} \\
                                 -e DB_PORT=\${DB_PORT} \\
