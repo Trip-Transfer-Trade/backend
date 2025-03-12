@@ -1,0 +1,16 @@
+server:
+  port: 8761  # Eureka 기본 포트
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  instance:
+    hostname: 10.0.1.78
+  client:
+    register-with-eureka: false  # Eureka 서버 자체는 자신을 등록할 필요 없음
+    fetch-registry: false  # 다른 Eureka 서버의 정보를 가져올 필요 없음
+  server:
+    enable-self-preservation: false  # 네트워크 장애 시 기존 정보 유지
+    eviction-interval-timer-in-ms: 5000
