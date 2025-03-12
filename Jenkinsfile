@@ -154,9 +154,7 @@ pipeline {
                                     sudo docker rm ${module} || true
 
                                 echo "📂 Updating ${module} using docker-compose..."
-                                ssh ${targetServer} "cd /home/ubuntu && docker-compose --env-file /home/ubuntu/common.env pull &&
-                                docker-compose --env-file /home/ubuntu/common.env up -d ${module} &&
-                                docker image prune -a -f"
+                                ssh ${targetServer} "cd /home/ubuntu && docker-compose --env-file /home/ubuntu/common.env pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}"
 
                                 echo "🧹 Cleaning up unused Docker images..."
                                 docker image prune -a -f
