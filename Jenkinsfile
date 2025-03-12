@@ -111,7 +111,7 @@ pipeline {
                         "gateway-service": "api-gateway",
                         "module-alarm": "alarm",
                         "module-exchange": "exchange",
-                        "module-member": "user",
+                        "module-member": "member",
                         "module-trip": "trip"
                     ]
 
