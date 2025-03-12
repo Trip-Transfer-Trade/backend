@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  gateway-service:
+    image: leesky0075/gateway-service:latest
+    container_name: gateway-service
+    ports:
+      - "8085:8085"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge

@@ -32,3 +32,5 @@ coolsms:
     number: ${NUMBER}
 
 
+jwtKey:
+  jwt: ${JWT_SECRET}

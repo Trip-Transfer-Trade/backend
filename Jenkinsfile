@@ -9,6 +9,8 @@ pipeline {
     // 환경 변수 저장
     environment {
         DOCKER_HUB_USERNAME = 'leesky0075'
+        S3_BUCKET = 'my-ttt-env'  // S3 버킷 이름
+        ENV_FILE_PATH = "/home/ubuntu/common.env"  // EC2에서 사용할 환경 파일 경로
     }
 
     triggers {
@@ -31,27 +33,27 @@ pipeline {
                     def affectedModules = []
 
                     if (params.FULL_BUILD) {
-                        affectedModules = ["gateway-service", "alarm-serivce", "exchange-service", "member-service", "trip-service"]
+                        affectedModules = ["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"]
                     } else {
                         def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD", returnStdout: true).trim().split("\n")
 
                         if (changedFiles.any { it.startsWith("module-utility/") }) {
-                            affectedModules.addAll(["gateway-service", "alarm-serivce", "exchange-service", "member-service", "trip-service"])
+                            affectedModules.addAll(["gateway-service", "module-alarm", "module-exchange", "module-member", "module-trip"])
                         }
                         if (changedFiles.any { it.startsWith("gateway-service/") }) {
                             affectedModules.add("gateway-service")
                         }
                         if (changedFiles.any { it.startsWith("module-alarm/") }) {
-                            affectedModules.add("alarm-service")
+                            affectedModules.add("module-alarm")
                         }
                         if (changedFiles.any { it.startsWith("module-exchange/") }) {
-                            affectedModules.add("exchange-service")
+                            affectedModules.add("module-exchange")
                         }
                         if (changedFiles.any { it.startsWith("module-member/") }) {
-                            affectedModules.add("member-service")
+                            affectedModules.add("module-member")
                         }
                         if (changedFiles.any { it.startsWith("module-trip/") }) {
-                            affectedModules.add("trip-service")
+                            affectedModules.add("module-trip")
                         }
                     }
 
@@ -99,47 +101,61 @@ pipeline {
                 }
             }
         }
-//         stage('Deploy to EC2') {
-//                 when {
-//                     expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
-//                 }
-//                 steps {
-//                     script {
-//                         // 모듈과 배포 대상 서버 매핑
-//                         def serverMap = [
-//                             "gateway-service": "api-gateway",
-//                             "module-alarm": "alarm",
-//                             "module-exchange": "exchange",
-//                             "module-member": "user",
-//                             "module-trip": "trip"
-//                         ]
-//
-//                         env.AFFECTED_MODULES.split(" ").each { module ->
-//                             def targetServer = ""
-//                             if (module == "api-gateway" || module == "eureka-server") {
-//                                 targetServer = "api-gateway"
-//                             } else if (module == "stock-service") {
-//                                 targetServer = "stock"
-//                             } else if (module == "user-service") {
-//                                 targetServer = "user"
-//                             } else if (module == "portfolio-service") {
-//                                 targetServer = "portfolio"
-//                             }
-//
-//                             sh """
-//                             # .env 파일 복사 후 실행
-//                             scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
-//                             ssh ${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
-//                             """
-//                             sh """
-//                             scp ${ENV_FILE} ubuntu@${targetServer}:/home/ubuntu/common.env
-//                             ssh ubuntu@${targetServer} 'cd /home/ubuntu && docker-compose pull && docker-compose --env-file /home/ubuntu/common.env up -d ${module}'
-//                             """
-//                         }
-//                     }
-//                 }
-//         }
 
-    }
+
+        stage('Deploy to EC2') {
+            when {
+                expression { return !env.AFFECTED_MODULES.trim().isEmpty() }
+            }
+            steps {
+                script {
+                    def serverMap = [
+                        "gateway-service": "api-gateway",
+                        "module-alarm": "alarm",
+                        "module-exchange": "exchange",
+                        "module-member": "user",
+                        "module-trip": "trip"
+                    ]
+
+                    env.AFFECTED_MODULES.split(" ").each { module ->
+                        def targetServer = serverMap[module]
+
+                        if (!targetServer) {
+                            echo "❌ Error: ${module}에 대한 배포 대상 서버가 설정되지 않았습니다."
+                            return
+                        }
+
+                        echo "🚀 Deploying ${module} to ${targetServer}..."
+
+                        sh """
+                        ssh ubuntu@${targetServer} '
+                            echo "📥 Downloading environment file from S3..."
+                            aws s3 cp s3://\${S3_BUCKET}/common.env \${ENV_FILE_PATH}
+                            chmod 600 \${ENV_FILE_PATH}
+
+                            echo "🔄 Stopping and removing existing ${module} container..."
+                            docker stop ${module} || true
+                            docker rm ${module} || true
+
+                            echo "🚀 Running ${module} container..."
+                            docker run -d --name ${module} \\
+                                --network=bridge \\
+                                -e DB_HOST=\${DB_HOST} \\
+                                -e DB_PORT=\${DB_PORT} \\
+                                -e DB_NAME=\${DB_NAME} \\
+                                -e DB_USERNAME=\${DB_USERNAME} \\
+                                -e DB_PASSWORD=\${DB_PASSWORD} \\
+                                -e EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=\${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE} \\
+                                -p 8084:8084 \\
+                                leesky0075/${module}:latest
+                        '
+                        """
+                    }
+                }
+            }
+        }
+
+
+   }
 
 }

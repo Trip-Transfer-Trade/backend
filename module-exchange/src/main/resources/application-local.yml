@@ -27,3 +27,4 @@ APP_SECRET: ${APP_SECRET:default_app_secret}
 
 server:
   port: 8083
+
