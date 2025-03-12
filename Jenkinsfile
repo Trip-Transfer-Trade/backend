@@ -139,7 +139,7 @@ pipeline {
                         echo "🚀 Deploying ${module} to ${targetServer} (IP: ${moduleIp})..."
 
                         sh """
-                            ssh ${moduleIp} <<EOF
+                            ssh ${module} <<EOF
                                 set -e
 
                                 echo "📥 Downloading environment file from S3..."
