@@ -138,33 +138,29 @@ pipeline {
                         sh """
                             echo "🚀 Deploying ${module} to ${targetServer} (IP: ${moduleIp})..."
 
-                            # 1️⃣ .env 파일 및 docker-compose.yml을 EC2로 복사
-                            scp ${ENV_FILE} ubuntu@${moduleIp}:/home/ubuntu/common.env
+                            # 1️⃣ .env 파일을 EC2로 복사
+                            scp \$ENV_FILE ubuntu@${moduleIp}:/home/ubuntu/common.env
 
                             # 2️⃣ 원격 서버에서 컨테이너 업데이트 및 배포
-                            ssh ubuntu@${moduleIp} <<EOF
-                                echo "📥 Downloading environment file from S3..."
-                                aws s3 cp s3://my-ttt-env/common.env /home/ubuntu/common.env
-                                chmod 600 /home/ubuntu/common.env
-
-                                 echo "🔄 Stopping and removing existing ${module} container..."
-                                    if sudo docker ps -a --format "{{.Names}}" | grep -q "^${module}"; then
-                                        sudo docker stop ${module} || true
-                                        sudo docker rm ${module} || true
-                                    fi
+                            ssh ubuntu@${moduleIp} << 'EOF'
+                                echo "🔄 Stopping and removing existing ${module} container..."
+                                if sudo docker ps -a --format "{{.Names}}" | grep -q "^$module"; then
+                                    sudo docker stop $module || true
+                                    sudo docker rm $module || true
+                                fi
 
                                 echo "📂 Updating ${module} using docker-compose..."
                                 docker-compose --env-file /home/ubuntu/common.env pull
-                                docker-compose --env-file /home/ubuntu/common.env up -d ${module}
+                                docker-compose --env-file /home/ubuntu/common.env up -d $module
 
                                 echo "🧹 Cleaning up unused Docker images..."
                                 docker image prune -a -f
                             EOF
                         """
-
                     }
                 }
             }
         }
+
     }
 }
