@@ -6,11 +6,13 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.function.Function;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class JwtUtil {
-
-    private static final String SECRET_KEY = "test";
+    @Value("${jwtKey.jwt}")
+    private String SECRET_KEY;
+//    private static final String SECRET_KEY = "test";
 
     public Integer extractUserId(String token) {
         return Integer.parseInt(extractClaim(token, Claims::getSubject));
