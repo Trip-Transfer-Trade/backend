@@ -35,4 +35,6 @@ public interface TripClient {
     @GetMapping("/list")
     ResponseEntity<Response<List<TripGoalListResponseDTO>>> getListTripGoals(@RequestHeader(value = "X-Authenticated-User", required = false) int userId);
 
+    @GetMapping("/similar/{tripId}")
+    ResponseEntity<Response<List<Integer>>> getSimilarTrips(@PathVariable Integer tripId);
 }
