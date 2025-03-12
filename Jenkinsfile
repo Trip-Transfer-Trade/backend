@@ -153,6 +153,11 @@ pipeline {
                             aws s3 cp s3://my-ttt-env/common.env /home/ubuntu/common.env;
                             chmod 600 /home/ubuntu/common.env
 
+                            echo "🔄 Loading environment variables..."
+                                set -a
+                                source /home/ubuntu/common.env
+                                set +a
+
                             echo "🔄 Stopping and removing existing ${module} container..."
                             sudo docker stop ${module} || true
                             sudo docker rm ${module} || true
