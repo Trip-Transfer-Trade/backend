@@ -6,11 +6,23 @@ services:
     container_name: gateway-service
     ports:
       - "8085:8085"
+    depends_on:
+      - eureka-server
     environment:
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     networks:
       - app_network
+
+  eureka-server:
+    image: leesky0075/eureka-server:latest
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - app_network
+
 
 networks:
   app_network:
     driver: bridge
+
