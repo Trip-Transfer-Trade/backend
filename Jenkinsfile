@@ -124,9 +124,21 @@ pipeline {
                         "module-trip": "8082:8082"
                     ]
 
+
+                    // ✅ 각 모듈별 Private IP 매핑
+                    def ipMap = [
+                        "gateway-service": "10.0.10.28",
+                        "module-alarm": "10.0.10.148",
+                        "module-exchange": "10.0.10.223",
+                        "module-member": "10.0.10.140",
+                        "module-trip": "10.0.10.225"
+                    ]
+
+
                     env.AFFECTED_MODULES.split(" ").each { module ->
                         def targetServer = serverMap[module]
                         def modulePort = portMap[module] ?: "8080:8080"  // 포트가 없으면 기본값
+                        def moduleIp = ipMap[module] ?: "127.0.0.1"  // 기본값을 localhost로 설정
 
                         if (!targetServer) {
                             echo "❌ Error: ${module}에 대한 배포 대상 서버가 설정되지 않았습니다."
@@ -154,6 +166,7 @@ pipeline {
                                 -e DB_USERNAME=\${DB_USERNAME} \\
                                 -e DB_PASSWORD=\${DB_PASSWORD} \\
                                 -e EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=\${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE} \\
+                                -e EUREKA_INSTANCE_IP_ADDRESS=${moduleIp} \\
                                 -p ${modulePort} \\
                                 leesky0075/${module}:latest
                         '
