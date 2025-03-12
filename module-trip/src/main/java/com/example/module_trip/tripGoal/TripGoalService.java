@@ -197,4 +197,8 @@ public class TripGoalService {
             };
         }
     }
+
+    public List<Integer> findSimilarTripByTripId(Integer tripId) {
+        return tripGoalRepository.getSimilarTripIds(tripId);
+    }
 }
