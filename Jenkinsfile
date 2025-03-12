@@ -22,6 +22,50 @@ pipeline {
             }
         }
 
+        stage('Detect Changed Modules') {
+            steps {
+                script {
+                    def affectedModules = []
+
+                    if (params.FULL_BUILD) {
+                        affectedModules = ["gateway-service", "eureka-server", "module-alarm", "module-exchange", "module-member", "module-trip"]
+                    } else {
+                        def changedFiles = sh(script: "git diff --name-only HEAD^ HEAD", returnStdout: true).trim().split("\n")
+
+                        if (changedFiles.any { it.startsWith("module-utility/") }) {
+                            affectedModules.addAll(["gateway-service", "eureka-server", "module-alarm", "module-exchange", "module-member", "module-trip"])
+                        }
+                        if (changedFiles.any { it.startsWith("eureka-server/") }) {
+                            affectedModules.add("eureka-server")
+                        }
+                        if (changedFiles.any { it.startsWith("gateway-service/") }) {
+                            affectedModules.add("gateway-service")
+                        }
+                        if (changedFiles.any { it.startsWith("module-alarm/") }) {
+                            affectedModules.add("module-alarm")
+                        }
+                        if (changedFiles.any { it.startsWith("module-exchange/") }) {
+                            affectedModules.add("module-exchange")
+                        }
+                        if (changedFiles.any { it.startsWith("module-member/") }) {
+                            affectedModules.add("module-member")
+                        }
+                        if (changedFiles.any { it.startsWith("module-trip/") }) {
+                            affectedModules.add("module-trip")
+                        }
+                    }
+
+                    env.AFFECTED_MODULES = affectedModules.unique().join(" ")
+                    if (env.AFFECTED_MODULES.trim().isEmpty()) {
+                        currentBuild.result = 'SUCCESS'
+                        echo "✅ 변경된 모듈이 없어 빌드 및 배포를 건너뜁니다."
+                        return
+                    }
+                }
+            }
+        }
+
+
 
         stage('Deploy to EC2') {
             when {
