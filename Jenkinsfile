@@ -156,12 +156,12 @@ pipeline {
 
                                 echo '📂 Updating ${module} using docker-compose...';
                                 cd /home/ubuntu;
-                                docker-compose --env-file /home/ubuntu/common.env pull;
-                                docker-compose --env-file /home/ubuntu/common.env up -d ${module};
-                                docker image prune -a -f;
+                                sudo docker-compose --env-file /home/ubuntu/common.env pull;
+                                sudo docker-compose --env-file /home/ubuntu/common.env up -d ${module};
+                                sudo docker image prune -a -f;
 
                                 echo '🧹 Cleaning up unused Docker images...';
-                                docker image prune -a -f
+                                sudo docker image prune -a -f
                             "
                         """
                     }
