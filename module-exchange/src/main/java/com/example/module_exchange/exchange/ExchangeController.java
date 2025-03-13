@@ -25,24 +25,22 @@ public class ExchangeController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Response<Void>> saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
-        exchangeService.executeExchangeProcess(exchangeDTO);
-        return ResponseEntity.ok(Response.successWithoutData());
+    public ResponseEntity<Response<ExchangeGoalListDTO.ExchangeGoalResult>> saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
+        ExchangeGoalListDTO.ExchangeGoalResult response= exchangeService.executeExchangeProcess(exchangeDTO);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @PostMapping("/goal")
     public ResponseEntity<Response<ExchangeGoalListDTO>> saveExchangeGoal(@RequestBody ExchangeGoalDTO exchangeGoalDTO) {
-        // 일괄 매도
-        stockTradeService.orderBulkSell(exchangeGoalDTO.getTripId());
         // 일괄 환전 가진 모든 통화 -> 목표 나라로
         ExchangeGoalListDTO response = exchangeService.executeExchangeGoal(exchangeGoalDTO);
         return ResponseEntity.ok(Response.success(response));
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<Response<Void>> saveExchangeBatch(@RequestBody ExchangeBatchDTO exchangeBatchDTO) {
-        exchangeService.executeExchangeBatchProcess(exchangeBatchDTO);
-        return ResponseEntity.ok(Response.successWithoutData());
+    public ResponseEntity<Response<ExchangeGoalListDTO.ExchangeGoalResult>> saveExchangeBatch(@RequestBody ExchangeBatchDTO exchangeBatchDTO) {
+        ExchangeGoalListDTO.ExchangeGoalResult response = exchangeService.executeExchangeBatchProcess(exchangeBatchDTO);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @PostMapping("/transactions")
