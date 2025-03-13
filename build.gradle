@@ -93,6 +93,13 @@ project(':gateway-service') {
 
 }
 
+project(':gateway-service') {
+	dependencies {
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+	}
+}
+
 project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
