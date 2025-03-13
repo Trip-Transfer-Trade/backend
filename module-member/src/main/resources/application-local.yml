@@ -31,6 +31,5 @@ coolsms:
     secret: ${API_SECRET_KEY}
     number: ${NUMBER}
 
-
 jwtKey:
-  jwt: ${JWT_SECRET}
+    jwt: ${JWT_SECRET}
