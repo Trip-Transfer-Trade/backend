@@ -37,4 +37,7 @@ public interface TripClient {
 
     @GetMapping("/similar/{tripId}")
     ResponseEntity<Response<List<Integer>>> getSimilarTrips(@PathVariable Integer tripId);
+
+    @PostMapping("/check")
+    ResponseEntity<Response<Void>> checkTripGoalTrigger(@PathVariable String rate);
 }

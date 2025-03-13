@@ -36,11 +36,15 @@ public class ForextAlertConsumer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        AlarmType type=AlarmType.GOAL_ACHIEVED;
 
+        if (tripGoalAlarmDTO.getType().equals("end")){
+            type=AlarmType.GOAL_FAILED;
+        }
         alarmService.sendAlarm(AlarmRequestDTO.builder()
                 .tripName(tripGoalAlarmDTO.getTripName())
                 .userId(tripGoalAlarmDTO.getUserId())
-                .type(AlarmType.GOAL_ACHIEVED).build());
+                .type(type).build());
     }
 
     @RabbitListener(queues = "queue.half.alert")
