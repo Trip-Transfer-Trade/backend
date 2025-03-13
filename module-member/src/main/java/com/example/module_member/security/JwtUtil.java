@@ -10,7 +10,7 @@ import java.util.Date;
 @Component
 public class JwtUtil {
     @Value("${jwtKey.jwt}")
-    private String SECRET_KEY; // 환경 변수에서 가져오도록 변경 가능
+    private String SECRET_KEY;
     private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10시간
 
     public String generateToken(int userid, String username) {

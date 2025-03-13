@@ -121,7 +121,7 @@ public class TripGoalService {
                 .collect(Collectors.toMap(Account::getId, Account::getAccountNumber));
 
         return tripGoals.stream()
-                .map(tripGoal -> TripGoalListResponseDTO.toDTO(tripGoal, accountNumberMap.get(tripGoal.getAccount().getId())))
+                .map(tripGoal -> TripGoalListResponseDTO.toDTO(tripGoal, tripGoal.getAccount().getId(), accountNumberMap.get(tripGoal.getAccount().getId())))
                 .collect(Collectors.toList());
     }
 
