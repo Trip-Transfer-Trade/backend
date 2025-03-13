@@ -5,6 +5,7 @@ import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryRepository;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
+import com.example.module_trip.account.Account;
 import com.example.module_trip.account.NormalAccountDTO;
 import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
@@ -71,6 +72,8 @@ public class ExchangeCurrencyService {
         }
         List<TripGoalListResponseDTO> tripGoals = tripGoalListResponse.getBody().getData();
 
+        List<String> accountNumbers = tripGoals.stream().map(TripGoalListResponseDTO::getAccountNumber).collect(Collectors.toList());
+
         // 2. 사용자 통화 보유량 조회
         ExchangeCurrencyTotalDTO exchangeTotal = getCurrenciesByAccountId(userId, currencyCodes);
 
@@ -86,6 +89,7 @@ public class ExchangeCurrencyService {
                     return new TripExchangeCurrencyDTO(
                             goal.getId(),
                             goal.getName(),
+                            goal.getAccountNumber(),
                             goal.getCountry(),
                             goal.getGoalAmount(),
                             goal.getEndDate(),
