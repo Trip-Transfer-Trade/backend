@@ -89,6 +89,7 @@ public class ExchangeCurrencyService {
                     return new TripExchangeCurrencyDTO(
                             goal.getId(),
                             goal.getName(),
+                            goal.getAccountId(),
                             goal.getAccountNumber(),
                             goal.getCountry(),
                             goal.getGoalAmount(),
