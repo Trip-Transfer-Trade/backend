@@ -53,11 +53,11 @@ public class TripGoalListResponseDTO {
     }
 
     @Builder
-    public static TripGoalListResponseDTO toDTO(TripGoal tripGoal, Integer accountId, String accountNumber) {
+    public static TripGoalListResponseDTO toDTO(TripGoal tripGoal, String accountNumber) {
         return TripGoalListResponseDTO.builder()
                 .id(tripGoal.getId())
                 .name(tripGoal.getName())
-                .accountId(accountId)
+                .accountId(tripGoal.getAccount().getId())
                 .accountNumber(accountNumber)
                 .country(tripGoal.getCountry())
                 .goalAmount(tripGoal.getGoalAmount())
