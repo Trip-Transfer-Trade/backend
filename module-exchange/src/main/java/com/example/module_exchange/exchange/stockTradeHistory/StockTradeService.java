@@ -14,9 +14,7 @@ import com.example.module_trip.tripGoal.TripGoalUpdateDTO;
 import com.example.module_utility.response.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +34,6 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 public class StockTradeService {
@@ -105,7 +102,7 @@ public class StockTradeService {
         ExchangeCurrency exchangeCurrency = getExchangeCurrencyFromAccountId(accountId, stockTradeDTO.getCurrencyCode());
 
         isQuantityZero(stockTradeDTO);
-        validateSufficientQuantity(exchangeCurrency, stockTradeDTO);
+        validateSufficientQuantity(stockTradeDTO);
 
         StockTradeHistory stockTradeHistory = stockTradeDTO.toStockTradeHistory(exchangeCurrency, tradeType);
         stockTradeHistoryRepository.save(stockTradeHistory);
@@ -244,7 +241,7 @@ public class StockTradeService {
         }
     }
 
-    private void validateSufficientQuantity(ExchangeCurrency currency, StockTradeDTO stockTradeDTO) {
+    private void validateSufficientQuantity(StockTradeDTO stockTradeDTO) {
         BigDecimal totalBuyQuantity = stockTradeHistoryRepository.findTotalBuyQuantityByStockCode(stockTradeDTO.getStockCode());
         BigDecimal totalSellQuantity = stockTradeHistoryRepository.findTotalSellQuantityByStockCode(stockTradeDTO.getStockCode());
         totalSellQuantity = (totalSellQuantity != null) ? totalSellQuantity : BigDecimal.ZERO;
@@ -760,6 +757,31 @@ public class StockTradeService {
         }
 
         return result;
+    }
+
+    // 주문 가능 금액 확인
+    public OrderCheckDTO getAmountCheck(int tripId) {
+        int accountId = getAccountIdFromTripId(tripId);
+        ExchangeCurrency exchangeCurrency = exchangeCurrencyRepository.findFirstByAccountId(accountId);
+
+        return OrderCheckDTO.builder()
+                .amount(exchangeCurrency.getAmount())
+                .build();
+    }
+
+    // 주문 가능 수량 확인
+    public  OrderCheckDTO getQuantityCheck(int tripId, String stockCode) {
+        return OrderCheckDTO.builder()
+                .quantity(checkQuantity(tripId, stockCode))
+                .build();
+    }
+
+
+    private int checkQuantity(int tripId, String stockCode) {
+        String key = "trip:" + tripId + ":stock:" + stockCode;
+        Object quantity = redisTemplate.opsForHash().get(key, "total_quantity");
+
+        return Integer.parseInt(quantity.toString());
     }
 
     public void checkGoal(){
