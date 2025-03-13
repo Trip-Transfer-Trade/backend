@@ -25,9 +25,9 @@ public class ExchangeController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Response<Void>> saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
-        exchangeService.executeExchangeProcess(exchangeDTO);
-        return ResponseEntity.ok(Response.successWithoutData());
+    public ResponseEntity<Response<ExchangeGoalListDTO.ExchangeGoalResult>> saveExchange(@RequestBody ExchangeDTO exchangeDTO) {
+        ExchangeGoalListDTO.ExchangeGoalResult response= exchangeService.executeExchangeProcess(exchangeDTO);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @PostMapping("/goal")
@@ -40,9 +40,9 @@ public class ExchangeController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<Response<Void>> saveExchangeBatch(@RequestBody ExchangeBatchDTO exchangeBatchDTO) {
-        exchangeService.executeExchangeBatchProcess(exchangeBatchDTO);
-        return ResponseEntity.ok(Response.successWithoutData());
+    public ResponseEntity<Response<ExchangeGoalListDTO.ExchangeGoalResult>> saveExchangeBatch(@RequestBody ExchangeBatchDTO exchangeBatchDTO) {
+        ExchangeGoalListDTO.ExchangeGoalResult response = exchangeService.executeExchangeBatchProcess(exchangeBatchDTO);
+        return ResponseEntity.ok(Response.success(response));
     }
 
     @PostMapping("/transactions")
