@@ -97,4 +97,9 @@ public class TripGoalController {
         tripGoalService.checkGoalPeriod(rate);
         return ResponseEntity.ok(Response.successWithoutData());
     }
+
+    @GetMapping("/count")
+    public Integer countTripCompleted(@RequestHeader(value = "X-Authenticated-User", required = false) int userId){
+        return tripGoalService.countTripCompleted(userId);
+    }
 }

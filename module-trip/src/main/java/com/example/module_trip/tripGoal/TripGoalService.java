@@ -229,4 +229,22 @@ public class TripGoalService {
             checkGoalEnd(tripGoal,createAlarmJson(tripGoal,"end"));
         }
     }
+
+    public boolean isBeforeEndDate(TripGoal tripGoal) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endDate = tripGoal.getEndDate().atStartOfDay();
+
+        return now.toLocalDate().isBefore(endDate.toLocalDate());
+    }
+
+    public int countTripCompleted(int userId){
+        List<TripGoal> tripGoals = tripGoalRepository.findAll();
+        int count = 0;
+        for (TripGoal tripGoal : tripGoals){
+            if(isBeforeEndDate(tripGoal)) {
+                count++;
+            }
+        }
+        return count;
+    }
 }

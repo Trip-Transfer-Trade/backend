@@ -6,6 +6,7 @@ import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryR
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.Account;
+import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.NormalAccountDTO;
 import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,26 +67,39 @@ public class ExchangeCurrencyService {
 
     // 여행 목표 계좌 정보 조회
     public List<TripExchangeCurrencyDTO> getTripExchangeCurrencies(int userId, List<String> currencyCodes) {
-        // 1. 여행 목표 리스트 조회
         ResponseEntity<Response<List<TripGoalListResponseDTO>>> tripGoalListResponse = tripClient.getListTripGoals(userId);
         if (tripGoalListResponse.getBody() == null || tripGoalListResponse.getBody().getData() == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No trip goals found.");
         }
+
         List<TripGoalListResponseDTO> tripGoals = tripGoalListResponse.getBody().getData();
 
-        List<String> accountNumbers = tripGoals.stream().map(TripGoalListResponseDTO::getAccountNumber).collect(Collectors.toList());
+        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
-        // 2. 사용자 통화 보유량 조회
-        ExchangeCurrencyTotalDTO exchangeTotal = getCurrenciesByAccountId(userId, currencyCodes);
+        List<ExchangeCurrency> exchangeCurrencies = exchangeCurrencyRepository.findByAccountIdInAndCurrencyCodeIn(accountIds, currencyCodes);
 
         BigDecimal usdExchangeRate = getUsdExchangeRate();
 
         return tripGoals.stream()
                 .map(goal -> {
-                    BigDecimal profit = goal.getProfit();
-                    BigDecimal profitUs = goal.getProfitUs();
+                    List<ExchangeCurrency> goalCurrencies = exchangeCurrencies.stream()
+                            .filter(ec -> Objects.equals(ec.getAccountId(), goal.getAccountId()))
+                            .collect(Collectors.toList());
 
-                    BigDecimal totalProfit = profit.add(profitUs.multiply(usdExchangeRate));
+                    BigDecimal amountKRW = goalCurrencies.stream()
+                            .filter(ec -> "KRW".equals(ec.getCurrencyCode()))
+                            .map(ExchangeCurrency::getAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal amountUS = goalCurrencies.stream()
+                            .filter(ec -> "USD".equals(ec.getCurrencyCode()))
+                            .map(ExchangeCurrency::getAmount)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal totalAmountInKRW = amountKRW.add(amountUS.multiply(usdExchangeRate));
+
+                    BigDecimal totalProfit = goal.getProfit().add(goal.getProfitUs().multiply(usdExchangeRate));
 
                     return new TripExchangeCurrencyDTO(
                             goal.getId(),
@@ -94,12 +109,12 @@ public class ExchangeCurrencyService {
                             goal.getCountry(),
                             goal.getGoalAmount(),
                             goal.getEndDate(),
-                            exchangeTotal.getAmount(),
-                            exchangeTotal.getAmountUS(),
-                            exchangeTotal.getTotalAmountInKRW(), // 사용자의 총 원화 금액
+                            amountKRW,
+                            amountUS,
+                            totalAmountInKRW,
                             goal.getProfit(),
                             goal.getProfitUs(),
-                            totalProfit // 목표별 총 수익
+                            totalProfit
                     );
                 })
                 .collect(Collectors.toList());
