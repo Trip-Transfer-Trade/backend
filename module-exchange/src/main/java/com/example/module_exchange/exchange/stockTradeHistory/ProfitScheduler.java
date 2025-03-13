@@ -32,6 +32,7 @@ public class ProfitScheduler {
             stockTradeService.storeAllUserProfit();
             System.out.println("주식 장 마감 : Redis 데이터 삭제");
         }
+        stockTradeService.checkGoal();
     }
 
 //    @Scheduled(cron = "0 * * * * *") // 테스트 코드
