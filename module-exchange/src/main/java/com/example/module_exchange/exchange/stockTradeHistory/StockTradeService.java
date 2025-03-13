@@ -759,6 +759,7 @@ public class StockTradeService {
         return result;
     }
 
+<<<<<<< HEAD
     // 주문 가능 금액 확인
     public OrderCheckDTO getAmountCheck(int tripId) {
         int accountId = getAccountIdFromTripId(tripId);
@@ -784,6 +785,8 @@ public class StockTradeService {
         return Integer.parseInt(quantity.toString());
     }
 
+=======
+>>>>>>> 70c65b7 (git commit -m "feat : create call goal check trigger(#104)")
     public void checkGoal(){
         ExchangeRateChartDTO.ExchangeRateData rateData = exchangeRateChartService.getUSExchangeRate();
         tripClient.checkTripGoalTrigger(rateData.getRate());
