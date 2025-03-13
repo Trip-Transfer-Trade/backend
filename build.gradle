@@ -85,10 +85,18 @@ project(':module-exchange') {
 
 }
 
+project(':gateway-service') {
+	dependencies {
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+	}
+}
+
 project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	}
 }
 
@@ -97,6 +105,7 @@ project(':module-alarm'){
 		implementation project(':module-utility')
 		implementation project(':module-trip')
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	}
 }
 
@@ -106,6 +115,7 @@ project(':module-member') {
 		implementation 'org.springframework.security:spring-security-crypto'
 		implementation 'net.nurigo:sdk:4.2.7'
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
 	}
 }
