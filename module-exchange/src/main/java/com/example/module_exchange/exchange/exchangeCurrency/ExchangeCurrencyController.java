@@ -33,4 +33,5 @@ public class ExchangeCurrencyController {
         return exchangeCurrencyService.getTripGoalDetail(tripId, currencyCode);
     }
 
+
 }
