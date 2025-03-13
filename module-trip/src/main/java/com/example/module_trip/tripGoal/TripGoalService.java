@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -115,14 +116,13 @@ public class TripGoalService {
         // 계좌 ID에 해당하는 TripGoal 리스트 조회
         List<TripGoal> tripGoals = tripGoalRepository.findAllByAccountIdIn(accountIds);
 
+        Map<Integer, String> accountNumberMap = travelGoalAccounts.stream()
+                .collect(Collectors.toMap(Account::getId, Account::getAccountNumber));
+
         return tripGoals.stream()
-                .map(TripGoalListResponseDTO::toDTO)
+                .map(tripGoal -> TripGoalListResponseDTO.toDTO(tripGoal, accountNumberMap.get(tripGoal.getAccount().getId())))
                 .collect(Collectors.toList());
     }
-
-//    public TripGoalDetailDTO getTripGoalDetail(Integer tripGoalId) {
-//        TripGoal tripGoal = tripGoalRepository.findById(tripGoalId).get();
-//    }
 
     public TripGoalResponseDTO updateProfit(TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
 
