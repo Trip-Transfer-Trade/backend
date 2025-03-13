@@ -15,6 +15,7 @@ import java.time.LocalDate;
 public class TripGoalResponseDTO {
     private Integer id;
     private String name;
+    private String accountNumber;
     private String country;
     private BigDecimal goalAmount;
     private BigDecimal profit;
@@ -27,9 +28,10 @@ public class TripGoalResponseDTO {
 
 
     @Builder
-    public TripGoalResponseDTO(Integer id, String name, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, BigDecimal profitUs, BigDecimal realisedProfitUs, LocalDate endDate,int accountId) {
+    public TripGoalResponseDTO(Integer id, String name, String accountNumber, String country, BigDecimal goalAmount, BigDecimal profit, BigDecimal realisedProfit, BigDecimal profitUs, BigDecimal realisedProfitUs, LocalDate endDate,int accountId) {
         this.id = id;
         this.name = name;
+        this.accountNumber = accountNumber;
         this.country = country;
         this.goalAmount = goalAmount;
         this.profit = profit;
@@ -41,7 +43,7 @@ public class TripGoalResponseDTO {
 
     }
 
-    public static TripGoalResponseDTO toDTO(TripGoal tripGoal) {
+    public static TripGoalResponseDTO toDTO(TripGoal tripGoal, String accountNumber) {
         return TripGoalResponseDTO.builder()
                 .id(tripGoal.getId())
                 .name(tripGoal.getName())
@@ -55,6 +57,24 @@ public class TripGoalResponseDTO {
                 .endDate(tripGoal.getEndDate())
                 .build();
     }
+
+    public static TripGoalResponseDTO toDTO(TripGoal tripGoal) {
+        return TripGoalResponseDTO.builder()
+                .id(tripGoal.getId())
+                .name(tripGoal.getName())
+                .accountNumber(tripGoal.getAccount().getAccountNumber())
+                .country(tripGoal.getCountry())
+                .goalAmount(tripGoal.getGoalAmount())
+                .profit(tripGoal.getProfit())
+                .realisedProfit(tripGoal.getRealisedProfit())
+                .accountId(tripGoal.getAccount().getId())
+                .realisedProfit(tripGoal.getRealisedProfit())
+                .realisedProfitUs(tripGoal.getRealisedProfitUs())
+                .endDate(tripGoal.getEndDate())
+                .build();
+    }
+
+
 
     public TripGoal toEntity(Account account) {
         return TripGoal.builder()

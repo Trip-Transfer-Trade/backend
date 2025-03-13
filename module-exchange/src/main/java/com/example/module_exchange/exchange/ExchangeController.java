@@ -1,10 +1,7 @@
 package com.example.module_exchange.exchange;
 
 import com.example.module_exchange.exchange.exchangeCurrency.*;
-import com.example.module_exchange.exchange.stockTradeHistory.StockHoldingsDTO;
-import com.example.module_exchange.exchange.stockTradeHistory.StockTradeDTO;
-import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
-import com.example.module_exchange.exchange.stockTradeHistory.TripRankingDTO;
+import com.example.module_exchange.exchange.stockTradeHistory.*;
 import com.example.module_exchange.exchange.transactionHistory.AccountListDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
@@ -97,12 +94,6 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.success(response));
     }
 
-//    @GetMapping("/wallet/account/{accountId}")
-//    public ResponseEntity<Response<List<WalletResponseDTO>>> getWalletBalance(@PathVariable int accountId) {
-//        List<WalletResponseDTO> wallet = exchangeService.getWalletBalance(accountId);
-//        return ResponseEntity.ok(Response.success(wallet));
-//    }
-
     @GetMapping("/wallet")
     public ResponseEntity<Response<List<WalletSummaryResponseDTO>>> getUserWallet(
             @RequestHeader(value = "X-Authenticated-Username", required = false) String username) {
@@ -163,5 +154,17 @@ public class ExchangeController {
     public ResponseEntity<Response<Void>> updateRanking(@PathVariable Integer tripId, @RequestParam String currencyCode) {
         stockTradeService.updateRanking(tripId, currencyCode);
         return ResponseEntity.ok(Response.successWithoutData());
+    }
+
+    @GetMapping("/order/amount/{tripId}")
+    public ResponseEntity<Response<OrderCheckDTO>> checkOrder(@PathVariable int tripId) {
+        OrderCheckDTO response = stockTradeService.getAmountCheck(tripId);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/order/quantity/{tripId}/{stockCode}")
+    public ResponseEntity<Response<OrderCheckDTO>> checkOrder(@PathVariable int tripId, @PathVariable String stockCode) {
+        OrderCheckDTO response = stockTradeService.getQuantityCheck(tripId, stockCode);
+        return ResponseEntity.ok(Response.success(response));
     }
 }
