@@ -116,8 +116,8 @@ pipeline {
                     ]
 
                     def ipMap = [
-                        "gateway-service": "10.0.10.28",
-                        "eureka-server": "10.0.10.28",
+                        "gateway-service": "10.0.1.78",
+                        "eureka-server": "10.0.1.78",
                         "module-alarm": "10.0.10.148",
                         "module-exchange": "10.0.10.223",
                         "module-member": "10.0.10.140",
