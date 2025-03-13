@@ -59,7 +59,7 @@ public class ExchangeCurrencyService {
         BigDecimal amountKRW = getAmountByCurrency(currencies, "KRW");
         BigDecimal amountUSD = getAmountByCurrency(currencies, "USD");
 
-        return new ExchangeCurrencyTotalDTO(accountNumber, amountKRW, amountUSD, totalAmountInKRW);
+        return new ExchangeCurrencyTotalDTO(accountId, accountNumber, amountKRW, amountUSD, totalAmountInKRW);
     }
 
     // 여행 목표 계좌 정보 조회
