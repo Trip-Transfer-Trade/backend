@@ -97,12 +97,6 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.success(response));
     }
 
-//    @GetMapping("/wallet/account/{accountId}")
-//    public ResponseEntity<Response<List<WalletResponseDTO>>> getWalletBalance(@PathVariable int accountId) {
-//        List<WalletResponseDTO> wallet = exchangeService.getWalletBalance(accountId);
-//        return ResponseEntity.ok(Response.success(wallet));
-//    }
-
     @GetMapping("/wallet")
     public ResponseEntity<Response<List<WalletSummaryResponseDTO>>> getUserWallet(
             @RequestHeader(value = "X-Authenticated-Username", required = false) String username) {
