@@ -10,11 +10,13 @@ import lombok.Getter;
 public class TripGoalAlarmDTO {
     private String tripName;
     private Integer userId;
+    private String type;
 
-    public static TripGoalAlarmDTO toDTO(String name, Integer userId) {
+    public static TripGoalAlarmDTO toDTO(String name, Integer userId, String type) {
         return TripGoalAlarmDTO.builder()
                 .tripName(name)
                 .userId(userId)
+                .type(type)
                 .build();
     }
 }
