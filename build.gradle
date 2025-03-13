@@ -34,6 +34,12 @@ allprojects {
 	bootJar {
 		enabled = true
 	}
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+		}
+	}
 	dependencies {
 
 		implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
@@ -77,10 +83,12 @@ project(':module-exchange') {
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	}
 
-	dependencyManagement {
-		imports {
-			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-		}
+}
+
+project(':gateway-service') {
+	dependencies {
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
 	}
 
 }
@@ -89,6 +97,7 @@ project(':module-trip') {
 	dependencies {
 		implementation project(':module-utility')
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	}
 }
 
@@ -97,6 +106,7 @@ project(':module-alarm'){
 		implementation project(':module-utility')
 		implementation project(':module-trip')
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	}
 }
 
@@ -106,6 +116,7 @@ project(':module-member') {
 		implementation 'org.springframework.security:spring-security-crypto'
 		implementation 'net.nurigo:sdk:4.2.7'
 		implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
 	}
 }
@@ -115,12 +126,6 @@ project(':eureka-server') {
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
-	}
-
-	dependencyManagement {
-		imports {
-			mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
-		}
 	}
 }
 
