@@ -32,8 +32,6 @@ public class ExchangeController {
 
     @PostMapping("/goal")
     public ResponseEntity<Response<ExchangeGoalListDTO>> saveExchangeGoal(@RequestBody ExchangeGoalDTO exchangeGoalDTO) {
-        // 일괄 매도
-        stockTradeService.orderBulkSell(exchangeGoalDTO.getTripId());
         // 일괄 환전 가진 모든 통화 -> 목표 나라로
         ExchangeGoalListDTO response = exchangeService.executeExchangeGoal(exchangeGoalDTO);
         return ResponseEntity.ok(Response.success(response));
