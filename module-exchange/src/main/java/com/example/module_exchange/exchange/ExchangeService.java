@@ -56,7 +56,7 @@ public class ExchangeService {
         this.exchangeRateChartService = exchangeRateChartService;
     }
 
-    public void executeExchangeProcess(ExchangeDTO exchangeDTO) {
+    public ExchangeGoalListDTO.ExchangeGoalResult executeExchangeProcess(ExchangeDTO exchangeDTO) {
         Integer accountId = exchangeDTO.getAccountId();
 
         String fromCurrencyCode = exchangeDTO.getFromCurrency();
@@ -76,6 +76,11 @@ public class ExchangeService {
         TransactionHistory toTransactionHistory = exchangeDTO.toTransactionHistory(toExchangeCurrency, TransactionType.DEPOSIT, toAmount);
 
         executeExchangeOperations(fromExchangeHistory, toExchangeHistory, fromTransactionHistory, toTransactionHistory, fromExchangeCurrency, toExchangeCurrency, fromAmount, toAmount);
+        ExchangeGoalListDTO.ExchangeGoalResult result = new ExchangeGoalListDTO.ExchangeGoalResult();
+        result.setToAmount(toAmount);
+        result.setRate(exchangeDTO.getExchangeRate().toString());
+        result.setAmount(fromAmount);
+        return result;
     }
 
     @Transactional
@@ -96,7 +101,7 @@ public class ExchangeService {
     }
 
 
-    public void executeExchangeBatchProcess(ExchangeBatchDTO exchangeBatchDTO) {
+    public ExchangeGoalListDTO.ExchangeGoalResult executeExchangeBatchProcess(ExchangeBatchDTO exchangeBatchDTO) {
         BigDecimal exchangeRate = exchangeBatchDTO.getExchangeRate();
 
         String fromCurrency = exchangeBatchDTO.getFromCurrency();
@@ -148,6 +153,11 @@ public class ExchangeService {
 
         executeExchangeBatchOperations(exchangeHistories,transactionHistories,exchangeCurrencies,
                 toExchangeCurrency, totalAmount,toExchangeHistory, toTransactionHistory );
+        ExchangeGoalListDTO.ExchangeGoalResult result = new ExchangeGoalListDTO.ExchangeGoalResult();
+        result.setToAmount(toAmount);
+        result.setRate(exchangeBatchDTO.getExchangeRate().toString());
+        result.setAmount(exchangeBatchDTO.getFromAmount());
+        return result;
     }
 
     @Transactional

@@ -13,6 +13,7 @@ public class ExchangeBatchDTO {
     private String fromCurrency;
     private String toCurrency;
     private BigDecimal exchangeRate;
+    private BigDecimal fromAmount;
     private List<BatchDTO> batchDTOList;
 
 }
