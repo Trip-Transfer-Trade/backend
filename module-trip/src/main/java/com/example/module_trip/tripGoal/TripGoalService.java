@@ -1,5 +1,6 @@
 package com.example.module_trip.tripGoal;
 
+import ch.qos.logback.core.util.Loader;
 import com.example.module_trip.account.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -134,23 +135,22 @@ public class TripGoalService {
         TripGoal updatedTripGoal = tripGoalRepository.save(tripGoal);
         log.info(updatedTripGoal.toString());
 
-        String json = createAlarmJson(updatedTripGoal);
+        String json = createAlarmJson(updatedTripGoal,"success");
 
         boolean after = updatedTripGoal.isGoalReached(tripGoalProfitUpdateDTO.getRate());
         if (!before && after) {
             sendGoalSuccessAlert(json);
         }
 
-        checkGoalHalf(updatedTripGoal,tripGoalProfitUpdateDTO.getRate(),json);
         return TripGoalResponseDTO.toDTO(updatedTripGoal);
 
     }
 
-    private String createAlarmJson(TripGoal tripGoal) {
+    private String createAlarmJson(TripGoal tripGoal, String type) {
         String json = null;
         try {
             json = objectMapper.writeValueAsString(
-                    TripGoalAlarmDTO.toDTO(tripGoal.getName(), tripGoal.getAccount().getUserId())
+                    TripGoalAlarmDTO.toDTO(tripGoal.getName(), tripGoal.getAccount().getUserId(), type)
             );
             log.info("json :" +json);
         } catch (JsonProcessingException e) {
@@ -164,19 +164,25 @@ public class TripGoalService {
         log.info("목표 도달 알림 전송");
     }
 
+    private void sendGoalEndAlert(String json){
+        rabbitTemplate.convertAndSend("exchange.goal","end.alert",json);
+        log.info("목표 기간 만료 알림 전송");
+    }
+
     private void sendHalfAlert(String json) {
         rabbitTemplate.convertAndSend("exchange.halfGoal", "half.alert", json);
         log.info("목표 절반 미달 알림 전송");
     }
 
     private boolean hasReachedHalfPeriod(TripGoal tripGoal) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate now = LocalDate.now();
         LocalDateTime startDate = tripGoal.getCreatedDate();
         LocalDateTime endDate = tripGoal.getEndDate().atStartOfDay();
         Duration totalDuration = Duration.between(startDate, endDate);
         LocalDateTime halfTime = startDate.plusSeconds(totalDuration.getSeconds() / 2);
         log.info("totalDuration "+totalDuration + "halfTime " +halfTime + "now "+now);
-        return now.isAfter(halfTime);
+        LocalDate halfTimeNextDay = halfTime.toLocalDate().plusDays(1);
+        return now.isEqual(halfTimeNextDay);
     }
 
     private void checkGoalHalf(TripGoal tripGoal, String rateStr,String json) {
@@ -200,5 +206,27 @@ public class TripGoalService {
 
     public List<Integer> findSimilarTripByTripId(Integer tripId) {
         return tripGoalRepository.getSimilarTripIds(tripId);
+    }
+
+    public void checkGoalEnd(TripGoal tripGoal, String json) {
+        if(hasReachedPeriod(tripGoal)){
+            sendGoalEndAlert(json);
+        }
+    }
+
+    public boolean hasReachedPeriod(TripGoal tripGoal) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime endDate= tripGoal.getEndDate().atStartOfDay();
+        log.info("기간 도달 체크");
+        log.info("endDate "+endDate+"now "+now);
+        return now.toLocalDate().isEqual(endDate.toLocalDate());
+    }
+
+    public void checkGoalPeriod(String rateStr){
+        List<TripGoal> tripGoals = tripGoalRepository.findAll();
+        for (TripGoal tripGoal : tripGoals){
+            checkGoalHalf(tripGoal,rateStr,createAlarmJson(tripGoal,"half"));
+            checkGoalEnd(tripGoal,createAlarmJson(tripGoal,"end"));
+        }
     }
 }
