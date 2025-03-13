@@ -33,7 +33,3 @@ coolsms:
 
 jwtKey:
     jwt: ${JWT_SECRET}
-
-
-jwtKey:
-  jwt: ${JWT_SECRET}
