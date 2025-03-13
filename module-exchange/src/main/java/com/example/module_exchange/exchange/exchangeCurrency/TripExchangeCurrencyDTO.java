@@ -11,6 +11,7 @@ import java.time.LocalDate;
 public class TripExchangeCurrencyDTO {
     private Integer tripId;
     private String name;
+    private Integer accountId;
     private String accountNumber;
     private String country;
     private BigDecimal goalAmount;
@@ -22,9 +23,11 @@ public class TripExchangeCurrencyDTO {
     private BigDecimal profitUs;
     private BigDecimal totalProfit;  //누적수익금(원화 + 달러)
 
-    public TripExchangeCurrencyDTO(Integer tripId, String name, String accountNumber, String country, BigDecimal goalAmount, LocalDate endDate, BigDecimal amount, BigDecimal amountUS, BigDecimal totalAmountInKRW, BigDecimal profit, BigDecimal profitUs, BigDecimal totalProfit) {
+
+    public TripExchangeCurrencyDTO(Integer tripId, String name, Integer accountId, String accountNumber, String country, BigDecimal goalAmount, LocalDate endDate, BigDecimal amount, BigDecimal amountUS, BigDecimal totalAmountInKRW, BigDecimal profit, BigDecimal profitUs, BigDecimal totalProfit) {
         this.tripId = tripId;
         this.name = name;
+        this.accountId = accountId;
         this.accountNumber = accountNumber;
         this.country = country;
         this.goalAmount = goalAmount;
