@@ -81,6 +81,7 @@ public class TripGoalController {
 
     @PutMapping("/profit")
     public ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO) {
+        logger.info(">>>> 여기까진 들어오잖아");
         TripGoalResponseDTO response = tripGoalService.updateProfit(tripGoalProfitUpdateDTO);
         return ResponseEntity.ok(Response.success(response));
     }
@@ -89,5 +90,11 @@ public class TripGoalController {
     public ResponseEntity<Response<List<Integer>>> getSimilarTrips(@PathVariable Integer tripId) {
         List<Integer> resposne = tripGoalService.findSimilarTripByTripId(tripId);
         return ResponseEntity.ok(Response.success(resposne));
+    }
+
+    @PostMapping("/check")
+    public ResponseEntity<Response<Void>> checkTripGoalTrigger(@RequestBody String rate){
+        tripGoalService.checkGoalPeriod(rate);
+        return ResponseEntity.ok(Response.successWithoutData());
     }
 }

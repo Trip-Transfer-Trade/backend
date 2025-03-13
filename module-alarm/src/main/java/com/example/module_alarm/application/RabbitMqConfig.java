@@ -33,6 +33,9 @@ public class RabbitMqConfig {
     public DirectExchange halfGoalExchange() {return new DirectExchange("exchange.halfGoal");}
 
     @Bean
+    public DirectExchange goalEndExchange() {return new DirectExchange("exchange.goal");}
+
+    @Bean
     public Binding bindingForex(Queue forexQueue, DirectExchange forexExchange) {
         return BindingBuilder.bind(forexQueue).to(forexExchange).with("forex.alert");
     }
@@ -45,5 +48,10 @@ public class RabbitMqConfig {
     @Bean
     public Binding bindingHalfGoal(Queue halfGoalQueue, DirectExchange halfGoalExchange) {
         return BindingBuilder.bind(halfGoalQueue).to(halfGoalExchange).with("half.alert");
+    }
+
+    @Bean
+    public Binding bindingGoalEnd(Queue goalQueue, DirectExchange goalExchange) {
+        return BindingBuilder.bind(goalQueue).to(goalExchange).with("end.alert");
     }
 }
