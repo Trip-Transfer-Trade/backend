@@ -12,11 +12,11 @@ public class FcmController {
     private final FcmService fcmService;
 
     @PostMapping("")
-    public ResponseEntity saveToken(@RequestBody FcmTokenDTO request) {
-        if (request.getUserId() == null || request.getToken()==null) {
-            return ResponseEntity.badRequest().body("userId or token is null");
+    public ResponseEntity<Response<Void>> saveToken(@RequestHeader("X-Authenticated-User") int userId, @RequestBody String token) {
+        if (token==null) {
+            return ResponseEntity.badRequest().body(Response.error(400,"token is null"));
         }
-        Response<Void> response = fcmService.saveToken(request);
-        return ResponseEntity.status(response.getStatus()).body(response);
+        Response<Void> response = fcmService.saveToken(new FcmTokenDTO(userId,token));
+        return ResponseEntity.ok(response);
     }
 }
