@@ -761,4 +761,9 @@ public class StockTradeService {
 
         return result;
     }
+
+    public void checkGoal(){
+        ExchangeRateChartDTO.ExchangeRateData rateData = exchangeRateChartService.getUSExchangeRate();
+        tripClient.checkTripGoalTrigger(rateData.getRate());
+    }
 }
