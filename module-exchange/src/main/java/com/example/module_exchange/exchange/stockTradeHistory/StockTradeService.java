@@ -782,6 +782,7 @@ public class StockTradeService {
         Object quantity = redisTemplate.opsForHash().get(key, "total_quantity");
 
         return Integer.parseInt(quantity.toString());
+    }
 
     public void checkGoal(){
         ExchangeRateChartDTO.ExchangeRateData rateData = exchangeRateChartService.getUSExchangeRate();
