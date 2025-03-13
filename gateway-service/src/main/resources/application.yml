@@ -44,7 +44,6 @@ eureka:
   instance:
     prefer-ip-address: true
     ip-address: ${GATEWAY_INSTANCE_IP_ADDRESS:localhost}
-    # hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
 
   client:
     register-with-eureka: true
