@@ -783,6 +783,7 @@ public class StockTradeService {
 
         return Integer.parseInt(quantity.toString());
     }
+
     public void checkGoal(){
         ExchangeRateChartDTO.ExchangeRateData rateData = exchangeRateChartService.getUSExchangeRate();
         tripClient.checkTripGoalTrigger(rateData.getRate());
