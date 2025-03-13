@@ -38,7 +38,7 @@ public class ForextAlertConsumer {
         }
         AlarmType type=AlarmType.GOAL_ACHIEVED;
 
-        if (tripGoalAlarmDTO.getType()=="end"){
+        if (tripGoalAlarmDTO.getType().equals("end")){
             type=AlarmType.GOAL_FAILED;
         }
         alarmService.sendAlarm(AlarmRequestDTO.builder()
