@@ -91,4 +91,10 @@ public class TripGoalController {
         List<Integer> resposne = tripGoalService.findSimilarTripByTripId(tripId);
         return ResponseEntity.ok(Response.success(resposne));
     }
+
+    @PostMapping("/check")
+    public ResponseEntity<Response<Void>> checkTripGoalTrigger(@RequestBody String rate){
+        tripGoalService.checkGoalPeriod(rate);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
 }
