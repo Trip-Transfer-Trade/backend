@@ -81,6 +81,9 @@ public class AlarmService {
                 .map(fcm -> Message.builder()
                         .setNotification(notification)
                         .setToken(fcm.getToken())
+                        .putData("type", requestDTO.getType().name())
+                        .putData("tripName", requestDTO.getTripName())
+                        .putData("tripId",requestDTO.getTripId().toString())
                         .build())
                 .toList();
 

@@ -17,6 +17,8 @@ public class AlarmRequestDTO {
     private AlarmType type;
     @Builder.Default
     private String rate="";
+    @Builder.Default
+    private Integer tripId=0;
 
     public static AlarmHistory toEntity(AlarmRequestDTO alarmRequestDTO) {
         return AlarmHistory.builder()
