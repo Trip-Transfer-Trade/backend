@@ -150,7 +150,7 @@ public class TripGoalService {
         String json = null;
         try {
             json = objectMapper.writeValueAsString(
-                    TripGoalAlarmDTO.toDTO(tripGoal.getName(), tripGoal.getAccount().getUserId(), type)
+                    TripGoalAlarmDTO.toDTO(tripGoal.getName(), tripGoal.getAccount().getUserId(), type,tripGoal.getId())
             );
             log.info("json :" +json);
         } catch (JsonProcessingException e) {
