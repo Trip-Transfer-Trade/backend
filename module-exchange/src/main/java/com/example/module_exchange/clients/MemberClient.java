@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name="member-service",url="http://localhost:8081/api/members")
+@FeignClient(name="member-service")
 public interface MemberClient {
     @GetMapping("")
     ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-Username",required = false) String username);
