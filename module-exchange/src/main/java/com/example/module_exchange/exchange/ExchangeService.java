@@ -513,9 +513,17 @@ public class ExchangeService {
                 .collect(Collectors.toMap(TripGoalResponseDTO::getAccountId, tripGoal -> tripGoal));
 
         return exchangeCurrency.stream()
-                .filter(ec -> ec.getCurrencyCode().equalsIgnoreCase(currencyCode))
+                .filter(ec -> ec.getCurrencyCode() != null && ec.getCurrencyCode().equalsIgnoreCase(currencyCode))
                 .map(ec -> {
-                    TripGoalResponseDTO tripGoal = tripGoalMap.getOrDefault(ec.getAccountId(), null);
+                    Integer accountId = ec.getAccountId();
+                    if(accountId == null) {
+                        return null;
+                    }
+
+                    TripGoalResponseDTO tripGoal = tripGoalMap.get(accountId);
+                    if(tripGoal == null) {
+                        return null;
+                    }
                     return WalletDetailDTO.toDto(ec, tripGoal);
                 })
                 .filter(Objects::nonNull)
@@ -536,9 +544,9 @@ public class ExchangeService {
                         ec -> Pair.of(ec.getAccountId(), ec.getCurrencyCode()),
                         Collectors.reducing(BigDecimal.ZERO, ec -> {
                             if("USD".equals(ec.getCurrencyCode())){
-                                return ec.getAvailableAmount().multiply(USD_TO_KRW);
+                                return ec.getAmount().multiply(USD_TO_KRW);
                             } else {
-                                return ec.getAvailableAmount();
+                                return ec.getAmount();
                             }
                         }, BigDecimal::add)
                 ));
