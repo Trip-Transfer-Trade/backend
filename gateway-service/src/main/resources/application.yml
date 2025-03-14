@@ -31,6 +31,10 @@ spring:
           uri: lb://TRIP-SERVICE
           predicates:
             - Path=/api/trips/**
+        - id: trip-service-accounts
+          uri: lb://TRIP-SERVICE
+          predicates:
+            - Path=/api/accounts/**
         - id: exchange-service
           uri: lb://EXCHANGE-SERVICE
           predicates:

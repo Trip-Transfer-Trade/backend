@@ -1,6 +1,10 @@
 server:
   port: 8761  # Eureka 기본 포트
-
+  ssl:
+    enabled: true
+    key-store: classpath:keystore.p12
+    key-store-password: your-password
+    key-store-type: PKCS12
 spring:
   application:
     name: eureka-server
