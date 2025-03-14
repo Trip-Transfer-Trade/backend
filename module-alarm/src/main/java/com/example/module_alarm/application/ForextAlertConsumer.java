@@ -44,6 +44,7 @@ public class ForextAlertConsumer {
         alarmService.sendAlarm(AlarmRequestDTO.builder()
                 .tripName(tripGoalAlarmDTO.getTripName())
                 .userId(tripGoalAlarmDTO.getUserId())
+                .tripId(tripGoalAlarmDTO.getTripId())
                 .type(type).build());
     }
 
@@ -60,6 +61,7 @@ public class ForextAlertConsumer {
         alarmService.sendAlarm(AlarmRequestDTO.builder()
                 .tripName(tripGoalAlarmDTO.getTripName())
                 .userId(tripGoalAlarmDTO.getUserId())
+                .tripId(tripGoalAlarmDTO.getTripId())
                 .type(AlarmType.GOAL_HALF_FAILED).build());
     }
 }
