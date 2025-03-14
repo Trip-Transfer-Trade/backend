@@ -127,6 +127,15 @@ project(':eureka-server') {
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	}
+	tasks.named("processResources") {
+		doLast {
+			copy {
+				from("src/main/resources/keystore.p12") // 🔥 keystore.p12만 포함
+				into("$buildDir/resources/main/") // 빌드된 리소스 폴더로 복사
+			}
+		}
+	}
+
 }
 
 
