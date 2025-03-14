@@ -513,11 +513,21 @@ public class ExchangeService {
                 .collect(Collectors.toMap(TripGoalResponseDTO::getAccountId, tripGoal -> tripGoal));
 
         return exchangeCurrency.stream()
-                .filter(ec -> ec.getCurrencyCode().equalsIgnoreCase(currencyCode))
+                .filter(ec -> ec.getCurrencyCode() != null && ec.getCurrencyCode().equalsIgnoreCase(currencyCode)) // NPE 방지
                 .map(ec -> {
-                    TripGoalResponseDTO tripGoal = tripGoalMap.getOrDefault(ec.getAccountId(), null);
+                    Integer accountId = ec.getAccountId();
+                    if (accountId == null) {
+                        return null; // null 값 제외 대상
+                    }
+
+                    TripGoalResponseDTO tripGoal = tripGoalMap.get(accountId);
+                    if (tripGoal == null) {
+                        return null; // tripGoal이 없는 경우 제외 대상
+                    }
+
                     return WalletDetailDTO.toDto(ec, tripGoal);
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

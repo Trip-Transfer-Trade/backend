@@ -13,5 +13,4 @@ public class ModuleExchangeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ModuleExchangeApplication.class, args);
 	}
-
 }

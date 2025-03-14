@@ -6,12 +6,14 @@ import com.example.module_exchange.exchange.transactionHistory.AccountListDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
 import com.example.module_utility.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/exchanges")
 public class ExchangeController {
@@ -115,6 +117,7 @@ public class ExchangeController {
     @GetMapping("/myWallet/detail")
     public ResponseEntity<Response<List<WalletDetailDTO>>> findExchangeCurrencyByUserIdAndCurrencyCode(@RequestHeader(value = "X-Authenticated-User", required = false) int userId, @RequestParam String currencyCode) {
         List<WalletDetailDTO> response = exchangeService.findExchangeCurrencyByUserIdAndCurrencyCode(userId, currencyCode);
+        log.info(response.toString());
         return ResponseEntity.ok(Response.success(response));
     }
 

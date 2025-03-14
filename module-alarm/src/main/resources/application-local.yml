@@ -3,9 +3,9 @@ spring:
     name: alarm-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/ttt
+    url: jdbc:mysql://localhost:3306/trip_db
     username: root
-    password: root
+    password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
