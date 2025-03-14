@@ -47,6 +47,7 @@ public class TripGoalResponseDTO {
         return TripGoalResponseDTO.builder()
                 .id(tripGoal.getId())
                 .name(tripGoal.getName())
+                .accountNumber(accountNumber)
                 .country(tripGoal.getCountry())
                 .goalAmount(tripGoal.getGoalAmount())
                 .profit(tripGoal.getProfit())

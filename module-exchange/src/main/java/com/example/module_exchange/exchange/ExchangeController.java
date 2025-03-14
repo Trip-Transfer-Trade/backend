@@ -154,9 +154,9 @@ public class ExchangeController {
         return ResponseEntity.ok(Response.successWithoutData());
     }
 
-    @GetMapping("/order/amount/{tripId}")
-    public ResponseEntity<Response<OrderCheckDTO>> checkOrder(@PathVariable int tripId) {
-        OrderCheckDTO response = stockTradeService.getAmountCheck(tripId);
+    @GetMapping("/order/amount/{tripId}/{currencyCode}")
+    public ResponseEntity<Response<OrderCheckDTO>> checkOrderAmount(@PathVariable int tripId, @PathVariable String currencyCode) {
+        OrderCheckDTO response = stockTradeService.getAmountCheck(tripId, currencyCode);
         return ResponseEntity.ok(Response.success(response));
     }
 

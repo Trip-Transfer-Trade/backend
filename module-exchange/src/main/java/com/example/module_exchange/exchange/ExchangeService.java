@@ -518,6 +518,7 @@ public class ExchangeService {
                     TripGoalResponseDTO tripGoal = tripGoalMap.getOrDefault(ec.getAccountId(), null);
                     return WalletDetailDTO.toDto(ec, tripGoal);
                 })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

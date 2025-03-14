@@ -760,9 +760,9 @@ public class StockTradeService {
     }
 
     // 주문 가능 금액 확인
-    public OrderCheckDTO getAmountCheck(int tripId) {
+    public OrderCheckDTO getAmountCheck(int tripId, String currencyCode) {
         int accountId = getAccountIdFromTripId(tripId);
-        ExchangeCurrency exchangeCurrency = exchangeCurrencyRepository.findFirstByAccountId(accountId);
+        ExchangeCurrency exchangeCurrency = exchangeCurrencyRepository.findFirstByAccountIdAndCurrencyCode(accountId, currencyCode);
 
         return OrderCheckDTO.builder()
                 .amount(exchangeCurrency.getAmount())
