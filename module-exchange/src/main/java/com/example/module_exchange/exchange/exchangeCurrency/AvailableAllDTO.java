@@ -12,6 +12,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class AvailableAllDTO {
-    private BigDecimal availableAmount;
+    private BigDecimal amount;
     private String currencyCode;
 }

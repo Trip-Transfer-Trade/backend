@@ -11,6 +11,7 @@ import com.example.module_exchange.exchange.transactionHistory.*;
 import com.example.module_exchange.redisData.exchangeData.ExchangeRateDTO;
 import com.example.module_exchange.redisData.exchangeData.ExchangeRateListDTO;
 import com.example.module_exchange.redisData.exchangeData.ExchangeRateService;
+import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartDTO;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -531,7 +533,9 @@ public class ExchangeService {
     }
 
     public List<AvailableDTO> findExchangeCurrencyTripByUserId(int userId) {
-        final BigDecimal USD_TO_KRW = BigDecimal.valueOf(1400);
+        ExchangeRateChartDTO.ExchangeRateData exchangeRateChartDTO = exchangeRateChartService.getUSExchangeRate();
+        System.out.println(exchangeRateChartDTO.getRate());
+        final BigDecimal USD_TO_KRW = new BigDecimal(exchangeRateChartDTO.getRate().replace(",", ""));
         List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
@@ -562,7 +566,7 @@ public class ExchangeService {
                             .tripId(trip.getId())
                             .country(trip.getCountry())
                             .tripName(trip.getName())
-                            .availableAmount(totalAmount)
+                            .amount(totalAmount)
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -574,7 +578,7 @@ public class ExchangeService {
         return exchangeCurrency.stream()
                 .map(ec -> AvailableAllDTO.builder()
                         .currencyCode(ec.getCurrencyCode())
-                        .availableAmount(ec.getAvailableAmount())
+                        .amount(ec.getAmount())
                         .build()
                 )
                 .collect(Collectors.toList());
