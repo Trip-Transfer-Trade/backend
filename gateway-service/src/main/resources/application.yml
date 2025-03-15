@@ -31,19 +31,19 @@ spring:
           predicates:
             - Path=/api/members/**
         - id: module-trip
-          uri: lb://MODULE-TRIP
+          uri: lb://module-trip
           predicates:
             - Path=/api/trips/**
         - id: module-trip-accounts
-          uri: lb://MODULE-TRIP
+          uri: lb://module-trip
           predicates:
             - Path=/api/accounts/**
         - id: module-exchange
-          uri: lb://MODULE-EXCHANGE
+          uri: lb://module-exchange
           predicates:
             - Path=/api/exchanges/**
         - id: module-alarm
-          uri: lb://MODULE-ALARM
+          uri: lb://module-alarm
           predicates:
             - Path=/api/alarms/**
 
