@@ -1,5 +1,7 @@
 package com.example.module_exchange.exchange.exchangeCurrency;
 
+import com.example.module_utility.response.Response;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,5 +35,9 @@ public class ExchangeCurrencyController {
         return exchangeCurrencyService.getTripGoalDetail(tripId, currencyCode);
     }
 
-
+    @PostMapping("/init/{accountId}")
+    public ResponseEntity<Response<Void>> init(@PathVariable Integer accountId) {
+        exchangeCurrencyService.setInitAmount(accountId);
+        return ResponseEntity.ok(Response.successWithoutData());
+    }
 }

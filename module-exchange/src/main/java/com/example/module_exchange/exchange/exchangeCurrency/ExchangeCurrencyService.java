@@ -4,6 +4,7 @@ import com.example.module_exchange.clients.AccountClient;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryRepository;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
+import com.example.module_exchange.exchange.transactionHistory.ExchangeCurrencyDTO;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.Account;
 import com.example.module_trip.account.AccountResponseDTO;
@@ -19,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -188,5 +190,20 @@ public class ExchangeCurrencyService {
 
         return new TripGoalDetailDTO(profit,evaluationAmount, purchaseAmount, totalAssets, depositAmount);
 
+    }
+
+    public void setInitAmount(Integer accountId) {
+        Optional<ExchangeCurrency> currency = exchangeCurrencyRepository.findByAccountIdAndCurrencyCode(accountId, "KRW");
+        if (currency.isPresent()) {
+            ExchangeCurrency curr = currency.get();
+            curr.changeAmount(new BigDecimal(5000000).subtract(curr.getAmount()));
+            exchangeCurrencyRepository.save(curr);
+        } else {
+            exchangeCurrencyRepository.save(ExchangeCurrency.builder()
+                    .accountId(accountId)
+                    .currencyCode("KRW")
+                    .amount(new BigDecimal(5000000))
+                    .build());
+        }
     }
 }
