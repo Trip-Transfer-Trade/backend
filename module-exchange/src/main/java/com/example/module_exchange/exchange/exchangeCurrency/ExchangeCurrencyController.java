@@ -35,9 +35,9 @@ public class ExchangeCurrencyController {
         return exchangeCurrencyService.getTripGoalDetail(tripId, currencyCode);
     }
 
-    @PostMapping("/init/{accountId}")
-    public ResponseEntity<Response<Void>> init(@PathVariable Integer accountId) {
-        exchangeCurrencyService.setInitAmount(accountId);
+    @PostMapping("/init/{accountNumber}")
+    public ResponseEntity<Response<Void>> init(@PathVariable String accountNumber) {
+        exchangeCurrencyService.setInitAmount(accountNumber);
         return ResponseEntity.ok(Response.successWithoutData());
     }
 }
