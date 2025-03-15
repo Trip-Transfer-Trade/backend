@@ -15,5 +15,5 @@ public class AvailableDTO {
     private Integer tripId;
     private String country;
     private String tripName;
-    private BigDecimal availableAmount;
+    private BigDecimal amount;
 }
