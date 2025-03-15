@@ -192,7 +192,8 @@ public class ExchangeCurrencyService {
 
     }
 
-    public void setInitAmount(Integer accountId) {
+    public void setInitAmount(String accountNumber) {
+        Integer accountId = accountClient.getAccountByAccountNumber(accountNumber).getBody().getData().getAccountId();
         Optional<ExchangeCurrency> currency = exchangeCurrencyRepository.findByAccountIdAndCurrencyCode(accountId, "KRW");
         if (currency.isPresent()) {
             ExchangeCurrency curr = currency.get();
