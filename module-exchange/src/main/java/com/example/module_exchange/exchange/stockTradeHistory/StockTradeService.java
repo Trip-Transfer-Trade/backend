@@ -242,12 +242,7 @@ public class StockTradeService {
     }
 
     private void validateSufficientQuantity(StockTradeDTO stockTradeDTO) {
-        BigDecimal totalBuyQuantity = stockTradeHistoryRepository.findTotalBuyQuantityByStockCode(stockTradeDTO.getStockCode());
-        BigDecimal totalSellQuantity = stockTradeHistoryRepository.findTotalSellQuantityByStockCode(stockTradeDTO.getStockCode());
-        totalSellQuantity = (totalSellQuantity != null) ? totalSellQuantity : BigDecimal.ZERO;
-
-        BigDecimal ownedQuantity = totalBuyQuantity.subtract(totalSellQuantity);
-
+        BigDecimal ownedQuantity = new BigDecimal(checkQuantity(stockTradeDTO.getTripId(), stockTradeDTO.getStockCode()));
         BigDecimal orderSellQuantity = BigDecimal.valueOf(stockTradeDTO.getQuantity());
 
         if(orderSellQuantity.compareTo(ownedQuantity) > 0){
