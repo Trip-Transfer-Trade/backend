@@ -56,7 +56,16 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     private boolean isPublicEndpoint(ServerHttpRequest request) {
         String path = request.getURI().getPath();
-        return path.contains("/api/members/signup") || path.contains("/api/members/login") || path.contains("/api/members/send") || path.contains("/api/members/check") || path.contains("/api/exchanges/us/ranking") || path.contains("/api/exchanges/ranking");
+        boolean isPublic =  path.contains("/api/members/signup") || path.contains("/api/members/login") || path.contains("/api/members/send") || path.contains("/api/members/check") || path.contains("/api/exchanges/us/ranking") || path.contains("/api/exchanges/ranking");
+
+        if (isPublic) {
+            logger.info("✅ 공개 경로 요청 - JWT 필터 제외 (경로: {})", path);
+        } else {
+            logger.info("🔒 인증 필요 경로 - JWT 필터 적용 (경로: {})", path);
+        }
+
+        return isPublic;
+
     }
 
     private String resolveToken(ServerHttpRequest request) {
