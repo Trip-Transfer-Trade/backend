@@ -1,6 +1,9 @@
 server:
   port: 8080
 
+  tomcat:
+    keep-alive-timeout: 190000  # 밀리초 단위로 설정 (190초)
+
 spring:
   main:
     web-application-type: reactive
