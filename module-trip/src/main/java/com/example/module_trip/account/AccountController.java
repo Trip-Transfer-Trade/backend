@@ -73,4 +73,9 @@ public class AccountController {
         return ResponseEntity.ok(normalAccountDTO);
     }
 
+    @GetMapping("/count")
+    public Integer countTripCompleted(@RequestHeader(value = "X-Authenticated-User", required = false) int userId){
+        return accountService.countTripCompleted(userId);
+    }
+
 }

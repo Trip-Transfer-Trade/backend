@@ -1,5 +1,6 @@
 package com.example.module_trip.account;
 
+import com.example.module_trip.tripGoal.TripGoal;
 import com.google.firebase.remoteconfig.User;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -100,6 +101,11 @@ public class AccountService {
         Account normalAccount = accountRepository.findByUserIdAndAccountType(userId, AccountType.NORMAL)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No NORMAL account found for user ID: " + userId));
         return NormalAccountDTO.toDTO(normalAccount);
+    }
+
+    public int countTripCompleted(int userId){
+        List<Account> accounts = accountRepository.findByUserId(userId);
+        return accounts.size() - 1;
     }
 
 
