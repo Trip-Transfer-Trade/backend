@@ -27,7 +27,7 @@ public interface ExchangeCurrencyRepository extends JpaRepository<ExchangeCurren
 
     List<ExchangeCurrency> findByAccountIdInAndCurrencyCode(List<Integer> accountIds, String currencyCode);
 
-    @Query("SELECT e.currencyCode, SUM(e.availableAmount) " +
+    @Query("SELECT e.currencyCode, SUM(e.amount) " +
             "FROM ExchangeCurrency e " +
             "WHERE e.accountId IN :accountIds " +
             "GROUP BY e.currencyCode")
