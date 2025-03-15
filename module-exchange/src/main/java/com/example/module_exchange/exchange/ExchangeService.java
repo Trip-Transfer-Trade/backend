@@ -15,6 +15,7 @@ import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.Exch
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
+import com.example.module_trip.tripGoal.TripGoal;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
@@ -572,8 +573,10 @@ public class ExchangeService {
                 .collect(Collectors.toList());
     }
 
-    public List<AvailableAllDTO> findAllExchangeCurrencyTripByUserId(int accountId) {
-        List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountId(accountId);
+    public List<AvailableAllDTO> findAllExchangeCurrencyTripByUserId(int tripId) {
+        ResponseEntity<Response<TripGoalResponseDTO>> tripGoal = tripClient.getTripGoal(tripId);
+        TripGoalResponseDTO tripGoalResponseDTO = tripGoal.getBody().getData();
+        List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountId(tripGoalResponseDTO.getAccountId());
 
         return exchangeCurrency.stream()
                 .map(ec -> AvailableAllDTO.builder()

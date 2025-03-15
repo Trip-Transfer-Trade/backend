@@ -125,8 +125,8 @@ public class ExchangeController {
     }
 
     @GetMapping("/myWallet/trip/all")
-    public ResponseEntity<Response<List<AvailableAllDTO>>> findExchangeAllTrip(@RequestParam int accountId) {
-        List<AvailableAllDTO> response = exchangeService.findAllExchangeCurrencyTripByUserId(accountId);
+    public ResponseEntity<Response<List<AvailableAllDTO>>> findExchangeAllTrip(@RequestParam int tripId) {
+        List<AvailableAllDTO> response = exchangeService.findAllExchangeCurrencyTripByUserId(tripId);
         return ResponseEntity.ok(Response.success(response));
     }
 
