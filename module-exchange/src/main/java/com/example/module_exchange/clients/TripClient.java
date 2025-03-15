@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name="trip-service")
+@FeignClient(name="trip-service", url="http://localhost:8082/api/trips")
 public interface TripClient {
 
     @GetMapping("/{tripId}")
