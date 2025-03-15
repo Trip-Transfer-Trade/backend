@@ -26,24 +26,24 @@ spring:
           enabled: true  # Eureka를 통해 서비스 검색 활성화
           lower-case-service-id: true  # 서비스 ID를 소문자로 변환하여 Eureka와 일치시킴
       routes:
-        - id: member-service
-          uri: lb://MEMBER-SERVICE  # Eureka에서 검색
+        - id: module-member
+          uri: lb://module-member  # Eureka에서 검색
           predicates:
             - Path=/api/members/**
-        - id: trip-service
-          uri: lb://TRIP-SERVICE
+        - id: module-trip
+          uri: lb://MODULE-TRIP
           predicates:
             - Path=/api/trips/**
-        - id: trip-service-accounts
-          uri: lb://TRIP-SERVICE
+        - id: module-trip-accounts
+          uri: lb://MODULE-TRIP
           predicates:
             - Path=/api/accounts/**
-        - id: exchange-service
-          uri: lb://EXCHANGE-SERVICE
+        - id: module-exchange
+          uri: lb://MODULE-EXCHANGE
           predicates:
             - Path=/api/exchanges/**
-        - id: alarm-service
-          uri: lb://ALARM-SERVICE
+        - id: module-alarm
+          uri: lb://MODULE-ALARM
           predicates:
             - Path=/api/alarms/**
 
