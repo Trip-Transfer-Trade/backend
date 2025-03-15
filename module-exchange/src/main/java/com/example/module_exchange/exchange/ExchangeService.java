@@ -109,9 +109,13 @@ public class ExchangeService {
 
         String fromCurrency = exchangeBatchDTO.getFromCurrency();
         String toCurrency = exchangeBatchDTO.getToCurrency();
+        if (toCurrency.equals("JPY")){
+            exchangeRate=exchangeRate.divide(new BigDecimal(100),10,RoundingMode.HALF_UP);
+        }
 
+        BigDecimal amount = exchangeBatchDTO.getFromAmount();
+        BigDecimal toAmount =amount.multiply(BigDecimal.ONE.divide(exchangeRate, 10, RoundingMode.HALF_UP));
         ExchangeCurrency toExchangeCurrency = getOrCreateExchangeCurrency(exchangeBatchDTO.getAccountId(),toCurrency);
-        BigDecimal toAmount = BigDecimal.ZERO;
         List<ExchangeHistory> exchangeHistories = new ArrayList<>();
         List<TransactionHistory> transactionHistories = new ArrayList<>();
         List<ExchangeCurrency> exchangeCurrencies = new ArrayList<>();
@@ -122,8 +126,6 @@ public class ExchangeService {
 
             BigDecimal fromAmount = exchange.getAmount();
             validateSufficientBalance(fromExchangeCurrency,fromAmount);
-
-            toAmount.add(fromAmount);
 
             exchangeHistories.add(ExchangeHistory.builder()
                     .exchangeType(ExchangeType.WITHDRAWAL)
@@ -151,11 +153,10 @@ public class ExchangeService {
         TransactionHistory toTransactionHistory = TransactionHistory.builder()
                         .transactionType(TransactionType.DEPOSIT).transactionCategory(TransactionCategory.EXCHANGE)
                         .transactionAmount(toAmount).exchangeCurrency(toExchangeCurrency).description("환전 입금").build();
-
-        BigDecimal totalAmount =toAmount.multiply(exchangeRate);
+        log.info("fromAmount : {} , toAmount : {}",exchangeBatchDTO.getFromAmount(),toAmount);
 
         executeExchangeBatchOperations(exchangeHistories,transactionHistories,exchangeCurrencies,
-                toExchangeCurrency, totalAmount,toExchangeHistory, toTransactionHistory );
+                toExchangeCurrency, toAmount,toExchangeHistory, toTransactionHistory );
         ExchangeGoalListDTO.ExchangeGoalResult result = new ExchangeGoalListDTO.ExchangeGoalResult();
         result.setToAmount(toAmount);
         result.setRate(exchangeBatchDTO.getExchangeRate().toString());
