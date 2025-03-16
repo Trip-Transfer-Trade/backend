@@ -11,6 +11,7 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 public class ExchangeGoalListDTO {
+    private String currency;
     Map<String,ExchangeGoalResult> exchanges;
 
     @Getter

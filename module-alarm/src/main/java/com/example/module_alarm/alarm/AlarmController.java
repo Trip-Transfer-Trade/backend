@@ -22,7 +22,7 @@ public class AlarmController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Response<List<AlarmResponseDTO>>> findAlarmByUserId(@RequestParam final Integer userId) {
+    public ResponseEntity<Response<List<AlarmResponseDTO>>> findAlarmByUserId(@RequestHeader("X-Authenticated-User") int userId) {
         List<AlarmResponseDTO> response = alarmService.findAlarmByUserId(userId);
         return ResponseEntity.ok(Response.success(response));
     }
@@ -34,14 +34,14 @@ public class AlarmController {
     }
 
     @PatchMapping("")
-    public ResponseEntity<Response<Void>> updateAllAlarm(@RequestParam final Integer userId) {
+    public ResponseEntity<Response<Void>> updateAllAlarm(@RequestHeader("X-Authenticated-User") int userId) {
         alarmService.updateAllAlarmReadStatus(userId);
         Response<Void> response = Response.successWithoutData();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("")
-    public ResponseEntity<Response<Void>> deleteAllAlarm(@RequestParam final Integer userId) {
+    public ResponseEntity<Response<Void>> deleteAllAlarm(@RequestHeader("X-Authenticated-User") int userId) {
         alarmService.deleteAllAlarm(userId);
         return ResponseEntity.ok(Response.successWithoutData());
     }

@@ -180,9 +180,10 @@ public class ExchangeService {
 
     public ExchangeGoalListDTO executeExchangeGoal(ExchangeGoalDTO exchangeGoalDTO) {
         Integer accountId = getAccountIdFromTripId(exchangeGoalDTO.getTripId());
+        log.info("accountId : {}", accountId);
         TripGoalResponseDTO tripGoal = tripClient.getTripGoal(exchangeGoalDTO.getTripId()).getBody().getData();
         String country = tripGoal.getCountry();
-
+        log.info("tripGoal : {}",tripGoal.getProfit());
         // accountId로 exchangeCurrency 가져옴
         List<ExchangeCurrency> exchangeCurrencies = exchangeCurrencyRepository.findByAccountIdAndCurrencyCodeIn(accountId, Arrays.asList("KRW", "USD"));
 
@@ -259,6 +260,7 @@ public class ExchangeService {
 
         ExchangeGoalListDTO resultDTO = new ExchangeGoalListDTO();
         resultDTO.setExchanges(exchangeResultMap);
+        resultDTO.setCurrency(toExchangeCurrency.getCurrencyCode());
         return resultDTO;
     }
 
