@@ -487,8 +487,9 @@ public class ExchangeService {
     }
 
     public List<MyWalletDTO> findExchangeCurrencyByUserId(int userId) {
-        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
-                .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
+        ResponseEntity<Response<AccountResponseDTO>> account = tripClient.getAccountByUserIdAndAccountType(userId, AccountType.TRAVEL_GOAL);
+
+        List<Integer> accountIds = Collections.singletonList(account.getBody().getData().getAccountId());
 
         List<Object[]> amounts = exchangeCurrencyRepository.findTotalAmountByCurrencyCode(accountIds);
 
