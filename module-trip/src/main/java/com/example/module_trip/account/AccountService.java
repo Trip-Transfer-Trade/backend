@@ -1,17 +1,12 @@
 package com.example.module_trip.account;
 
-import com.example.module_trip.tripGoal.TripGoal;
-import com.google.firebase.remoteconfig.User;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+//import com.google.firebase.remoteconfig.User;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
