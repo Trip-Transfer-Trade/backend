@@ -28,7 +28,13 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<Response<Void>> signUp(@RequestBody SignUpRequestDto request) {
-        return ResponseEntity.ok(userService.signUp(request));
+        Response<Void> response = userService.signUp(request);
+        if (response.getStatus() != 200) {
+            return ResponseEntity.status(response.getStatus()).body(response);
+        }
+
+        return ResponseEntity.ok(response);
+//        return ResponseEntity.ok(userService.signUp(request));
     }
 
     @PostMapping("/login")
