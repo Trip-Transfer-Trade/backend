@@ -1,6 +1,4 @@
 package com.example.module_trip.account;
-
-//import com.google.firebase.remoteconfig.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
