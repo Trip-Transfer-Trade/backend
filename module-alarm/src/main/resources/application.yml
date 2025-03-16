@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: alarm-service
+    name: module-alarm
 
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}

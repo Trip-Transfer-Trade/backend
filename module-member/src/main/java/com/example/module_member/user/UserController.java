@@ -35,9 +35,13 @@ public class UserController {
     public ResponseEntity<Response<LoginResponseDto>> login(@RequestBody LoginRequestDto request, HttpServletResponse response) {
         Response<LoginResponseDto> loginResponse = userService.login(request);
 
+        System.out.println("🔍 로그인 응답 상태 코드: " + loginResponse.getStatus());
+        System.out.println("🔍 로그인 응답 메시지: " + loginResponse.getMessage());
+
         if (loginResponse.getStatus() != 200) {
             return ResponseEntity.status(loginResponse.getStatus()).body(loginResponse);
         }
+
 
         String token = loginResponse.getData().getToken();
         setJwtCookie(response, token);

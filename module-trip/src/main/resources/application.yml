@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: trip-service
+    name: module-trip
 
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
