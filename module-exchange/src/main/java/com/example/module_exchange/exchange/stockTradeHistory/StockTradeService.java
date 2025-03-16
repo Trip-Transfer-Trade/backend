@@ -149,6 +149,8 @@ public class StockTradeService {
                 targetCurrency = exchangeCurrency;
             }
 
+            realisedCalc(tripId, stockCode,quantity);
+
             StockTradeHistory stockTradeHistory = StockTradeHistory.builder()
                     .exchangeCurrency(targetCurrency)
                     .tradeType(tradeType)
