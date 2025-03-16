@@ -29,6 +29,12 @@ public class AccountService {
     }
 
     public String saveAccount(Integer userId,  AccountCreateRequestDTO accountCreateRequestDTO) {
+        Optional<Account> hasAccount = accountRepository.findByUserIdAndAccountType(userId, AccountType.NORMAL);
+
+        if(hasAccount.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Account already exists");
+        }
+
         String generatedAccountNumber = generateRandomAccountNumber();
         Account account = accountCreateRequestDTO.toEntity(userId, generatedAccountNumber);
         accountRepository.save(account);
