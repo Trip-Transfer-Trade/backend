@@ -27,11 +27,20 @@ public class AccountService {
     }
 
     public String saveAccount(Integer userId,  AccountCreateRequestDTO accountCreateRequestDTO) {
-        Optional<Account> hasAccount = accountRepository.findByUserIdAndAccountType(userId, AccountType.NORMAL);
+        AccountType newAccountType = accountCreateRequestDTO.getAccountType();
 
-        if(hasAccount.isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Account already exists");
+        if (newAccountType == AccountType.NORMAL) { // NORMAL 계좌만 제한
+            boolean hasNormalAccount = accountRepository.existsByUserIdAndAccountType(userId, AccountType.NORMAL);
+            if (hasNormalAccount) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "A NORMAL account already exists.");
+            }
         }
+
+//        Optional<Account> hasAccount = accountRepository.findByUserIdAndAccountType(userId, AccountType.NORMAL);
+//
+//        if(hasAccount.isPresent()) {
+//            throw new ResponseStatusException(HttpStatus.CONFLICT, "Account already exists");
+//        }
 
         String generatedAccountNumber = generateRandomAccountNumber();
         Account account = accountCreateRequestDTO.toEntity(userId, generatedAccountNumber);
