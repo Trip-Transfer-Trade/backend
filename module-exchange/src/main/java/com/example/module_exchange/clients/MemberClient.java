@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name="module-member")
 public interface MemberClient {
-    @GetMapping("")
+    @GetMapping("/api/members")
     ResponseEntity<Response<UserResponseDto>> findUserByUsername(@RequestHeader(value = "X-Authenticated-Username",required = false) String username);
 }
