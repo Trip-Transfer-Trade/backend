@@ -1,7 +1,6 @@
 package com.example.module_trip.account;
 
 import com.example.module_trip.tripGoal.TripGoal;
-import com.google.firebase.remoteconfig.User;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
