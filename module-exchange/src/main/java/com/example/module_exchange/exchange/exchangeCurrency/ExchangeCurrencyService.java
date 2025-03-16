@@ -1,12 +1,9 @@
 package com.example.module_exchange.exchange.exchangeCurrency;
 
-import com.example.module_exchange.clients.AccountClient;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryRepository;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
-import com.example.module_exchange.exchange.transactionHistory.ExchangeCurrencyDTO;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
-import com.example.module_trip.account.Account;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.NormalAccountDTO;
 import com.example.module_trip.tripGoal.TripGoalListResponseDTO;
@@ -29,27 +26,24 @@ public class ExchangeCurrencyService {
     private final ExchangeCurrencyRepository exchangeCurrencyRepository;
     private final ExchangeRateChartService exchangeRateChartService;
     private final StockTradeHistoryRepository stockTradeHistoryRepository;
-    private final AccountClient accountClient;
     private final TripClient tripClient;
     private final StockTradeService stockTradeService;
 
     public ExchangeCurrencyService(ExchangeCurrencyRepository exchangeCurrencyRepository,
                                    ExchangeRateChartService exchangeRateChartService,
                                    StockTradeHistoryRepository stockTradeHistoryRepository,
-                                   AccountClient accountClient,
                                    TripClient tripClient,
                                    StockTradeService stockTradeService) {
         this.exchangeCurrencyRepository = exchangeCurrencyRepository;
         this.exchangeRateChartService = exchangeRateChartService;
         this.stockTradeHistoryRepository = stockTradeHistoryRepository;
-        this.accountClient = accountClient;
         this.tripClient = tripClient;
         this.stockTradeService = stockTradeService;
     }
 
     // 일반 계좌 정보 조회
     public ExchangeCurrencyTotalDTO getCurrenciesByAccountId(Integer userId, List<String> currencyCodes) {
-        NormalAccountDTO normalAccountDTO = accountClient.getNormalAccountByUserId(userId).getBody();
+        NormalAccountDTO normalAccountDTO = tripClient.getNormalAccountByUserId(userId).getBody();
         if (normalAccountDTO == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found for user ID: " + userId);
         }
@@ -76,7 +70,7 @@ public class ExchangeCurrencyService {
 
         List<TripGoalListResponseDTO> tripGoals = tripGoalListResponse.getBody().getData();
 
-        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
         List<ExchangeCurrency> exchangeCurrencies = exchangeCurrencyRepository.findByAccountIdInAndCurrencyCodeIn(accountIds, currencyCodes);
@@ -193,7 +187,7 @@ public class ExchangeCurrencyService {
     }
 
     public void setInitAmount(String accountNumber) {
-        Integer accountId = accountClient.getAccountByAccountNumber(accountNumber).getBody().getData().getAccountId();
+        Integer accountId = tripClient.getAccountByAccountNumber(accountNumber).getBody().getData().getAccountId();
         Optional<ExchangeCurrency> currency = exchangeCurrencyRepository.findByAccountIdAndCurrencyCode(accountId, "KRW");
         if (currency.isPresent()) {
             ExchangeCurrency curr = currency.get();
