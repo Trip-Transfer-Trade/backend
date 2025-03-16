@@ -3,6 +3,7 @@ package com.example.module_exchange.exchange;
 import com.example.module_exchange.exchange.exchangeCurrency.*;
 import com.example.module_exchange.exchange.stockTradeHistory.*;
 import com.example.module_exchange.exchange.transactionHistory.AccountListDTO;
+import com.example.module_exchange.exchange.transactionHistory.ExchangeCurrencyDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionDTO;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistoryResponseDTO;
 import com.example.module_utility.response.Response;
@@ -18,10 +19,12 @@ public class ExchangeController {
 
     private final ExchangeService exchangeService;
     private final StockTradeService stockTradeService;
+    private final ExchangeCurrencyService exchangeCurrencyService;
 
-    public ExchangeController(ExchangeService exchangeService, StockTradeService stockTradeService) {
+    public ExchangeController(ExchangeService exchangeService, StockTradeService stockTradeService, ExchangeCurrencyService exchangeCurrencyService) {
         this.exchangeService = exchangeService;
         this.stockTradeService = stockTradeService;
+        this.exchangeCurrencyService = exchangeCurrencyService;
     }
 
     @PostMapping("")
@@ -163,6 +166,12 @@ public class ExchangeController {
     @GetMapping("/order/quantity/{tripId}/{stockCode}")
     public ResponseEntity<Response<OrderCheckDTO>> checkOrder(@PathVariable int tripId, @PathVariable String stockCode) {
         OrderCheckDTO response = stockTradeService.getQuantityCheck(tripId, stockCode);
+        return ResponseEntity.ok(Response.success(response));
+    }
+
+    @GetMapping("/trip/{tripId}")
+    public ResponseEntity<Response<List<ExchangeCurrencyDTO>>> findExchangeCurrencyByTripId(@PathVariable int tripId){
+        List<ExchangeCurrencyDTO> response = exchangeCurrencyService.findExchangeCurrencyByTripId(tripId);
         return ResponseEntity.ok(Response.success(response));
     }
 }

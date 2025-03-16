@@ -19,52 +19,52 @@ import java.util.List;
 @FeignClient(name="module-trip")
 public interface TripClient {
 
-    @GetMapping("/{tripId}")
+    @GetMapping("/api/trips/{tripId}")
     ResponseEntity<Response<TripGoalResponseDTO>> getTripGoal(@PathVariable("tripId") Integer tripId);
 
-    @GetMapping("/all")
+    @GetMapping("/api/trips/all")
     ResponseEntity<Response<List<TripGoalResponseDTO>>> getAllTrips();
 
-    @GetMapping("/account/{accountId}")
+    @GetMapping("/api/trips/account/{accountId}")
     ResponseEntity<Response<TripGoalResponseDTO>> getTripGoalByAccountId(@PathVariable("accountId") Integer accountId);
 
-    @PutMapping("/realised")
+    @PutMapping("/api/trips/realised")
     ResponseEntity<Response<TripGoalResponseDTO>> updateRealisedProfit(@RequestBody TripGoalUpdateDTO tripGoalUpdateDTO);
 
-    @PutMapping("/profit")
+    @PutMapping("/api/trips/profit")
     ResponseEntity<Response<TripGoalResponseDTO>> updateProfit(@RequestBody TripGoalProfitUpdateDTO tripGoalProfitUpdateDTO);
 
-    @GetMapping("/all/{accountId}")
+    @GetMapping("/api/trips/all/{accountId}")
     ResponseEntity<Response<List<TripGoalResponseDTO>>> getAllTripsByAccountIdIn(@PathVariable List<Integer> accountId);
 
-    @GetMapping("/list")
+    @GetMapping("/api/trips/list")
     ResponseEntity<Response<List<TripGoalListResponseDTO>>> getListTripGoals(@RequestHeader(value = "X-Authenticated-User", required = false) int userId);
 
-    @GetMapping("/similar/{tripId}")
+    @GetMapping("/api/trips/similar/{tripId}")
     ResponseEntity<Response<List<Integer>>> getSimilarTrips(@PathVariable Integer tripId);
 
-    @PostMapping("/check")
+    @PostMapping("/api/trips/check")
     ResponseEntity<Response<Void>> checkTripGoalTrigger(@PathVariable String rate);
 
-    @GetMapping(value = "", params = "accountType")
+    @GetMapping(value = "/api/accounts", params = "accountType")
     ResponseEntity<Response<AccountResponseDTO>> getAccountByUserIdAndAccountType(@RequestParam("userId") Integer userId, @RequestParam("accountType") AccountType accountType);
 
-    @GetMapping(value = "", params = "!accountType")
+    @GetMapping(value = "/api/accounts", params = "!accountType")
     ResponseEntity<Response<List<AccountResponseDTO>>> getAccountByUserId(@RequestParam("userId") Integer userId);
 
-    @GetMapping("/{accountId}")
+    @GetMapping("/api/accounts/{accountId}")
     ResponseEntity<Response<AccountResponseDTO>> getAccountById(@PathVariable int accountId);
 
-    @GetMapping("/number/{accountNumber}")
+    @GetMapping("/api/accounts/number/{accountNumber}")
     ResponseEntity<Response<AccountResponseDTO>> getAccountByAccountNumber(@PathVariable String accountNumber);
 
-    @PutMapping("/{accountId}")
+    @PutMapping("/api/accounts/{accountId}")
     ResponseEntity<Response<AccountUpdateResponseDTO>> updateAccountAmount(@PathVariable int accountId, @RequestBody BigDecimal amount);
 
-    @GetMapping("/all")
+    @GetMapping("/api/accounts/all")
     ResponseEntity<Response<List<AccountResponseDTO>>> getAllAccount(@RequestHeader(value = "X-Authenticated-User", required = false) int userid);
 
-    @GetMapping("/normal")
+    @GetMapping("/api/accounts/normal")
     ResponseEntity<NormalAccountDTO> getNormalAccountByUserId(@RequestHeader(value = "X-Authenticated-User", required = false) int userId);
 
 }

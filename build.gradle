@@ -50,7 +50,7 @@ allprojects {
 		implementation 'org.springframework.boot:spring-boot-starter-validation'
 		implementation 'org.springframework.boot:spring-boot-starter-web'
 		implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-//		implementation 'com.google.firebase:firebase-admin:9.2.0'
+
 		compileOnly 'org.projectlombok:lombok'
 		runtimeOnly 'com.mysql:mysql-connector-j'
 		annotationProcessor 'org.projectlombok:lombok'
@@ -110,6 +110,7 @@ project(':module-alarm'){
 	dependencies {
 		implementation project(':module-utility')
 		implementation project(':module-trip')
+		implementation 'com.google.firebase:firebase-admin:9.2.0'
 		implementation 'org.springframework.boot:spring-boot-starter-amqp'
 		implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 		implementation 'com.google.firebase:firebase-admin:9.2.0'

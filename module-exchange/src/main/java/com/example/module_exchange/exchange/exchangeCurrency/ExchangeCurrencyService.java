@@ -3,6 +3,7 @@ package com.example.module_exchange.exchange.exchangeCurrency;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeHistoryRepository;
 import com.example.module_exchange.exchange.stockTradeHistory.StockTradeService;
+import com.example.module_exchange.exchange.transactionHistory.ExchangeCurrencyDTO;
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.NormalAccountDTO;
@@ -200,5 +201,18 @@ public class ExchangeCurrencyService {
                     .amount(new BigDecimal(5000000))
                     .build());
         }
+    }
+
+    public List<ExchangeCurrencyDTO> findExchangeCurrencyByTripId(int tripId) {
+        Integer accountId = tripClient.getAccountById(tripId).getBody().getData().getAccountId();
+        List<ExchangeCurrencyDTO> response = exchangeCurrencyRepository.findByAccountId(accountId)
+                .stream()
+                .map(ExchangeCurrencyDTO::toDTO)
+                .collect(Collectors.toList());
+
+        if (response.isEmpty()) {
+            throw new RuntimeException("환전 데이터가 존재하지 않습니다.");
+        }
+        return response;
     }
 }
