@@ -98,7 +98,7 @@ public class AccountService {
 
     public int countTripCompleted(int userId){
         List<Account> accounts = accountRepository.findByUserId(userId);
-        return accounts.size() - 1;
+        return accounts.size();
     }
 
 
