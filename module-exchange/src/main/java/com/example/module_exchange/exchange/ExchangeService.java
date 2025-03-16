@@ -1,6 +1,5 @@
 package com.example.module_exchange.exchange;
 
-import com.example.module_exchange.clients.AccountClient;
 import com.example.module_exchange.clients.MemberClient;
 import com.example.module_exchange.clients.TripClient;
 import com.example.module_exchange.exchange.exchangeCurrency.*;
@@ -15,7 +14,6 @@ import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.Exch
 import com.example.module_exchange.redisData.exchangeData.exchangeRateChart.ExchangeRateChartService;
 import com.example.module_trip.account.AccountResponseDTO;
 import com.example.module_trip.account.AccountType;
-import com.example.module_trip.tripGoal.TripGoal;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
@@ -37,7 +35,6 @@ import java.util.stream.Collectors;
 @Service
 public class ExchangeService {
 
-    private final AccountClient accountClient;
     private final TripClient tripClient;
     private final ExchangeHistoryRepository exchangeHistoryRepository;
     private final TransactionHistoryRepository transactionHistoryRepository;
@@ -47,8 +44,7 @@ public class ExchangeService {
     private final ExchangeRateService exchangeRateService;
     private final ExchangeRateChartService exchangeRateChartService;
 
-    public ExchangeService(AccountClient accountClient, TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, ExchangeCurrencyService exchangeCurrencyService, ExchangeRateService exchangeRateService, ExchangeRateChartService exchangeRateChartService) {
-        this.accountClient = accountClient;
+    public ExchangeService(TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, ExchangeCurrencyService exchangeCurrencyService, ExchangeRateService exchangeRateService, ExchangeRateChartService exchangeRateChartService) {
         this.tripClient = tripClient;
         this.memberClient = memberClient;
         this.exchangeHistoryRepository = exchangeHistoryRepository;
@@ -295,13 +291,13 @@ public class ExchangeService {
 
     public void executeTransactionProcess(TransactionDTO transactionDTO, String username) {
         Integer accountId = transactionDTO.getAccountId();
-        ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(transactionDTO.getTargetAccountNumber());
+        ResponseEntity<Response<AccountResponseDTO>> accountResponse = tripClient.getAccountByAccountNumber(transactionDTO.getTargetAccountNumber());
         Integer targetAccountId = accountResponse.getBody().getData().getAccountId();
         if (accountId.equals(targetAccountId)) {
             throw new RuntimeException("자기 자신에게 송금할 수 없습니다.");
         }
         AccountType targetAccountType = accountResponse.getBody().getData().getAccountType();
-        AccountType accountType = accountClient.getAccountById(accountId).getBody().getData().getAccountType();
+        AccountType accountType = tripClient.getAccountById(accountId).getBody().getData().getAccountType();
         String toDescription;
         String fromDescription;
         if (transactionDTO.getDescription()=="") {
@@ -357,7 +353,7 @@ public class ExchangeService {
     }
 
     private Integer getAccountIdFromAccountNumber(String accountNumber) {
-        ResponseEntity<Response<AccountResponseDTO>> accountResponse = accountClient.getAccountByAccountNumber(accountNumber);
+        ResponseEntity<Response<AccountResponseDTO>> accountResponse = tripClient.getAccountByAccountNumber(accountNumber);
         return accountResponse.getBody().getData().getAccountId();
     }
 
@@ -392,7 +388,7 @@ public class ExchangeService {
         // user id로 account
         System.out.println("userid: " + userid);
 
-        ResponseEntity<Response<List<AccountResponseDTO>>> response = accountClient.getAllAccount(userid);
+        ResponseEntity<Response<List<AccountResponseDTO>>> response = tripClient.getAllAccount(userid);
         List<AccountResponseDTO> accounts = response.getBody().getData();
 
         System.out.println("Response Body: " + response.getBody());
@@ -447,7 +443,7 @@ public class ExchangeService {
     public List<WalletResponseDTO> findExchangeCurrecyByUsernameAndCurrencyCode(String username, String currencyCode) {
         Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();
 
-        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
         return exchangeCurrencyRepository.findByCurrencyCodeAndAccountIdIn(currencyCode, accountIds)
@@ -468,7 +464,7 @@ public class ExchangeService {
 
         Integer userId = memberClient.findUserByUsername(username).getBody().getData().getUserId();
 
-        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
         Map<String, BigDecimal> currencyBalances = new HashMap<>();
@@ -491,7 +487,7 @@ public class ExchangeService {
     }
 
     public List<MyWalletDTO> findExchangeCurrencyByUserId(int userId) {
-        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
         List<Object[]> amounts = exchangeCurrencyRepository.findTotalAmountByCurrencyCode(accountIds);
@@ -506,7 +502,7 @@ public class ExchangeService {
     }
 
     public List<WalletDetailDTO> findExchangeCurrencyByUserIdAndCurrencyCode(int userId, String currencyCode) {
-        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
         List<ExchangeCurrency> exchangeCurrency = exchangeCurrencyRepository.findByAccountIdIn(accountIds);
@@ -540,7 +536,7 @@ public class ExchangeService {
         ExchangeRateChartDTO.ExchangeRateData exchangeRateChartDTO = exchangeRateChartService.getUSExchangeRate();
         System.out.println(exchangeRateChartDTO.getRate());
         final BigDecimal USD_TO_KRW = new BigDecimal(exchangeRateChartDTO.getRate().replace(",", ""));
-        List<Integer> accountIds = accountClient.getAccountByUserId(userId).getBody().getData()
+        List<Integer> accountIds = tripClient.getAccountByUserId(userId).getBody().getData()
                 .stream().map(AccountResponseDTO::getAccountId).collect(Collectors.toList());
 
         List<TripGoalResponseDTO> tripGoals = tripClient.getAllTripsByAccountIdIn(accountIds).getBody().getData();
