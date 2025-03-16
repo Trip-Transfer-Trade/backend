@@ -5,11 +5,12 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Optional;
@@ -33,10 +34,15 @@ public class FcmService {
         FirebaseApp.initializeApp(options);
     }
 
+    @Transactional
     public Response<Void> saveToken(FcmTokenDTO request){
         Optional<Fcm> existingFcm = fcmRepository.findByToken(request.getToken());
-        if(existingFcm.isPresent()){
-            return Response.error(409, "Token already exists");
+        if (existingFcm.isPresent()) {
+            if (existingFcm.get().getUserId().equals(request.getUserId())) {
+                return Response.successWithoutData();
+            } else {
+                fcmRepository.deleteByToken(existingFcm.get().getToken());
+            }
         }
         Fcm fcm = request.toEntity();
         fcmRepository.save(fcm);
