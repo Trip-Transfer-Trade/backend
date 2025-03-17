@@ -19,13 +19,13 @@ public class ProfitScheduler {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(cron = "0 00 12 * * *")
+    @Scheduled(cron = "0 30 13 * * *")
     public void schedule() {
         logger.info("ProfitScheduler 실행됨");
         stockTradeService.getAllUserRealisedProfit();
     }
   
-    @Scheduled(cron = "0 02 12 * * *")
+    @Scheduled(cron = "0 35 13 * * *")
     public void schedule2() {
         Set<String> keys = redisTemplate.keys("userProfit:*");
         if (keys != null) {
