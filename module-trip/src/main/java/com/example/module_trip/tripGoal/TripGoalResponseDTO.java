@@ -67,7 +67,7 @@ public class TripGoalResponseDTO {
                 .country(tripGoal.getCountry())
                 .goalAmount(tripGoal.getGoalAmount())
                 .profit(tripGoal.getProfit())
-                .realisedProfit(tripGoal.getRealisedProfit())
+                .profitUs(tripGoal.getProfitUs())
                 .accountId(tripGoal.getAccount().getId())
                 .realisedProfit(tripGoal.getRealisedProfit())
                 .realisedProfitUs(tripGoal.getRealisedProfitUs())
