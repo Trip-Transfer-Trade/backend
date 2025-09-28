@@ -17,6 +17,7 @@ import com.example.module_trip.account.AccountType;
 import com.example.module_trip.tripGoal.TripGoalResponseDTO;
 import com.example.module_utility.response.Response;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@AllArgsConstructor
 public class ExchangeService {
 
     private final TripClient tripClient;
@@ -43,17 +45,18 @@ public class ExchangeService {
     private final ExchangeCurrencyService exchangeCurrencyService;
     private final ExchangeRateService exchangeRateService;
     private final ExchangeRateChartService exchangeRateChartService;
+    private final ExchangeTranscationService transactionService;
 
-    public ExchangeService(TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, ExchangeCurrencyService exchangeCurrencyService, ExchangeRateService exchangeRateService, ExchangeRateChartService exchangeRateChartService) {
-        this.tripClient = tripClient;
-        this.memberClient = memberClient;
-        this.exchangeHistoryRepository = exchangeHistoryRepository;
-        this.transactionHistoryRepository = transactionHistoryRepository;
-        this.exchangeCurrencyRepository = exchangeCurrencyRepository;
-        this.exchangeCurrencyService = exchangeCurrencyService;
-        this.exchangeRateService = exchangeRateService;
-        this.exchangeRateChartService = exchangeRateChartService;
-    }
+//    public ExchangeService(TripClient tripClient, MemberClient memberClient, ExchangeHistoryRepository exchangeHistoryRepository, TransactionHistoryRepository transactionHistoryRepository, ExchangeCurrencyRepository exchangeCurrencyRepository, ExchangeCurrencyService exchangeCurrencyService, ExchangeRateService exchangeRateService, ExchangeRateChartService exchangeRateChartService) {
+//        this.tripClient = tripClient;
+//        this.memberClient = memberClient;
+//        this.exchangeHistoryRepository = exchangeHistoryRepository;
+//        this.transactionHistoryRepository = transactionHistoryRepository;
+//        this.exchangeCurrencyRepository = exchangeCurrencyRepository;
+//        this.exchangeCurrencyService = exchangeCurrencyService;
+//        this.exchangeRateService = exchangeRateService;
+//        this.exchangeRateChartService = exchangeRateChartService;
+//    }
 
     public ExchangeGoalListDTO.ExchangeGoalResult executeExchangeProcess(ExchangeDTO exchangeDTO) {
         Integer accountId = exchangeDTO.getAccountId();
@@ -316,21 +319,7 @@ public class ExchangeService {
         TransactionHistory fromTransactionHistory = transactionDTO.toTransactionHistory(fromTransactionCurrency, TransactionType.WITHDRAWAL, toDescription);
         TransactionHistory toTransactionHistory = transactionDTO.toTransactionHistory(toTransactionCurrency, TransactionType.DEPOSIT, fromDescription);
 
-        executeTransactionalOperations(amount, fromTransactionCurrency, toTransactionCurrency, fromTransactionHistory, toTransactionHistory);
-
-    }
-
-    @Transactional
-    public void executeTransactionalOperations(BigDecimal amount, ExchangeCurrency fromTransactionCurrency, ExchangeCurrency toTransactionCurrency,
-                                                                   TransactionHistory fromTransactionHistory,TransactionHistory toTransactionHistory) {
-        transactionHistoryRepository.save(fromTransactionHistory);
-        transactionHistoryRepository.save(toTransactionHistory);
-
-        fromTransactionCurrency.changeAmount(amount.negate());
-        exchangeCurrencyRepository.save(fromTransactionCurrency);
-
-        toTransactionCurrency.changeAmount(amount);
-        exchangeCurrencyRepository.save(toTransactionCurrency);
+        transactionService.executeTransactionalOperations(amount, fromTransactionCurrency, toTransactionCurrency, fromTransactionHistory, toTransactionHistory);
 
     }
 

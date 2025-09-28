@@ -1,6 +1,6 @@
 package com.example.module_exchange.exchange.stockTradeHistory;
 
-import com.example.module_exchange.exchange.TransactionCategory;
+import com.example.module_exchange.exchange.transactionHistory.TransactionCategory;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;

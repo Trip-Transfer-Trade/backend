@@ -3,6 +3,7 @@ package com.example.module_exchange.exchange;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeHistory;
 import com.example.module_exchange.exchange.exchangeHistory.ExchangeType;
+import com.example.module_exchange.exchange.transactionHistory.TransactionCategory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionHistory;
 import com.example.module_exchange.exchange.transactionHistory.TransactionType;
 import lombok.AllArgsConstructor;

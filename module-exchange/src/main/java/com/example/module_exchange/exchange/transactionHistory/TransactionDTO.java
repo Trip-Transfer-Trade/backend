@@ -1,6 +1,5 @@
 package com.example.module_exchange.exchange.transactionHistory;
 
-import com.example.module_exchange.exchange.TransactionCategory;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import lombok.Getter;
 

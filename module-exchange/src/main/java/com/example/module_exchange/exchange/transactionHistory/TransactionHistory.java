@@ -1,6 +1,5 @@
 package com.example.module_exchange.exchange.transactionHistory;
 
-import com.example.module_exchange.exchange.TransactionCategory;
 import com.example.module_exchange.exchange.exchangeCurrency.ExchangeCurrency;
 import com.example.module_utility.entity.BaseEntity;
 import jakarta.persistence.*;
